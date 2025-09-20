@@ -1,0 +1,5 @@
+[updates]
+auto_update = false
+
+[output]
+style = "enforcement-guide"
