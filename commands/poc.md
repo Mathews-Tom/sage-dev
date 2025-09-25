@@ -11,19 +11,26 @@ Technical architect designing disposable proof-of-concept to validate core innov
 
 Before generating POC, ask user:
 
-1. **Core Concept:**
-   - "In one sentence, what is the ONE thing this POC needs to prove?"
+1. **System Analysis:**
+   - "Are there multiple independent components/features that need separate validation?"
+   - "If multiple components: What are the core components and their individual hypotheses?"
+   - "Which components can be validated independently vs which have dependencies?"
+   - "What's the priority order if components have dependencies?"
+
+2. **For Each Component (Single or Multiple):**
+   - "In one sentence, what is the ONE thing this component needs to prove?"
    - "What's the simplest possible way to validate this?"
    - "What would make you confident to throw this away and build properly?"
 
-2. **Validation Criteria:**
+3. **Validation Criteria (Per Component):**
    - "What's the minimal output that proves success?"
    - "What can we hardcode? (Everything should be hardcoded)"
    - "What's acceptable performance for validation? (Rough numbers okay)"
 
-3. **Constraints:**
-   - "How many hours can you spend on this? (Should be <24 hours)"
+4. **Constraints:**
+   - "How many hours can you spend on each component? (Should be <24 hours per POC)"
    - "Any specific technology required, or can we use whatever's fastest?"
+   - "Can components be validated in parallel or must they be sequential?"
 
 ## Execution
 
@@ -47,6 +54,8 @@ Before generating POC, ask user:
 
 5. **Generate**: Create minimal POC documentation:
 
+   **For Single POC:**
+
    ```bash
    mkdir -p docs/poc
    tee docs/poc/README.md
@@ -54,20 +63,130 @@ Before generating POC, ask user:
    tee docs/poc/THROWAWAY_CODE.md
    ```
 
+   **For Multiple POCs:**
+
+   ```bash
+   mkdir -p docs/poc
+   mkdir -p docs/poc/poc-1-[component-name]
+   mkdir -p docs/poc/poc-2-[component-name]
+   mkdir -p docs/poc/poc-N-[component-name]
+   tee docs/poc/README.md                           # Master coordinator
+   tee docs/poc/poc-1-[component]/README.md
+   tee docs/poc/poc-1-[component]/CORE_CONCEPT.md
+   tee docs/poc/poc-1-[component]/THROWAWAY_CODE.md
+   # Repeat for each component POC
+   ```
+
 ## POC Documentation Structure
 
-### docs/poc/README.md
+### Master README.md (For Multiple POCs Only)
+
+When multiple POCs are created, the master `docs/poc/README.md` coordinates all components:
 
 ````markdown
-# POC: [System Name] - Core Concept Validation
+# Multi-POC Validation: [System Name]
+
+⚠️ **ALL CODE IN THIS FOLDER IS DISPOSABLE - DO NOT EXTEND OR REFACTOR**
+
+## Overview
+
+This folder contains multiple independent POCs to validate different components of [System Name].
+
+**Total Timeline:** [X] days maximum (each POC ≤3 days, total ≤1 week)
+
+## Components Being Validated
+
+1. **[Component 1 Name]** (`poc-1-[name]/`)
+   - **Hypothesis:** [What this component needs to prove]
+   - **Timeline:** [1-3 days]
+   - **Dependencies:** [None | Depends on POC-X]
+   - **Status:** [Not Started | In Progress | Completed | Failed]
+
+2. **[Component 2 Name]** (`poc-2-[name]/`)
+   - **Hypothesis:** [What this component needs to prove]
+   - **Timeline:** [1-3 days]
+   - **Dependencies:** [None | Depends on POC-X]
+   - **Status:** [Not Started | In Progress | Completed | Failed]
+
+3. **[Component N Name]** (`poc-N-[name]/`)
+   - **Hypothesis:** [What this component needs to prove]
+   - **Timeline:** [1-3 days]
+   - **Dependencies:** [None | Depends on POC-X]
+   - **Status:** [Not Started | In Progress | Completed | Failed]
+
+## Execution Plan
+
+**Phase 1 (Parallel):**
+- [ ] POC-1: [Component Name]
+- [ ] POC-2: [Component Name] (if independent)
+
+**Phase 2 (Sequential after Phase 1):**
+- [ ] POC-3: [Component Name] (if dependent)
+
+## Overall Success Criteria
+
+**All POCs must succeed to validate the system concept:**
+
+- ✅ Component 1 proven: [Specific outcome]
+- ✅ Component 2 proven: [Specific outcome]
+- ✅ Component N proven: [Specific outcome]
+- ✅ Components integrate conceptually: [Integration hypothesis]
+
+## Quick Start
+
+```bash
+# Run all independent POCs in parallel
+cd docs/poc/poc-1-[component] && python poc.py &
+cd docs/poc/poc-2-[component] && python poc.py &
+wait
+
+# Run dependent POCs sequentially
+cd docs/poc/poc-3-[component] && python poc.py
+```
+
+## What Happens Next
+
+### If All POCs Successful ✓
+
+1. **DELETE this entire `docs/poc/` folder**
+2. Run `/plan` to design proper implementation
+3. Start fresh - do NOT reuse any of this code
+4. Integration design can reference learnings from POC folder deletion commit
+
+### If Any POC Failed ✗
+
+1. Document what didn't work in the failed POC folder
+2. Decide: fix the failing POC approach, or pivot the entire system concept
+3. If pivoting, delete entire `docs/poc/` folder and restart concept validation
+
+## Timeline Rules
+
+- **Individual POC Maximum:** 3 days each
+- **Total Effort Maximum:** 1 week (5-7 days)
+- **Parallel Execution:** Strongly encouraged for independent components
+- **Dependencies:** Document clearly, execute sequentially only when required
+
+**If you exceed 1 week total, you're over-engineering. Stop and reassess the core system concept.**
+
+````
+
+### Individual POC README.md (Single POC or Component of Multiple POCs)
+
+Each POC folder contains its own `README.md`:
+
+````markdown
+# POC: [Component Name] - [System Name]
 
 ⚠️ **THIS IS DISPOSABLE CODE - DO NOT EXTEND OR REFACTOR**
 
 ## Purpose
 
-Validate: [ONE specific hypothesis in plain English]
+**Component:** [Component Name] (part of [System Name])
+**Hypothesis:** [ONE specific hypothesis in plain English]
 
 **Expected outcome:** Prove that [X] works before investing in full implementation.
+
+**Multi-POC Context:** This POC is [Component X of N] in the multi-POC validation. See `../README.md` for overall coordination and dependencies.
 
 ## Quick Start
 
@@ -92,15 +211,29 @@ Validate: [ONE specific hypothesis in plain English]
 
 ### If Successful ✓
 
+**For Single POC:**
 1. **DELETE this entire `docs/poc/` folder**
 2. Run `/plan` to design proper implementation
 3. Start fresh - do NOT reuse this code
 
+**For Multi-POC Component:**
+1. Update status in `../README.md`
+2. Check if all other POCs are complete
+3. If all POCs successful: **DELETE entire `docs/poc/` folder** and run `/plan`
+4. If other POCs still running: Wait for completion
+
 ### If Failed ✗
 
+**For Single POC:**
 1. Document what didn't work
 2. Revise approach
 3. Try different hypothesis or pivot
+
+**For Multi-POC Component:**
+1. Document failure in this component's folder
+2. Update status in `../README.md`
+3. Assess impact on other POCs (can they continue independently?)
+4. Consider: fix this component, or pivot entire system concept
 
 ## Timeline
 
@@ -146,14 +279,12 @@ If you're spending longer, you're over-engineering. Stop and reassess.
 
 ## Minimal Workflow
 
-```
-
+```text
 Input: [Hardcoded test case]
   ↓
 [Core Process]: [Single algorithm/transformation]
   ↓
 Output: [Expected result]
-
 ```
 
 **That's it.** If you're thinking about more steps, you're overthinking.
@@ -241,22 +372,19 @@ print(f"Success: {actual_result == expected_result}")
 
 ## File Structure (Absolute Minimum)
 
-```
-
+```text
 docs/poc/
 ├── README.md           # This documentation
 ├── CORE_CONCEPT.md     # What we're proving
 ├── THROWAWAY_CODE.md   # You are here
 └── poc.py              # THE ENTIRE POC (one file)
-
 ```
 
 Optional if absolutely necessary:
-```
 
+```text
 ├── requirements.txt    # Maximum 3 dependencies
 └── test_data.json      # If hardcoding in code is too messy
-
 ```
 
 **Never create:**
@@ -478,6 +606,130 @@ Next steps:
 **This is not production code. This is not even good code. This is validation code.**
 
 **When done, DELETE IT ALL and start fresh with proper planning.**
+
+## Multi-POC Execution Strategy
+
+### Parallel vs Sequential Execution
+
+**Default: Parallel execution for independent components**
+
+**Execute in Parallel When:**
+
+- ✅ Components validate completely independent hypotheses
+- ✅ No shared data or integration points during validation
+- ✅ Different technology stacks or domains
+- ✅ Success/failure of one doesn't affect others during POC phase
+
+**Example Parallel Components:**
+
+- AI/ML model validation + Database performance testing + UI prototype
+- Algorithm validation + API design + Security model
+
+**Execute Sequentially When:**
+
+- ❌ Component B needs results/learnings from Component A
+- ❌ Shared resources would interfere (same test data, same ports, etc.)
+- ❌ Integration hypothesis requires specific order
+- ❌ Limited time/attention - complex components need focus
+
+**Example Sequential Dependencies:**
+
+- Authentication POC → Authorization POC → User Interface POC
+- Data pipeline POC → Analysis algorithm POC → Reporting POC
+
+### Execution Timing
+
+**Phase-based Approach:**
+
+```text
+Phase 1 (Days 1-3): Independent POCs in parallel
+├── POC-1: Core Algorithm ⏳
+├── POC-2: Data Storage ⏳
+└── POC-3: User Interface ⏳
+
+Phase 2 (Days 4-5): Dependent POCs sequentially
+└── POC-4: Integration Layer ⏳ (needs results from POC-1,2,3)
+
+Maximum total: 5-7 days
+```
+
+**Parallel Execution Commands:**
+
+```bash
+# Start all independent POCs
+cd docs/poc/poc-1-algorithm && python poc.py > ../results-1.log 2>&1 &
+cd docs/poc/poc-2-storage && python poc.py > ../results-2.log 2>&1 &
+cd docs/poc/poc-3-interface && python poc.py > ../results-3.log 2>&1 &
+
+# Wait for all to complete
+wait
+
+# Check results
+cat docs/poc/results-*.log
+```
+
+**Sequential Execution:**
+
+```bash
+# Execute in dependency order
+cd docs/poc/poc-1-auth && python poc.py
+if [ $? -eq 0 ]; then
+    cd docs/poc/poc-2-data && python poc.py
+    if [ $? -eq 0 ]; then
+        cd docs/poc/poc-3-ui && python poc.py
+    fi
+fi
+```
+
+### Dependency Management
+
+**Document in Master README:**
+
+```markdown
+## Component Dependencies
+
+- POC-1 (Algorithm): No dependencies ✅ Parallel
+- POC-2 (Storage): No dependencies ✅ Parallel
+- POC-3 (Interface): Needs POC-1 results ❌ Sequential after POC-1
+- POC-4 (Integration): Needs all others ❌ Sequential after all
+```
+
+**Communication Between POCs:**
+
+- ✅ Document learnings in individual README files
+- ✅ Share results via simple files (results.json, learnings.txt)
+- ❌ Do NOT create shared code or libraries
+- ❌ Do NOT create complex integration during POC phase
+
+### Failure Handling in Multi-POC
+
+**Independent POC Failure:**
+
+- Continue other parallel POCs
+- Assess if failed POC can be revised or needs complete pivot
+- Update master status regularly
+
+**Blocking POC Failure:**
+
+- If POC-A fails and POC-B depends on it, don't start POC-B
+- Revise POC-A approach or pivot entire concept
+- Don't waste time on dependent POCs if foundation is broken
+
+### Success Criteria for Multi-POC
+
+**Individual Success:**
+
+- Each POC proves its specific hypothesis ✅
+
+**Collective Success:**
+
+- All POCs successful AND components can conceptually integrate ✅
+
+**Integration Validation (Conceptual Only):**
+
+- Results from POC-1 + POC-2 + POC-N suggest viable integration
+- No actual integration code - just conceptual validation
+- Document integration assumptions for `/plan` phase
 
 ## Quality Criteria
 
