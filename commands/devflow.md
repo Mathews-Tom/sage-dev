@@ -100,7 +100,7 @@ Week 1-3    Week 4-10      Week 11-16     Week 17-20
 ## Component Details
 
 ### [Component A Name]
-📁 [Spec](./specs/component-a/spec.md) | [Plan](./specs/component-a/plan.md) | [Tasks](./specs/component-a/tasks.md)
+📁 [Spec](docs/specs/component-a/spec.md) | [Plan](docs/specs/component-a/plan.md) | [Tasks](docs/specs/component-a/tasks.md)
 
 **Purpose:** [One-line description]  
 **Owner:** [Team/role]  
@@ -113,7 +113,7 @@ Week 1-3    Week 4-10      Week 11-16     Week 17-20
 - → Phase 3: Production deployment (Week 18)
 
 ### [Component B Name]
-📁 [Spec](./specs/component-b/spec.md) | [Plan](./specs/component-b/plan.md) | [Tasks](./specs/component-b/tasks.md)
+📁 [Spec](docs/specs/component-b/spec.md) | [Plan](docs/specs/component-b/plan.md) | [Tasks](docs/specs/component-b/tasks.md)
 
 **Purpose:** [One-line description]  
 **Owner:** [Team/role]  
@@ -219,8 +219,8 @@ Performance Testing → Security Audit → Deployment
 - Total story points: [count]
 
 **Reference Documents:**
-- [Project Charter](./project-charter.md)
-- [Architecture Overview](./architecture.md)
+- [Project Charter](docs/project-charter.md)
+- [Architecture Overview](docs/architecture.md)
 - All component specs in `/specs/*/`
 ````
 
@@ -239,5 +239,5 @@ done
 
 Use relative paths from docs/:
 
-- `[spec](./specs/component-a/spec.md)`
-- `[tasks](./specs/component-a/tasks.md#phase-1)`
+- `[spec](docs/specs/component-a/spec.md)`
+- `[tasks](docs/specs/component-a/tasks.md#phase-1)`

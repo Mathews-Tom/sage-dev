@@ -186,7 +186,7 @@ Each POC folder contains its own `README.md`:
 
 **Expected outcome:** Prove that [X] works before investing in full implementation.
 
-**Multi-POC Context:** This POC is [Component X of N] in the multi-POC validation. See `../README.md` for overall coordination and dependencies.
+**Multi-POC Context:** This POC is [Component X of N] in the multi-POC validation. See `docs/poc/README.md` for overall coordination and dependencies.
 
 ## Quick Start
 
@@ -217,7 +217,7 @@ Each POC folder contains its own `README.md`:
 3. Start fresh - do NOT reuse this code
 
 **For Multi-POC Component:**
-1. Update status in `../README.md`
+1. Update status in `docs/poc/README.md`
 2. Check if all other POCs are complete
 3. If all POCs successful: **DELETE entire `docs/poc/` folder** and run `/plan`
 4. If other POCs still running: Wait for completion
@@ -231,7 +231,7 @@ Each POC folder contains its own `README.md`:
 
 **For Multi-POC Component:**
 1. Document failure in this component's folder
-2. Update status in `../README.md`
+2. Update status in `docs/poc/README.md`
 3. Assess impact on other POCs (can they continue independently?)
 4. Consider: fix this component, or pivot entire system concept
 

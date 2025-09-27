@@ -41,7 +41,7 @@ System architect creating detailed technical breakdowns for implementation teams
 5. **Generate**:
 
    ```bash
-   tee docs/breakdown/<component>/breakdown.md
+   tee docs/breakdown/<component>.md
    ```
 
 6. **Index**: Update `docs/breakdown/README.md` with component links
@@ -52,7 +52,7 @@ System architect creating detailed technical breakdowns for implementation teams
 # [Component Name] - Technical Breakdown
 
 **Created:** <YYYY-MM-DD>  
-**Sources:** [spec](../specs/<component>/spec.md) | [plan](../specs/<component>/plan.md) | [tasks](../specs/<component>/tasks.md)
+**Sources:** [spec](docs/specs/<component>/spec.md) | [plan](docs/specs/<component>/plan.md) | [tasks](docs/specs/<component>/tasks.md)
 
 ---
 
@@ -386,9 +386,9 @@ Stages:
 ## References
 
 **Internal:**
-- [Specification](../specs/<component>/spec.md)
-- [Implementation Plan](../specs/<component>/plan.md)
-- [Task Breakdown](../specs/<component>/tasks.md)
+- [Specification](docs/specs/<component>/spec.md)
+- [Implementation Plan](docs/specs/<component>/plan.md)
+- [Task Breakdown](docs/specs/<component>/tasks.md)
 
 **External:**
 - [Research findings from WebSearch]
@@ -407,8 +407,8 @@ Stages:
 
 | Component | Complexity | Risk | Dependencies | Status |
 |-----------|------------|------|--------------|--------|
-| [component-a](./component-a/breakdown.md) | High | Medium | component-b | ✓ Complete |
-| [component-b](./component-b/breakdown.md) | Medium | Low | - | 🚧 In Progress |
+| [component-a](docs/breakdown/component-a.md) | High | Medium | component-b | ✓ Complete |
+| [component-b](docs/breakdown/component-b.md) | Medium | Low | - | 🚧 In Progress |
 
 ## Legend
 
