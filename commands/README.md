@@ -359,6 +359,67 @@ Operational Concerns: Infra, monitoring, security
 
 ---
 
+## 📊 Analysis & Assessment Tools
+
+### 🔍 `/strategic-intelligence` - Comprehensive Strategic Assessment & Market Intelligence
+
+**Purpose:** Gather strategic intelligence through comprehensive system assessment and market analysis to inform technical and business decisions
+
+**Inputs:**
+
+- All documentation in `docs/` folder
+- System architecture and codebase
+- Market domain information
+
+**Outputs:**
+
+- `docs/strategic-intelligence.md` - Comprehensive strategic intelligence report
+
+**What it does:**
+
+- **Strategic Assessment (Internal Focus):**
+  - Evaluates current system capabilities against industry standards
+  - Identifies gaps in development, security, operations
+  - Assesses documentation and process maturity
+  - Benchmarks organizational capabilities against best practices
+
+- **Market Intelligence (External Focus):**
+  - Analyzes market dynamics, size, growth trends, and segments
+  - Conducts comprehensive competitive landscape analysis
+  - Researches customer intelligence and pain points
+  - Studies business models, pricing strategies, and market positioning
+  - Identifies market opportunities, threats, and competitive dynamics
+
+- **Strategic Integration:**
+  - Integrates internal capabilities with external market dynamics
+  - Prioritizes strategic initiatives by impact and opportunity
+  - Balances capability building with market positioning
+  - Creates strategic implementation roadmap
+  - Provides strategic ROI projections and success metrics
+
+**When to use:**
+
+- Project kickoffs and strategic planning
+- Quarterly business reviews
+- Before major technology decisions
+- Competitive positioning analysis
+- Market entry or expansion planning
+- Technical debt assessment
+- Stakeholder reporting
+
+**Key sections:**
+
+```yaml
+Executive Summary: Strategic position + market intelligence scores
+Current State Analysis: Capability assessment + market position
+Strategic Intelligence Analysis: Benchmarking + competitive intelligence
+Strategic Analysis: Capability gaps + market opportunities
+Strategic Recommendations: Phased strategic initiatives with ROI
+Implementation Roadmap: Strategic timeline with success metrics
+```
+
+---
+
 ## 📁 Generated Folder Structure
 
 ```txt
@@ -383,6 +444,7 @@ docs/
 │   │   └── breakdown.md # Technical details (/breakdown)
 │   └── component-b/
 │       └── breakdown.md
+├── strategic-intelligence.md  # Strategic assessment & market intelligence (/strategic-intelligence)
 └── roadmap.md           # System-wide roadmap (/devflow)
 
 TEMP_DOCS/
@@ -475,7 +537,25 @@ TEMP_DOCS/
 
 ---
 
-### Pattern 4: Documentation Update
+### Pattern 4: Strategic Assessment
+
+**Scenario:** Quarterly review or strategic planning
+
+```bash
+# Step 1: Strategic intelligence gathering
+/strategic-intelligence  # Strategic assessment + market intelligence
+
+# Step 2: Update plans based on strategic insights
+/plan     # Update technical strategy
+/tasks    # Adjust priorities and timeline
+/devflow  # Update roadmap
+```
+
+**Timeline:** 1-2 days for comprehensive assessment
+
+---
+
+### Pattern 5: Documentation Update
 
 **Scenario:** Requirements or technology changed
 
@@ -527,6 +607,7 @@ TEMP_DOCS/
 | `/poc` | Core assumptions need validation, pivot required |
 | `/breakdown` | Implementation approach changes, new patterns adopted |
 | `/devflow` | Component updates, integration changes, milestone reviews |
+| `/strategic-intelligence` | Quarterly reviews, competitive changes, strategic planning |
 | `/commit` | Code ready for PR, feature complete |
 
 ### Quality Gates
@@ -573,6 +654,14 @@ TEMP_DOCS/
 - [ ] Timeline realistic
 - [ ] Stakeholders informed
 
+**After `/strategic-intelligence`:**
+
+- [ ] Strategic capabilities and market position assessed
+- [ ] Competitive positioning and market intelligence gathered
+- [ ] Strategic ROI projections realistic
+- [ ] Strategic recommendations prioritized
+- [ ] Strategic success metrics defined
+
 ---
 
 ## 🚀 Quick Start Guide
@@ -615,6 +704,9 @@ mkdir -p docs
 # Full workflow in sequence
 /specify && /poc && /plan && /tasks && /breakdown && /devflow
 
+# Strategic intelligence workflow
+/strategic-intelligence && /plan && /tasks && /devflow
+
 # Update all documentation
 /specify && /plan && /tasks && /devflow
 
@@ -623,6 +715,9 @@ mkdir -p docs
 
 # Just system overview
 /devflow
+
+# Quarterly strategic review
+/strategic-intelligence
 ```
 
 ---
@@ -678,6 +773,33 @@ mkdir -p docs
 - ❌ Solo project with clear scope
 - ❌ No external stakeholders
 - ❌ Single component system
+
+### When to run `/strategic-intelligence`?
+
+**Essential for:**
+
+- ✅ Project kickoffs and strategic planning
+- ✅ Quarterly strategic reviews
+- ✅ Before major strategic decisions
+- ✅ Competitive threat analysis
+- ✅ Market entry or expansion
+- ✅ Strategic capability assessment
+- ✅ Executive and stakeholder reporting
+
+**Frequency:**
+
+- ✅ Quarterly for strategic projects
+- ✅ Before major releases or initiatives
+- ✅ When competitive landscape changes
+- ✅ During annual strategic planning cycles
+- ✅ When market dynamics shift
+
+**Skip if:**
+
+- ❌ Early prototype stage
+- ❌ Well-understood market with stable competition
+- ❌ Internal tools with no strategic market considerations
+- ❌ Purely tactical implementation tasks
 
 ---
 
