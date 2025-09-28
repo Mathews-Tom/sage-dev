@@ -8,16 +8,19 @@ This workflow provides a structured methodology for analyzing requirements, vali
 
 ```mermaid
 graph LR
-    A["/specify"] --> B["/plan"]
-    B --> C["/tasks"]
-    C --> D["/poc"]
-    D --> E["/breakdown"]
-    E --> F["/devflow"]
-    F --> G[Implementation]
-    
-    style A fill:#e1f5fe
-    style D fill:#fff3e0
-    style G fill:#e8f5e9
+    H[System Design] --> A["/enhance"]
+    A --> B["/specify"]
+    B --> C["/plan"]
+    C --> D["/tasks"]
+    D --> E["/poc"]
+    E --> F["/breakdown"]
+    F --> G["/devflow"]
+    G --> I[Implementation]
+
+    style A fill:#fff9c4
+    style B fill:#e1f5fe
+    style E fill:#fff3e0
+    style I fill:#e8f5e9
 ```
 
 ## 🎯 Core Philosophy
@@ -29,6 +32,67 @@ graph LR
 - **Actionable Output**: Every document ready for immediate use
 
 ## 📚 Command Reference
+
+### 🔍 `/enhance` - System Enhancement Research
+
+**Purpose:** Research-driven system enhancement analysis to identify opportunities for improved features, performance, and competitive differentiation
+
+**Inputs:**
+
+- All documentation in `docs/` folder
+- Existing system design and architecture notes
+- Project context and domain information
+
+**Outputs:**
+
+- `docs/enhancement.md` - Comprehensive enhancement analysis and recommendations
+
+**What it does:**
+
+- Analyzes current system design and capabilities
+- Researches enhancement opportunities across four key areas:
+  - **Feature Enhancement**: Advanced capabilities, AI/ML integration, API opportunities
+  - **Performance Optimization**: Caching strategies, scalability patterns, monitoring approaches
+  - **Technology Innovation**: Emerging tech, modern architecture patterns, developer experience improvements
+  - **Competitive Differentiation**: Unique value propositions, underserved use cases, competitive advantages
+- Prioritizes recommendations by impact, feasibility, and strategic alignment
+- Creates phased implementation roadmap with success metrics
+- Provides research-backed rationale for all enhancement suggestions
+
+**When to use:**
+
+- After initial system design but before formal specification
+- When seeking to make project more competitive and valuable
+- Before major development phases to identify optimization opportunities
+- To bridge gap between concept and detailed implementation planning
+
+**Key features:**
+
+- Research citations for all enhancement recommendations
+- Impact/effort analysis for prioritization
+- Integration with existing workflow commands
+- Focus on tactical system improvements vs strategic positioning
+
+**Example workflow:**
+
+```bash
+# After initial system design
+docs/
+  ├── system-overview.md
+  ├── initial-architecture.md
+  └── project-notes.md
+
+# Run enhancement research
+/enhance
+
+# Result
+docs/enhancement.md  # Comprehensive enhancement recommendations
+
+# Continue with specification
+/specify
+```
+
+---
 
 ### 1️⃣ `/specify` - Requirements Analysis
 
@@ -424,6 +488,7 @@ Implementation Roadmap: Strategic timeline with success metrics
 
 ```txt
 docs/
+├── enhancement.md       # System enhancement research (/enhance)
 ├── specs/
 │   ├── component-a/
 │   │   ├── spec.md      # Requirements (/specify)
@@ -458,32 +523,35 @@ TEMP_DOCS/
 **Scenario:** Starting a new project from scratch
 
 ```bash
-# Step 1: Analyze requirements
+# Step 1: Research enhancement opportunities
+/enhance
+
+# Step 2: Analyze requirements (incorporating enhancements)
 /specify
 
-# Step 2: Create technical plans
+# Step 3: Create technical plans
 /plan
 
-# Step 3: Break down into tasks
+# Step 4: Break down into tasks
 /tasks
 
-# Step 4: Validate core concept
+# Step 5: Validate core concept
 /poc
 
-# Step 5: Detail implementation
+# Step 6: Detail implementation
 /breakdown
 
-# Step 6: Create system roadmap
+# Step 7: Create system roadmap
 /devflow
 
-# Step 7: Start implementation
+# Step 8: Start implementation
 # ... development work ...
 
-# Step 8: Commit changes
+# Step 9: Commit changes
 /commit
 ```
 
-**Timeline:** Days 1-3 for documentation, then development
+**Timeline:** Days 1-4 for documentation, then development
 
 ---
 
@@ -509,7 +577,38 @@ TEMP_DOCS/
 
 ---
 
-### Pattern 3: Iterative Component Development
+### Pattern 3: Enhancement-Driven Development
+
+**Scenario:** Improving existing system with new capabilities
+
+```bash
+# Step 1: Research enhancement opportunities
+/enhance
+
+# Step 2: Specify enhanced components
+/specify
+
+# Step 3: Plan integration
+/plan
+
+# Step 4: Create tasks
+/tasks
+
+# Step 5: Optional POC for risky enhancements
+/poc  # if needed
+
+# Step 6: Implementation details
+/breakdown
+
+# Step 7: Update system roadmap
+/devflow
+```
+
+**Timeline:** Enhancement cycle with competitive improvements
+
+---
+
+### Pattern 4: Iterative Component Development
 
 **Scenario:** Adding features to existing system
 
@@ -537,7 +636,7 @@ TEMP_DOCS/
 
 ---
 
-### Pattern 4: Strategic Assessment
+### Pattern 5: Strategic Assessment
 
 **Scenario:** Quarterly review or strategic planning
 
@@ -555,7 +654,7 @@ TEMP_DOCS/
 
 ---
 
-### Pattern 5: Documentation Update
+### Pattern 6: Documentation Update
 
 **Scenario:** Requirements or technology changed
 
@@ -577,22 +676,27 @@ TEMP_DOCS/
 
 ### Command Execution Order
 
-1. **Always start with `/specify`**
+1. **Start with `/enhance` for new projects**
+   - Research enhancement opportunities early
+   - Identify competitive advantages before specification
+   - Bridge gap between concept and formal requirements
+
+2. **Always run `/specify` after enhancement research**
    - Foundation for all subsequent work
-   - Ensures shared understanding
+   - Incorporates enhancement insights into requirements
    - Creates component boundaries
 
-2. **Consider `/poc` early**
+3. **Consider `/poc` early**
    - Run after `/specify` or `/plan`
-   - Especially for novel/risky features
+   - Especially for novel/risky features or enhancements
    - Fail fast on wrong assumptions
 
-3. **Use `/breakdown` before coding**
+4. **Use `/breakdown` before coding**
    - Developers' implementation guide
    - Prevents rework and confusion
    - Ensures consistency
 
-4. **Keep `/devflow` updated**
+5. **Keep `/devflow` updated**
    - Re-run after major changes
    - Use for stakeholder updates
    - Track progress weekly
@@ -601,7 +705,8 @@ TEMP_DOCS/
 
 | Command | Re-run When... |
 |---------|---------------|
-| `/specify` | Requirements change, new docs added |
+| `/enhance` | New enhancement opportunities identified, competitive landscape changes |
+| `/specify` | Requirements change, new docs added, enhancement research complete |
 | `/plan` | Technology choices need revision, architecture changes |
 | `/tasks` | Timeline shifts, team changes, priorities update |
 | `/poc` | Core assumptions need validation, pivot required |
@@ -612,12 +717,20 @@ TEMP_DOCS/
 
 ### Quality Gates
 
+**After `/enhance`:**
+
+- [ ] Enhancement opportunities identified across all categories
+- [ ] Research citations support all recommendations
+- [ ] Impact/effort analysis completed for prioritization
+- [ ] Enhancement roadmap aligns with project goals
+
 **After `/specify`:**
 
 - [ ] All components identified
 - [ ] Requirements are SMART
 - [ ] Acceptance criteria defined
 - [ ] Stakeholders aligned
+- [ ] Enhancement insights incorporated
 
 **After `/plan`:**
 
@@ -678,6 +791,7 @@ mkdir -p docs
 2. **Run the workflow:**
 
 ```bash
+/enhance    # Research enhancement opportunities (for new projects)
 /specify    # Generate specifications
 /poc        # Validate core concept (optional but recommended)
 /plan       # Create implementation plans
@@ -701,8 +815,11 @@ mkdir -p docs
 ### Quick Commands
 
 ```bash
-# Full workflow in sequence
-/specify && /poc && /plan && /tasks && /breakdown && /devflow
+# Full workflow in sequence (new projects)
+/enhance && /specify && /poc && /plan && /tasks && /breakdown && /devflow
+
+# Enhancement-driven development
+/enhance && /specify && /plan && /tasks && /devflow
 
 # Strategic intelligence workflow
 /strategic-intelligence && /plan && /tasks && /devflow
@@ -716,6 +833,9 @@ mkdir -p docs
 # Just system overview
 /devflow
 
+# Enhancement research only
+/enhance
+
 # Quarterly strategic review
 /strategic-intelligence
 ```
@@ -723,6 +843,23 @@ mkdir -p docs
 ---
 
 ## ❓ Decision Guide
+
+### Should I run `/enhance`?
+
+**Yes, if:**
+
+- ✅ Starting a new project from initial design
+- ✅ Want to make system more competitive and valuable
+- ✅ Need to research enhancement opportunities before specification
+- ✅ Seeking to differentiate from existing solutions
+- ✅ Want to optimize for performance and user value early
+
+**No, if:**
+
+- ❌ Working on well-defined maintenance tasks
+- ❌ Simple CRUD application with clear requirements
+- ❌ Following existing architectural patterns exactly
+- ❌ No competitive differentiation needed
 
 ### Should I run `/poc`?
 
