@@ -15,12 +15,14 @@ graph LR
     D --> E["/poc"]
     E --> F["/breakdown"]
     F --> G["/devflow"]
-    G --> I[Implementation]
+    G --> I["/implement"]
+    I --> J["/commit"]
 
     style A fill:#fff9c4
     style B fill:#e1f5fe
     style E fill:#fff3e0
     style I fill:#e8f5e9
+    style J fill:#fff9c4
 ```
 
 ## 🎯 Core Philosophy
@@ -380,7 +382,54 @@ Operational Concerns: Infra, monitoring, security
 
 ---
 
-### 7️⃣ `/commit` - Git Workflow Manager
+### 7️⃣ `/implement` - Phased Implementation
+
+**Purpose:** Execute phased system implementation with automatic progress tracking and test validation
+
+**Inputs:**
+
+- `docs/roadmap.md` - Phase structure and status
+- `docs/specs/*/tasks.md` - Task breakdown and progress
+- `docs/breakdown/*/breakdown.md` - Implementation specifications
+- Current git branch and repository state
+
+**Outputs:**
+
+- Implemented code files following breakdown specifications
+- Updated `tasks.md` files with progress tracking
+- Comprehensive test suite for implemented functionality
+- Feature branch ready for review
+
+**What it does:**
+
+- Automatically detects next phase or accepts user-specified phase
+- Creates/manages feature branches with `feature/[phase-name]` naming
+- Implements code based on breakdown specifications
+- Updates task progress with checkboxes and status labels
+- Creates and runs tests as success criteria
+- Handles errors with automatic fixes and manual intervention
+- Supports resumption from interrupted progress
+- Validates phase completion before proceeding
+
+**When to use:**
+
+- After roadmap creation (`/devflow`)
+- Starting implementation of a new phase
+- Resuming interrupted implementation
+- Before creating commits (`/commit`)
+
+**Key features:**
+
+- Smart phase detection from roadmap
+- Real-time progress tracking in task files
+- Test-driven completion validation
+- Automatic error recovery
+- Branch management with user confirmation
+- Dependency validation and missing file detection
+
+---
+
+### 8️⃣ `/commit` - Git Workflow Manager
 
 **Purpose:** Organize changes into semantic commits with PR documentation
 
@@ -544,8 +593,8 @@ TEMP_DOCS/
 # Step 7: Create system roadmap
 /devflow
 
-# Step 8: Start implementation
-# ... development work ...
+# Step 8: Execute phased implementation
+/implement
 
 # Step 9: Commit changes
 /commit
@@ -571,6 +620,9 @@ TEMP_DOCS/
 /tasks
 /breakdown
 /devflow
+
+# Step 4: Execute implementation
+/implement
 ```
 
 **Timeline:** POC within 1 week, then full planning
@@ -602,6 +654,9 @@ TEMP_DOCS/
 
 # Step 7: Update system roadmap
 /devflow
+
+# Step 8: Execute implementation
+/implement
 ```
 
 **Timeline:** Enhancement cycle with competitive improvements
@@ -630,6 +685,9 @@ TEMP_DOCS/
 
 # Step 6: Update system roadmap
 /devflow
+
+# Step 7: Execute implementation
+/implement
 ```
 
 **Timeline:** Per-component iteration cycle
@@ -712,6 +770,7 @@ TEMP_DOCS/
 | `/poc` | Core assumptions need validation, pivot required |
 | `/breakdown` | Implementation approach changes, new patterns adopted |
 | `/devflow` | Component updates, integration changes, milestone reviews |
+| `/implement` | Ready to start implementation, phase completion, resuming work |
 | `/strategic-intelligence` | Quarterly reviews, competitive changes, strategic planning |
 | `/commit` | Code ready for PR, feature complete |
 
@@ -767,6 +826,15 @@ TEMP_DOCS/
 - [ ] Timeline realistic
 - [ ] Stakeholders informed
 
+**After `/implement`:**
+
+- [ ] Phase implemented according to breakdown specifications
+- [ ] All phase tasks marked as completed
+- [ ] Comprehensive tests created and passing
+- [ ] Code follows existing patterns and conventions
+- [ ] Feature branch ready for review
+- [ ] Progress tracking updated in task files
+
 **After `/strategic-intelligence`:**
 
 - [ ] Strategic capabilities and market position assessed
@@ -798,6 +866,7 @@ mkdir -p docs
 /tasks      # Break down into actionable tasks
 /breakdown  # Detail technical implementation
 /devflow    # Create system roadmap
+/implement  # Execute phased implementation
 ```
 
 3. **Start development:**
@@ -816,13 +885,13 @@ mkdir -p docs
 
 ```bash
 # Full workflow in sequence (new projects)
-/enhance && /specify && /poc && /plan && /tasks && /breakdown && /devflow
+/enhance && /specify && /poc && /plan && /tasks && /breakdown && /devflow && /implement
 
 # Enhancement-driven development
-/enhance && /specify && /plan && /tasks && /devflow
+/enhance && /specify && /plan && /tasks && /devflow && /implement
 
 # Strategic intelligence workflow
-/strategic-intelligence && /plan && /tasks && /devflow
+/strategic-intelligence && /plan && /tasks && /devflow && /implement
 
 # Update all documentation
 /specify && /plan && /tasks && /devflow

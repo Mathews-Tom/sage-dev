@@ -16,9 +16,11 @@ graph TB
     Plan --> Tasks["/tasks<br/>Task Breakdown"]
     Tasks --> Breakdown["/breakdown<br/>Implementation Details"]
 
-    Breakdown --> Dev[👨‍💻 Development]
+    Breakdown --> DevFlow["/devflow<br/>System Roadmap"]
+    DevFlow --> Implement["/implement<br/>Phased Implementation"]
+    Implement --> Dev[👨‍💻 Development]
 
-    Specify -.-> DevFlow["/devflow<br/>System Roadmap"]
+    Specify -.-> DevFlow
     Plan -.-> DevFlow
     Tasks -.-> DevFlow
 
@@ -37,6 +39,7 @@ graph TB
     style Plan fill:#e8eaf6
     style Tasks fill:#fce4ec
     style Breakdown fill:#f1f8e9
+    style Implement fill:#e3f2fd
     style Commit fill:#fff9c4
     style Assessment fill:#ffe0f0
 ```
@@ -94,18 +97,36 @@ graph LR
     B --> C[Technical Details]
     C --> D["/devflow"]
     D --> E[System Roadmap]
-    E --> F[Ready to Code]
-    
+    E --> F[Ready to Implement]
+
     style B fill:#f1f8e9
     style D fill:#f3e5f5
 ```
 
-**Duration:** 1-3 days  
+**Duration:** 1-3 days
 **Output:** Complete implementation guides and timeline
 
 ---
 
-### Phase 4: Development & Delivery
+### Phase 4: Phased Implementation
+
+```mermaid
+graph LR
+    A[System Roadmap] --> B["/implement"]
+    B --> C[Phase Implementation]
+    C --> D[Test Validation]
+    D --> E[Progress Tracking]
+    E --> F[Ready for Next Phase]
+
+    style B fill:#e3f2fd
+```
+
+**Duration:** Varies by phase complexity
+**Output:** Working code with comprehensive tests and updated progress tracking
+
+---
+
+### Phase 5: Development & Delivery
 
 ```mermaid
 graph LR
@@ -136,15 +157,17 @@ graph TD
     Update -->|Technology| Plan["/plan → /tasks → /breakdown"]
     Update -->|Timeline| Tasks["/tasks → /devflow"]
     Update -->|Market/Strategy| Assessment["/strategic-intelligence → /plan → /devflow"]
+    Update -->|Implementation Ready| Implement["/implement"]
     Update -->|Code Ready| Commit["/commit"]
 
     AllDocs --> Risk{High Risk?}
-    Risk -->|Yes| POCFirst["/strategic-intelligence → /specify → /poc → /plan → /tasks → /breakdown → /devflow"]
-    Risk -->|No| Standard["/strategic-intelligence → /specify → /plan → /tasks → /breakdown → /devflow"]
+    Risk -->|Yes| POCFirst["/strategic-intelligence → /specify → /poc → /plan → /tasks → /breakdown → /devflow → /implement"]
+    Risk -->|No| Standard["/strategic-intelligence → /specify → /plan → /tasks → /breakdown → /devflow → /implement"]
 
     style Specify fill:#e1f5fe
     style Plan fill:#e8eaf6
     style Tasks fill:#fce4ec
+    style Implement fill:#e3f2fd
     style Commit fill:#fff9c4
     style POCFirst fill:#fff3e0
     style Assessment fill:#ffe0f0
@@ -169,8 +192,10 @@ gantt
     /tasks            :2024-01-10, 1d
     /breakdown        :2024-01-11, 2d
     /devflow          :2024-01-13, 1d
+    section Implementation
+    /implement        :2024-01-14, 10d
     section Development
-    Implementation    :2024-01-14, 14d
+    Code Review       :2024-01-24, 4d
     /commit           :2024-01-28, 1d
 ```
 
@@ -210,8 +235,8 @@ sequenceDiagram
     Dev->>Plan: /devflow
     Plan-->>Dev: System Roadmap
 
-    Dev->>Code: Develop
-    Code-->>Dev: Changes
+    Dev->>Code: /implement
+    Code-->>Dev: Phase Implementation
 
     Dev->>Code: /commit
     Code-->>Dev: PR Created
@@ -235,10 +260,10 @@ sequenceDiagram
     
     Dev->>Docs: /tasks
     Docs-->>Dev: Task List
-    
-    Dev->>Code: Develop
-    Code-->>Dev: Changes
-    
+
+    Dev->>Code: /implement
+    Code-->>Dev: Feature Implementation
+
     Dev->>Code: /commit
     Code-->>Dev: PR Created
 ```
@@ -303,10 +328,11 @@ graph TD
     POC --> Plan
     POC -.->|Informs| Breakdown
 
-    DevFlow --> Dev[Development]
-    Breakdown --> Dev
-    Tasks --> Dev
+    DevFlow --> Implement["/implement<br/>Phase Execution"]
+    Breakdown --> Implement
+    Tasks --> Implement
 
+    Implement --> Dev[Development]
     Dev --> Commit["/commit<br/>Delivery"]
 
     style Assessment fill:#ffe0f0,stroke:#c2185b
@@ -316,6 +342,7 @@ graph TD
     style Tasks fill:#fce4ec,stroke:#880e4f
     style Breakdown fill:#f1f8e9,stroke:#33691e
     style DevFlow fill:#f3e5f5,stroke:#4a148c
+    style Implement fill:#e3f2fd,stroke:#0277bd
     style Commit fill:#fff9c4,stroke:#f57f17
 ```
 
@@ -344,6 +371,7 @@ graph LR
         TaskCmd["/tasks"]
         Breakdown["/breakdown"]
         DevFlow["/devflow"]
+        Implement["/implement"]
         Commit["/commit"]
     end
 
@@ -355,6 +383,7 @@ graph LR
         TaskLists[Task Lists]
         ImplGuides[Implementation Guides]
         Roadmap[System Roadmap]
+        PhaseCode[Phase Implementation]
         PR[Pull Request]
     end
 
@@ -388,6 +417,11 @@ graph LR
     TaskLists --> DevFlow
     StrategicReport -.-> DevFlow
     DevFlow --> Roadmap
+
+    Roadmap --> Implement
+    TaskLists --> Implement
+    ImplGuides --> Implement
+    Implement --> PhaseCode
 
     Code --> Commit
     Commit --> PR
@@ -436,7 +470,8 @@ graph TB
     TaskFix --> Tasks
 
     Breakdown --> DevFlow["/devflow"]
-    DevFlow --> Ready([Ready to Code])
+    DevFlow --> Implement["/implement"]
+    Implement --> Ready([Ready to Code])
 
     style AssessmentCheck fill:#e91e63
     style SpecCheck fill:#ffeb3b
@@ -453,20 +488,22 @@ graph TB
 
 ```mermaid
 graph LR
-    A[Initial Specs] --> B[Implementation]
-    B --> C{Feedback}
-    C -->|Requirements Changed| D["/specify"]
-    C -->|Tech Issues| E["/plan"]
-    C -->|Estimate Wrong| F["/tasks"]
-    C -->|Market Changes| G["/strategic-intelligence"]
-    C -->|All Good| H[Continue]
+    A[Initial Specs] --> B["/implement"]
+    B --> C[Implementation]
+    C --> D{Feedback}
+    D -->|Requirements Changed| E["/specify"]
+    D -->|Tech Issues| F["/plan"]
+    D -->|Estimate Wrong| G["/tasks"]
+    D -->|Market Changes| H["/strategic-intelligence"]
+    D -->|Phase Issues| I["/implement"]
+    D -->|All Good| J[Continue]
 
-    D --> I[Update Docs]
-    E --> I
-    F --> I
-    G --> I
-    I --> J["/devflow"]
-    J --> B
+    E --> K[Update Docs]
+    F --> K
+    G --> K
+    H --> K
+    K --> L["/devflow"]
+    L --> B
 
     style C fill:#ff9800
 ```
@@ -498,17 +535,24 @@ graph TD
         M7[Market Alignment Score: M/10]
     end
 
-    subgraph "Execution Phase"
-        M8[Estimation Accuracy: E%]
+    subgraph "Implementation Phase"
+        M8[Phase Completion Rate: P%]
         M9[Tasks Completed: T/Total]
-        M10[Velocity: V points/sprint]
+        M10[Test Success Rate: S%]
+        M11[Implementation Velocity: V phases/week]
+    end
+
+    subgraph "Execution Phase"
+        M12[Estimation Accuracy: E%]
+        M13[Code Quality Score: Q/10]
+        M14[Error Resolution Rate: R%]
     end
 
     subgraph "Delivery Phase"
-        M11[Commit Quality: Q score]
-        M12[PR Approval Time: P hours]
-        M13[Bug Rate: B/1000 lines]
-        M14[Market Impact Score: I/10]
+        M15[Commit Quality: C score]
+        M16[PR Approval Time: A hours]
+        M17[Bug Rate: B/1000 lines]
+        M18[Market Impact Score: I/10]
     end
 ```
 
@@ -528,7 +572,8 @@ stateDiagram-v2
     Planned --> TasksReady: /tasks
     TasksReady --> ImplementationReady: /breakdown + /devflow
 
-    ImplementationReady --> Development
+    ImplementationReady --> PhaseImplementation: /implement
+    PhaseImplementation --> Development: Phase Complete
     Development --> CodeComplete: Features Done
     CodeComplete --> Committed: /commit
     Committed --> [*]: PR Merged
@@ -562,6 +607,13 @@ stateDiagram-v2
         ✓ Tests planned
         ✓ Roadmap clear
         ✓ Strategic alignment confirmed
+    end note
+
+    note right of PhaseImplementation
+        ✓ Phase code implemented
+        ✓ Tests created and passing
+        ✓ Progress tracking updated
+        ✓ Feature branch ready
     end note
 ```
 
@@ -702,14 +754,15 @@ graph TB
 
 | Scenario | Commands to Run | Skip |
 |----------|----------------|------|
-| **New Project** | `/strategic-intelligence` → `/specify` → `/poc` → `/plan` → `/tasks` → `/breakdown` → `/devflow` | None |
-| **High Risk Feature** | `/strategic-intelligence` → `/specify` → `/poc` → `/plan` → `/tasks` | `/breakdown` (unless complex) |
-| **Simple Feature** | `/specify` → `/plan` → `/tasks` | `/strategic-intelligence`, `/poc`, `/breakdown` |
+| **New Project** | `/strategic-intelligence` → `/specify` → `/poc` → `/plan` → `/tasks` → `/breakdown` → `/devflow` → `/implement` | None |
+| **High Risk Feature** | `/strategic-intelligence` → `/specify` → `/poc` → `/plan` → `/tasks` → `/implement` | `/breakdown` (unless complex) |
+| **Simple Feature** | `/specify` → `/plan` → `/tasks` → `/implement` | `/strategic-intelligence`, `/poc`, `/breakdown` |
 | **Strategic Planning** | `/strategic-intelligence` → `/plan` → `/devflow` | Others |
 | **Requirement Change** | `/specify` → `/devflow` | Others |
 | **Tech Stack Change** | `/plan` → `/tasks` → `/breakdown` | `/specify` |
 | **Strategic Change** | `/strategic-intelligence` → `/plan` → `/devflow` | Others |
 | **Timeline Update** | `/tasks` → `/devflow` | Others |
+| **Implementation Ready** | `/implement` | Others |
 | **Before Coding** | `/breakdown` | Others |
 | **Quarterly Review** | `/strategic-intelligence` | All others |
 | **Code Complete** | `/commit` | All others |
@@ -743,8 +796,11 @@ graph LR
     R --> S[📝 Week 4<br/>Track progress] --> T["/devflow"]
     T --> U[✓ On schedule & market-aligned]
 
-    U --> V[📝 Week 6<br/>Feature complete] --> W["/commit"]
-    W --> X[✓ Clean PR with strategic impact]
+    U --> V[📝 Week 5<br/>Start implementation] --> W["/implement"]
+    W --> X[✓ Phased implementation complete]
+
+    X --> Y[📝 Week 6<br/>Feature complete] --> Z["/commit"]
+    Z --> AA[✓ Clean PR with strategic impact]
 
     style C fill:#4caf50
     style F fill:#4caf50
@@ -754,4 +810,5 @@ graph LR
     style R fill:#4caf50
     style U fill:#4caf50
     style X fill:#4caf50
+    style AA fill:#4caf50
 ```
