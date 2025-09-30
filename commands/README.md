@@ -16,12 +16,14 @@ graph LR
     E --> F["/breakdown"]
     F --> G["/devflow"]
     G --> I["/implement"]
-    I --> J["/commit"]
+    I --> K["/progress"]
+    K --> J["/commit"]
 
     style A fill:#fff9c4
     style B fill:#e1f5fe
     style E fill:#fff3e0
     style I fill:#e8f5e9
+    style K fill:#e8eaf6
     style J fill:#fff9c4
 ```
 
@@ -429,7 +431,58 @@ Operational Concerns: Infra, monitoring, security
 
 ---
 
-### 8️⃣ `/commit` - Git Workflow Manager
+### 8️⃣ `/progress` - Project Progress Analysis
+
+**Purpose:** Analyze project progress across documentation, phases, and codebase
+
+**Inputs:**
+
+- `docs/roadmap.md` - Phase structure and status
+- `docs/specs/*/tasks.md` - Task completion tracking
+- `docs/specs/*/spec.md` - Component definitions
+- `docs/breakdown/*/breakdown.md` - Implementation expectations
+- Git repository state - Branches, commits, merges
+
+**Outputs:**
+
+- `TEMP_DOCS/PROGRESS_REPORT.md` - Comprehensive progress report
+
+**What it does:**
+
+- Analyzes phase completion from roadmap
+- Calculates task completion percentages
+- Tracks implementation status via git
+- Identifies blockers and dependencies
+- Provides velocity metrics and trends
+- Generates actionable recommendations
+- Reports on:
+  - Overall project completion
+  - Per-phase progress
+  - Per-component status
+  - Active implementation work
+  - Stalled or blocked tasks
+  - Next recommended actions
+
+**When to use:**
+
+- Daily/weekly status checks
+- Before sprint planning
+- For stakeholder updates
+- After completing implementations
+- To identify blockers and priorities
+
+**Key features:**
+
+- Multi-source data analysis (docs + git + code)
+- Visual progress indicators
+- Automatic blocker detection
+- Velocity and trend analysis
+- Executive and developer views
+- Actionable next steps
+
+---
+
+### 9️⃣ `/commit` - Git Workflow Manager
 
 **Purpose:** Organize changes into semantic commits with PR documentation
 
@@ -562,6 +615,7 @@ docs/
 └── roadmap.md           # System-wide roadmap (/devflow)
 
 TEMP_DOCS/
+├── PROGRESS_REPORT.md   # Progress analysis (/progress)
 └── PR_MESSAGE.md        # PR description (/commit)
 ```
 
@@ -596,7 +650,10 @@ TEMP_DOCS/
 # Step 8: Execute phased implementation
 /implement
 
-# Step 9: Commit changes
+# Step 9: Check progress
+/progress
+
+# Step 10: Commit changes
 /commit
 ```
 
@@ -771,6 +828,7 @@ TEMP_DOCS/
 | `/breakdown` | Implementation approach changes, new patterns adopted |
 | `/devflow` | Component updates, integration changes, milestone reviews |
 | `/implement` | Ready to start implementation, phase completion, resuming work |
+| `/progress` | Daily/weekly check-ins, status updates, blocker identification |
 | `/strategic-intelligence` | Quarterly reviews, competitive changes, strategic planning |
 | `/commit` | Code ready for PR, feature complete |
 
@@ -835,6 +893,14 @@ TEMP_DOCS/
 - [ ] Feature branch ready for review
 - [ ] Progress tracking updated in task files
 
+**After `/progress`:**
+
+- [ ] Overall project completion percentage calculated
+- [ ] Phase and component status identified
+- [ ] Blockers and dependencies highlighted
+- [ ] Next actions clearly recommended
+- [ ] Progress report generated in TEMP_DOCS/
+
 **After `/strategic-intelligence`:**
 
 - [ ] Strategic capabilities and market position assessed
@@ -885,13 +951,13 @@ mkdir -p docs
 
 ```bash
 # Full workflow in sequence (new projects)
-/enhance && /specify && /poc && /plan && /tasks && /breakdown && /devflow && /implement
+/enhance && /specify && /poc && /plan && /tasks && /breakdown && /devflow && /implement && /progress
 
 # Enhancement-driven development
-/enhance && /specify && /plan && /tasks && /devflow && /implement
+/enhance && /specify && /plan && /tasks && /devflow && /implement && /progress
 
 # Strategic intelligence workflow
-/strategic-intelligence && /plan && /tasks && /devflow && /implement
+/strategic-intelligence && /plan && /tasks && /devflow && /implement && /progress
 
 # Update all documentation
 /specify && /plan && /tasks && /devflow
@@ -901,6 +967,9 @@ mkdir -p docs
 
 # Just system overview
 /devflow
+
+# Check project progress
+/progress
 
 # Enhancement research only
 /enhance

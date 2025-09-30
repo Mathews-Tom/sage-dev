@@ -29,7 +29,8 @@ graph TB
     Assessment -.-> Plan
     Assessment -.-> DevFlow
 
-    Dev --> Commit["/commit<br/>Git Workflow"]
+    Dev --> Progress["/progress<br/>Status Analysis"]
+    Progress --> Commit["/commit<br/>Git Workflow"]
     Commit --> PR[📤 Pull Request]
 
     style POCGen fill:#fff3e0
@@ -40,6 +41,7 @@ graph TB
     style Tasks fill:#fce4ec
     style Breakdown fill:#f1f8e9
     style Implement fill:#e3f2fd
+    style Progress fill:#e8eaf6
     style Commit fill:#fff9c4
     style Assessment fill:#ffe0f0
 ```
@@ -131,15 +133,17 @@ graph LR
 ```mermaid
 graph LR
     A[Implementation] --> B[Code Changes]
-    B --> C["/commit"]
-    C --> D[PR Created]
-    D --> E[Review & Merge]
-    
-    style C fill:#fff9c4
+    B --> C["/progress"]
+    C --> D["/commit"]
+    D --> E[PR Created]
+    E --> F[Review & Merge]
+
+    style C fill:#e8eaf6
+    style D fill:#fff9c4
 ```
 
-**Duration:** Varies by project  
-**Output:** Clean commits and comprehensive PRs
+**Duration:** Varies by project
+**Output:** Progress reports, clean commits, and comprehensive PRs
 
 ---
 
@@ -158,6 +162,7 @@ graph TD
     Update -->|Timeline| Tasks["/tasks → /devflow"]
     Update -->|Market/Strategy| Assessment["/strategic-intelligence → /plan → /devflow"]
     Update -->|Implementation Ready| Implement["/implement"]
+    Update -->|Check Status| Progress["/progress"]
     Update -->|Code Ready| Commit["/commit"]
 
     AllDocs --> Risk{High Risk?}
@@ -238,6 +243,9 @@ sequenceDiagram
     Dev->>Code: /implement
     Code-->>Dev: Phase Implementation
 
+    Dev->>Code: /progress
+    Code-->>Dev: Status Report
+
     Dev->>Code: /commit
     Code-->>Dev: PR Created
 ```
@@ -263,6 +271,9 @@ sequenceDiagram
 
     Dev->>Code: /implement
     Code-->>Dev: Feature Implementation
+
+    Dev->>Code: /progress
+    Code-->>Dev: Status Report
 
     Dev->>Code: /commit
     Code-->>Dev: PR Created
@@ -333,7 +344,8 @@ graph TD
     Tasks --> Implement
 
     Implement --> Dev[Development]
-    Dev --> Commit["/commit<br/>Delivery"]
+    Dev --> Progress["/progress<br/>Status Analysis"]
+    Progress --> Commit["/commit<br/>Delivery"]
 
     style Assessment fill:#ffe0f0,stroke:#c2185b
     style Specify fill:#e1f5fe,stroke:#01579b
@@ -343,6 +355,7 @@ graph TD
     style Breakdown fill:#f1f8e9,stroke:#33691e
     style DevFlow fill:#f3e5f5,stroke:#4a148c
     style Implement fill:#e3f2fd,stroke:#0277bd
+    style Progress fill:#e8eaf6,stroke:#311b92
     style Commit fill:#fff9c4,stroke:#f57f17
 ```
 
@@ -372,6 +385,7 @@ graph LR
         Breakdown["/breakdown"]
         DevFlow["/devflow"]
         Implement["/implement"]
+        Progress["/progress"]
         Commit["/commit"]
     end
 
@@ -384,6 +398,7 @@ graph LR
         ImplGuides[Implementation Guides]
         Roadmap[System Roadmap]
         PhaseCode[Phase Implementation]
+        StatusReport[Progress Report]
         PR[Pull Request]
     end
 
@@ -422,6 +437,11 @@ graph LR
     TaskLists --> Implement
     ImplGuides --> Implement
     Implement --> PhaseCode
+
+    PhaseCode --> Progress
+    TaskLists --> Progress
+    Roadmap --> Progress
+    Progress --> StatusReport
 
     Code --> Commit
     Commit --> PR
@@ -490,7 +510,8 @@ graph TB
 graph LR
     A[Initial Specs] --> B["/implement"]
     B --> C[Implementation]
-    C --> D{Feedback}
+    C --> M["/progress"]
+    M --> D{Feedback}
     D -->|Requirements Changed| E["/specify"]
     D -->|Tech Issues| F["/plan"]
     D -->|Estimate Wrong| G["/tasks"]
@@ -506,6 +527,7 @@ graph LR
     L --> B
 
     style C fill:#ff9800
+    style M fill:#e8eaf6
 ```
 
 ---
@@ -548,11 +570,18 @@ graph TD
         M14[Error Resolution Rate: R%]
     end
 
+    subgraph "Progress Tracking Phase"
+        M15[Task Completion Rate: T%]
+        M16[Phase Progress: P/Total]
+        M17[Velocity Trend: V tasks/day]
+        M18[Blocker Count: B blockers]
+    end
+
     subgraph "Delivery Phase"
-        M15[Commit Quality: C score]
-        M16[PR Approval Time: A hours]
-        M17[Bug Rate: B/1000 lines]
-        M18[Market Impact Score: I/10]
+        M19[Commit Quality: C score]
+        M20[PR Approval Time: A hours]
+        M21[Bug Rate: B/1000 lines]
+        M22[Market Impact Score: I/10]
     end
 ```
 
@@ -614,6 +643,7 @@ stateDiagram-v2
         ✓ Tests created and passing
         ✓ Progress tracking updated
         ✓ Feature branch ready
+        ✓ Status report generated
     end note
 ```
 
@@ -754,9 +784,9 @@ graph TB
 
 | Scenario | Commands to Run | Skip |
 |----------|----------------|------|
-| **New Project** | `/strategic-intelligence` → `/specify` → `/poc` → `/plan` → `/tasks` → `/breakdown` → `/devflow` → `/implement` | None |
-| **High Risk Feature** | `/strategic-intelligence` → `/specify` → `/poc` → `/plan` → `/tasks` → `/implement` | `/breakdown` (unless complex) |
-| **Simple Feature** | `/specify` → `/plan` → `/tasks` → `/implement` | `/strategic-intelligence`, `/poc`, `/breakdown` |
+| **New Project** | `/strategic-intelligence` → `/specify` → `/poc` → `/plan` → `/tasks` → `/breakdown` → `/devflow` → `/implement` → `/progress` | None |
+| **High Risk Feature** | `/strategic-intelligence` → `/specify` → `/poc` → `/plan` → `/tasks` → `/implement` → `/progress` | `/breakdown` (unless complex) |
+| **Simple Feature** | `/specify` → `/plan` → `/tasks` → `/implement` → `/progress` | `/strategic-intelligence`, `/poc`, `/breakdown` |
 | **Strategic Planning** | `/strategic-intelligence` → `/plan` → `/devflow` | Others |
 | **Requirement Change** | `/specify` → `/devflow` | Others |
 | **Tech Stack Change** | `/plan` → `/tasks` → `/breakdown` | `/specify` |
@@ -764,6 +794,7 @@ graph TB
 | **Timeline Update** | `/tasks` → `/devflow` | Others |
 | **Implementation Ready** | `/implement` | Others |
 | **Before Coding** | `/breakdown` | Others |
+| **Status Check** | `/progress` | All others |
 | **Quarterly Review** | `/strategic-intelligence` | All others |
 | **Code Complete** | `/commit` | All others |
 
@@ -799,8 +830,11 @@ graph LR
     U --> V[📝 Week 5<br/>Start implementation] --> W["/implement"]
     W --> X[✓ Phased implementation complete]
 
-    X --> Y[📝 Week 6<br/>Feature complete] --> Z["/commit"]
-    Z --> AA[✓ Clean PR with strategic impact]
+    X --> Y[📝 Week 6<br/>Check status] --> AB["/progress"]
+    AB --> Z[✓ Status report generated]
+
+    Z --> AA[📝 Week 6<br/>Feature complete] --> AC["/commit"]
+    AC --> AD[✓ Clean PR with strategic impact]
 
     style C fill:#4caf50
     style F fill:#4caf50
@@ -810,5 +844,6 @@ graph LR
     style R fill:#4caf50
     style U fill:#4caf50
     style X fill:#4caf50
-    style AA fill:#4caf50
+    style Z fill:#4caf50
+    style AD fill:#4caf50
 ```
