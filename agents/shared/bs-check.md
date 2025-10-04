@@ -67,6 +67,7 @@ Algorithm:
         END
 
 Rules:
+
 - Process ALL files uniformly - no exceptions
 - Third-party code (venv/, node_modules/) → raise error
 - No retries, no rollbacks, no fallbacks
