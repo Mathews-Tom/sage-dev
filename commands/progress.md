@@ -147,7 +147,7 @@ Using `SequentialThinking` to:
 - Determine next UNPROCESSED ticket to work on
 - Generate actionable recommendations
 
-**Output:** `TEMP_DOCS/PROGRESS_REPORT.md`
+**Output:** `.docs/PROGRESS_REPORT.md`
 
 ## Report Template
 
@@ -486,7 +486,7 @@ UI-003 (DEFERRED - missing design assets)
 - Git repository state - Branches, commits for tickets
 
 **Outputs:**
-- `TEMP_DOCS/PROGRESS_REPORT.md` - Comprehensive progress report with ticket metrics
+- `.docs/PROGRESS_REPORT.md` - Comprehensive progress report with ticket metrics
 
 **Workflow Position:**
 - **After:** `/implement` (track ticket completion)
@@ -541,7 +541,7 @@ ls docs/specs/ 2>/dev/null | wc -l
 - [ ] Blockers and risks highlighted
 - [ ] Actionable recommendations provided
 - [ ] Visual progress indicators clear
-- [ ] Report generated in TEMP_DOCS/
+- [ ] Report generated in .docs/
 
 ## Usage Examples
 

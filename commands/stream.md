@@ -850,7 +850,7 @@ echo ""
 
 ```bash
 # Run /progress command
-# This updates TEMP_DOCS/PROGRESS_REPORT.md
+# This updates .docs/PROGRESS_REPORT.md
 ```
 
 **Progress Report Includes:**
@@ -1160,8 +1160,8 @@ echo "════════════════════════�
 
 - Updated `tickets/index.json` with new states
 - Implemented code committed to git
-- `TEMP_DOCS/PROGRESS_REPORT.md` updated
-- `TEMP_DOCS/DEVSTREAM_SUMMARY.md` created
+- `.docs/PROGRESS_REPORT.md` updated
+- `.docs/DEVSTREAM_SUMMARY.md` created
 - All changes pushed to GitHub via `/sync`
 
 **Workflow Position:**
@@ -1314,10 +1314,10 @@ git status | grep "both modified"
 /stream
 
 # Check progress during cycle
-# (open TEMP_DOCS/PROGRESS_REPORT.md in another terminal)
+# (open .docs/PROGRESS_REPORT.md in another terminal)
 
 # After completion, review deferred tickets
-cat TEMP_DOCS/DEVSTREAM_SUMMARY.md
+cat .docs/DEVSTREAM_SUMMARY.md
 ```
 
 ## Performance Considerations

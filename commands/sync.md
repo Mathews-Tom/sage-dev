@@ -197,7 +197,7 @@ Co-Authored-By: Claude <noreply@anthropic.com>
 ### 7. Generate Sync Report
 
 ```bash
-tee TEMP_DOCS/SYNC_REPORT.md
+tee .docs/SYNC_REPORT.md
 ```
 
 **Report Template:**
@@ -313,7 +313,7 @@ auto_pr = true  # create PR automatically
 - Updated `tickets/index.json` with reconciled data
 - Regenerated `tickets/*.md` files
 - Git commit with descriptive message
-- `TEMP_DOCS/SYNC_REPORT.md` with sync details
+- `.docs/SYNC_REPORT.md` with sync details
 - Pushed commits to GitHub (tickets-sync or main branch)
 
 **Workflow Position:**
@@ -445,7 +445,7 @@ git status | grep -q "both modified"
 
 # Force sync with validation check
 /sync
-cat TEMP_DOCS/SYNC_REPORT.md
+cat .docs/SYNC_REPORT.md
 ```
 
 ## Notes

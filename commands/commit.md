@@ -110,8 +110,8 @@ Developer organizing changes into clean, conventional commits with comprehensive
 8. **Generate PR Message** with Ticket Context:
 
    ```bash
-   mkdir -p TEMP_DOCS
-   tee TEMP_DOCS/PR_MESSAGE.md
+   mkdir -p .docs
+   tee .docs/PR_MESSAGE.md
    ```
 
 ---
@@ -339,5 +339,5 @@ After pushing:
 
 1. **Update Ticket States**: If not done by `/implement`, manually update `tickets/index.json`
 2. **Run /sync**: Push ticket updates to GitHub
-3. **Create PR**: Use generated `TEMP_DOCS/PR_MESSAGE.md`
+3. **Create PR**: Use generated `.docs/PR_MESSAGE.md`
 4. **Link PR to Tickets**: Reference PR number in ticket markdown

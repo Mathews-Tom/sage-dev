@@ -334,7 +334,7 @@ echo "TRADITIONAL" > .sage/workflow-mode   # Switch to Traditional
 - **SAGE_DEV_WORKFLOW.md:** Full workflow documentation
 - **SAGE_DEV_COMMANDS.md:** Command reference with visual workflow diagrams
 - **commands/[name].md:** Individual command details
-- **TEMP_DOCS/GAP_ANALYSIS.md:** System architecture insights
+- **.docs/GAP_ANALYSIS.md:** System architecture insights
 
 ---
 

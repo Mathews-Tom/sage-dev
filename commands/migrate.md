@@ -429,7 +429,7 @@ fi
 ### 7. Generate Migration Report
 
 ```bash
-tee TEMP_DOCS/MIGRATION_REPORT.md
+tee .docs/MIGRATION_REPORT.md
 ```
 
 **Report Template:**
@@ -503,7 +503,7 @@ UI-005 (DEFERRED - blocked)
 
 - tickets/index.json
 - tickets/AUTH-001.md (N files total)
-- TEMP_DOCS/MIGRATION_REPORT.md
+- .docs/MIGRATION_REPORT.md
 
 ```
 
@@ -556,7 +556,7 @@ grep -r "^**State:**" tickets/*.md | sort | uniq -c
 
 - `tickets/index.json` - Central ticket graph
 - `tickets/[ID].md` - Per-ticket markdown files
-- `TEMP_DOCS/MIGRATION_REPORT.md` - Migration summary
+- `.docs/MIGRATION_REPORT.md` - Migration summary
 - Ready-to-use ticket system for `/implement` and `/stream`
 
 **Workflow Position:**
@@ -612,7 +612,7 @@ git status 2>&1 | grep -q "not a git repository"
 /migrate
 
 # Review migration report
-cat TEMP_DOCS/MIGRATION_REPORT.md
+cat .docs/MIGRATION_REPORT.md
 
 # Inspect generated tickets
 ls tickets/

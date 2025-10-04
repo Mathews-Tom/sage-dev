@@ -546,7 +546,7 @@ Operational Concerns: Infra, monitoring, security
 
 **Outputs:**
 
-- `TEMP_DOCS/PROGRESS_REPORT.md` - Comprehensive progress report
+- `.docs/PROGRESS_REPORT.md` - Comprehensive progress report
 
 **What it does:**
 
@@ -595,7 +595,7 @@ Operational Concerns: Infra, monitoring, security
 **Outputs:**
 
 - Conventional commits
-- `TEMP_DOCS/PR_MESSAGE.md` - Comprehensive PR description
+- `.docs/PR_MESSAGE.md` - Comprehensive PR description
 
 **What it does:**
 
@@ -715,7 +715,7 @@ docs/
 ├── intel.md  # Strategic assessment & market intelligence (/intel)
 └── blueprint.md           # System-wide blueprint (/blueprint)
 
-TEMP_DOCS/
+.docs/
 ├── PROGRESS_REPORT.md   # Progress analysis (/progress)
 └── PR_MESSAGE.md        # PR description (/commit)
 ```
@@ -1000,7 +1000,7 @@ TEMP_DOCS/
 - [ ] Phase and component status identified
 - [ ] Blockers and dependencies highlighted
 - [ ] Next actions clearly recommended
-- [ ] Progress report generated in TEMP_DOCS/
+- [ ] Progress report generated in .docs/
 
 **After `/intel`:**
 
