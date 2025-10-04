@@ -36,7 +36,24 @@ Developer organizing changes into clean, conventional commits with comprehensive
 
 ## Execution
 
-1. **Analyze Changes**:
+1. **Identify Active Tickets**:
+
+   ```bash
+   # Find tickets with current branch
+   CURRENT_BRANCH=$(git branch --show-current)
+
+   # Find tickets associated with this branch
+   cat tickets/index.json | jq -r "
+     .tickets[] |
+     select(.git.branch == \"$CURRENT_BRANCH\") |
+     .id
+   "
+
+   # Or identify tickets from recent commits
+   git log --oneline --since="1 day ago" | grep -oE '#[A-Z]+-[0-9]+'
+   ```
+
+2. **Analyze Changes**:
 
    ```bash
    git status --short
@@ -44,32 +61,53 @@ Developer organizing changes into clean, conventional commits with comprehensive
    git branch --show-current
    ```
 
-2. **Group Files**: Use `SequentialThinking` to:
+3. **Group Files**: Use `SequentialThinking` to:
 
    * Identify logical change groups
    * Determine commit types and scopes
+   * Extract ticket IDs from context
    * Order commits by dependency
 
-3. **Create Commits**: For each group:
+4. **Create Commits** with Ticket References:
 
    ```bash
+   # For each group, include ticket ID in commit message
    git add <files>
-   git commit -m "type(scope): subject" -m "body"
+   git commit -m "type(scope): #TICKET-ID subject" -m "body
+
+   Closes: #TICKET-ID"
    ```
 
-4. **Validate**: Check commit history:
+5. **Update Ticket with Commit Info**:
+
+   ```bash
+   # Record final commits in ticket
+   TICKET_ID="AUTH-001"
+   COMMITS=$(git log --format="%H" origin/main..HEAD)
+
+   # Append to tickets/[ID].md
+   cat >> tickets/${TICKET_ID}.md <<EOF
+
+   ## Final Commits
+   $(git log --format="- [%h]: %s" origin/main..HEAD)
+   EOF
+
+   # Update tickets/index.json git.commits array
+   ```
+
+6. **Validate**: Check commit history:
 
    ```bash
    git log --oneline -10
    ```
 
-5. **Push**:
+7. **Push**:
 
    ```bash
    git push origin $(git branch --show-current)
    ```
 
-6. **Generate PR Message**:
+8. **Generate PR Message** with Ticket Context:
 
    ```bash
    mkdir -p TEMP_DOCS
@@ -139,12 +177,20 @@ Decision tree:
 ```markdown
 # [Type]: [Concise title]
 
+## 🎫 Tickets
+- Closes #AUTH-001
+- Related #AUTH-002
+- Depends on #DB-001
+
 ## 🎯 Purpose
 [Why this change is needed - business value or problem solved]
 
+**Ticket Context:**
+- **AUTH-001**: [Ticket title and acceptance criteria summary]
+
 ## 📝 Changes
 ### Added
-- Feature/functionality added
+- Feature/functionality added (per AUTH-001 acceptance criteria)
 ### Changed
 - Modified behavior or implementation
 ### Fixed
@@ -154,7 +200,7 @@ Decision tree:
 
 ## 🔧 Technical Details
 **Approach:**
-[High-level implementation strategy]
+[High-level implementation strategy from ticket context]
 
 **Key Files:**
 - `path/to/file1.ts` - [what changed]
@@ -164,12 +210,22 @@ Decision tree:
 - [Any new dependencies added]
 - [Version updates]
 
+**Ticket Implementation:**
+- Followed spec: `docs/specs/auth/spec.md`
+- Used architecture from: `docs/specs/auth/plan.md`
+- Implemented per: `docs/breakdown/auth/breakdown.md`
+
 ## 🧪 Testing
 **Test Coverage:**
 - [ ] Unit tests added/updated
 - [ ] Integration tests added/updated
 - [ ] E2E tests added/updated
 - [ ] Manual testing completed
+
+**Acceptance Criteria Met:**
+- [x] [Criterion 1 from ticket]
+- [x] [Criterion 2 from ticket]
+- [x] [Criterion 3 from ticket]
 
 **Test Scenarios:**
 1. [Scenario 1]
@@ -188,9 +244,10 @@ Decision tree:
 - [ ] Migration steps provided
 
 ## 🔗 References
-- Closes #[issue-number]
-- Related to #[issue-number]
-- Depends on #[PR-number]
+- Tickets: #AUTH-001, #AUTH-002
+- Spec: docs/specs/auth/spec.md
+- Plan: docs/specs/auth/plan.md
+- Breakdown: docs/breakdown/auth/breakdown.md
 
 ## 📸 Screenshots/Demo
 [If UI changes, include screenshots or GIF]
@@ -201,6 +258,8 @@ Decision tree:
 - [ ] Documentation updated
 - [ ] No console errors/warnings
 - [ ] Reviewed own code
+- [ ] All ticket acceptance criteria met
+- [ ] Ticket marked COMPLETED in tickets/index.json
 - [ ] Ready for review
 
 ## 📋 Review Notes
@@ -209,9 +268,14 @@ Decision tree:
 ---
 
 ### Commits in this PR
-- `abc123f` feat(api): add authentication endpoint
-- `def456a` test(api): add auth integration tests
-- `ghi789b` docs(api): update API documentation
+- `abc123f` feat(auth): #AUTH-001 add JWT validation
+- `def456a` test(auth): #AUTH-001 add validation tests
+- `ghi789b` docs(auth): #AUTH-001 update API docs
+
+### Ticket Status
+- **AUTH-001**: IN_PROGRESS → COMPLETED
+- Branch: feature/auth-001
+- Duration: [X hours]
 ```
 
 ---
@@ -220,7 +284,9 @@ Decision tree:
 
 Before pushing:
 
-* [ ] All commits follow conventional format
+* [ ] All commits follow conventional format with ticket IDs
+* [ ] Commit messages include `#TICKET-ID` references
+* [ ] Ticket IDs match active tickets in `tickets/index.json`
 * [ ] Commit messages are descriptive
 * [ ] No WIP or temp commits
 * [ ] Related changes grouped together
@@ -228,4 +294,50 @@ Before pushing:
 * [ ] No sensitive data in commits
 * [ ] No references to AI tools or assistance
 * [ ] **Not committing to `main` or `master`**
-* [ ] Branch name matches convention
+* [ ] Branch name matches ticket convention (`feature/ticket-id`)
+* [ ] Tickets updated with commit SHAs
+* [ ] Ticket acceptance criteria met
+
+## Ticket Integration
+
+**Commit Message Format with Tickets:**
+
+```text
+feat(component): #TICKET-ID implement feature
+
+Detailed description of implementation.
+
+Addresses acceptance criteria:
+- Criterion 1
+- Criterion 2
+
+Closes: #TICKET-ID
+```
+
+**Multiple Tickets in One Commit:**
+
+```text
+feat(auth): #AUTH-001 #AUTH-002 implement JWT and OAuth
+
+Implements both JWT validation and OAuth integration
+as these features are tightly coupled.
+
+Closes: #AUTH-001, #AUTH-002
+```
+
+**Ticket Reference in Footer:**
+
+```text
+Closes: #TICKET-ID
+Refs: #RELATED-ID
+Depends-On: #DEPENDENCY-ID
+```
+
+## Post-Commit Actions
+
+After pushing:
+
+1. **Update Ticket States**: If not done by `/implement`, manually update `tickets/index.json`
+2. **Run /sync**: Push ticket updates to GitHub
+3. **Create PR**: Use generated `TEMP_DOCS/PR_MESSAGE.md`
+4. **Link PR to Tickets**: Reference PR number in ticket markdown

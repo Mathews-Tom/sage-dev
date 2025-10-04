@@ -50,15 +50,59 @@ Requirements analyst creating actionable software specifications.
    - Use `SequentialThinking` to identify components and dependencies
    - Group requirements by logical component boundaries
 3. **Research**: `WebSearch` for relevant standards (if needed)
-4. **Generate**:
+4. **Generate Specifications**:
 
    ```bash
    mkdir -p docs/specs/<component>
    tee docs/specs/<component>/spec.md
    ```
 
-5. **Validate**: Review structure with `find docs/specs -type f`
-6. **Summary**: List created specs and highlight cross-dependencies
+5. **Generate Epic Tickets**:
+
+   ```bash
+   # Create tickets directory if not exists
+   mkdir -p tickets
+
+   # Load or initialize index.json
+   test -f tickets/index.json || echo '{"version":"1.0","tickets":[]}' > tickets/index.json
+
+   # For each component spec, create epic ticket
+   COMPONENT_ID="AUTH"  # e.g., AUTH, DB, UI, API
+   TICKET_NUMBER="001"
+   TICKET_ID="${COMPONENT_ID}-${TICKET_NUMBER}"
+
+   # Generate ticket markdown
+   tee tickets/${TICKET_ID}.md <<EOF
+   # ${TICKET_ID}: [Component Name] Implementation
+
+   **State:** UNPROCESSED
+   **Priority:** P0
+   **Type:** Epic
+
+   ## Description
+   [Component overview from spec]
+
+   ## Acceptance Criteria
+   - [ ] All functional requirements implemented
+   - [ ] All non-functional requirements met
+   - [ ] Tests passing
+
+   ## Dependencies
+   - None (or list component dependencies)
+
+   ## Context
+   **Specs:** docs/specs/${COMPONENT}/spec.md
+
+   ## Progress
+   **Notes:** Generated from /specify command
+   EOF
+
+   # Update index.json
+   # Add ticket entry with metadata
+   ```
+
+6. **Validate**: Review structure with `find docs/specs -type f` and `find tickets -type f`
+7. **Summary**: List created specs, epic tickets, and highlight cross-dependencies
 
 ## Component Identification
 
@@ -72,3 +116,21 @@ Requirements analyst creating actionable software specifications.
 - Dependencies explicitly mapped
 - Source traceability maintained (cite doc files)
 - Use clear, concise language
+- Epic tickets created for each component specification
+- Tickets linked to spec documentation for context
+
+## Ticket Generation
+
+**Epic Ticket Structure:**
+- **ID Format**: `[COMPONENT]-001` (e.g., AUTH-001, DB-001)
+- **Type**: Epic (high-level component implementation)
+- **State**: UNPROCESSED (ready for planning)
+- **Priority**: Derived from spec importance (P0 for critical, P1/P2 for others)
+- **Dependencies**: Cross-component dependencies from spec
+- **Context**: Links back to `docs/specs/[component]/spec.md`
+
+**Integration with Workflow:**
+- Epic tickets serve as root nodes in ticket hierarchy
+- `/plan` command adds dependencies and architecture notes to these tickets
+- `/tasks` command creates child story tickets under epics
+- `/implement` eventually processes leaf tickets to implement features

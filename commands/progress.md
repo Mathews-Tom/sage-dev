@@ -11,148 +11,140 @@ Project analyst generating comprehensive progress reports from documentation, ta
 
 Provide high-level visibility into project status by analyzing:
 
-- **Documentation Progress**: Phase completion from roadmap
-- **Task Completion**: Checkbox tracking across all task files
-- **Implementation Status**: Code completion via git branches and commits
-- **Component Health**: Per-component progress metrics
-- **Blockers & Risks**: Incomplete dependencies and stalled work
-- **Next Actions**: Prioritized recommendations
+- **Ticket State Distribution**: Aggregate by UNPROCESSED/IN_PROGRESS/DEFERRED/COMPLETED
+- **Component Health**: Per-component ticket completion metrics
+- **Velocity Metrics**: Tickets completed per timeframe
+- **Dependency Analysis**: Blocked tickets and dependency chains
+- **Deferred Tickets**: Tickets needing attention with reasons
+- **Next Actions**: Prioritized recommendations based on ticket queue
 
 ## Execution
 
-### 1. Documentation Discovery
+### 1. Load Ticket System
 
 ```bash
-# Find roadmap for phase structure
-fd -t f "roadmap.md" docs/
+# Verify ticket system exists
+test -f tickets/index.json || echo "ERROR: No ticket system found"
 
-# Find all task files
-fd -t f "tasks.md" docs/specs/
+# Load ticket index
+cat tickets/index.json
 
-# Find all spec files
-fd -t f "spec.md" docs/specs/
-
-# Find breakdown files
-fd -t f "breakdown.md" docs/breakdown/
+# Count ticket markdown files
+ls tickets/*.md | wc -l
 ```
 
 **Key Actions:**
+- Verify `tickets/index.json` exists
+- Load full ticket graph
+- Validate ticket structure
+- Prepare for analysis
 
-- Locate `docs/roadmap.md` for phase definitions
-- Discover all component task files
-- Identify specification and breakdown files
-- Build inventory of project documentation
-
-### 2. Phase Analysis
+### 2. Aggregate Ticket States
 
 ```bash
-# Extract phase definitions and status from roadmap
-cat docs/roadmap.md | grep -E "^## Phase|^###|^- \[[ x]\]"
+# Count tickets by state
+cat tickets/index.json | jq -r '
+  .tickets |
+  group_by(.state) |
+  map({state: .[0].state, count: length}) |
+  .[]
+'
 
-# Count total phases
-grep -c "^## Phase" docs/roadmap.md
+# Calculate percentages
+TOTAL=$(cat tickets/index.json | jq '.tickets | length')
+COMPLETED=$(cat tickets/index.json | jq '[.tickets[] | select(.state == "COMPLETED")] | length')
+IN_PROGRESS=$(cat tickets/index.json | jq '[.tickets[] | select(.state == "IN_PROGRESS")] | length')
+DEFERRED=$(cat tickets/index.json | jq '[.tickets[] | select(.state == "DEFERRED")] | length')
+UNPROCESSED=$(cat tickets/index.json | jq '[.tickets[] | select(.state == "UNPROCESSED")] | length')
 ```
 
 **Key Actions:**
+- Count tickets by state
+- Calculate state distribution percentages
+- Identify overall completion rate
+- Detect bottlenecks (high IN_PROGRESS or DEFERRED counts)
 
-- Parse phase names and descriptions
-- Extract phase milestones and deliverables
-- Identify phase dependencies
-- Calculate phase completion percentages
-
-### 3. Task Progress Analysis
+### 3. Component Analysis
 
 ```bash
-# Count completed tasks across all task files
-find docs/specs -name "tasks.md" -exec grep -c "\[x\]" {} \; | awk '{sum+=$1} END {print sum}'
-
-# Count incomplete tasks
-find docs/specs -name "tasks.md" -exec grep -c "\[ \]" {} \; | awk '{sum+=$1} END {print sum}'
-
-# Find tasks marked as in progress
-grep -r "(In Progress)" docs/specs/*/tasks.md
-
-# Find completed tasks
-grep -r "(Completed)" docs/specs/*/tasks.md
+# Group tickets by component (first part of ID)
+cat tickets/index.json | jq -r '
+  .tickets |
+  group_by(.id | split("-")[0]) |
+  map({
+    component: .[0].id | split("-")[0],
+    total: length,
+    completed: [.[] | select(.state == "COMPLETED")] | length
+  }) |
+  .[]
+'
 ```
 
 **Key Actions:**
-
-- Count completed vs incomplete tasks
-- Identify tasks with status labels
-- Calculate completion percentages per component
-- Detect stalled tasks (no recent updates)
-
-### 4. Component Analysis
-
-```bash
-# List all components
-ls -1 docs/specs/
-
-# Per-component task analysis
-for dir in docs/specs/*/; do
-  component=$(basename "$dir")
-  total=$(grep -c "\[" "$dir/tasks.md" 2>/dev/null || echo 0)
-  done=$(grep -c "\[x\]" "$dir/tasks.md" 2>/dev/null || echo 0)
-  echo "$component: $done/$total tasks completed"
-done
-```
-
-**Key Actions:**
-
-- List all components with task counts
-- Calculate per-component completion rates
+- Extract component prefix from ticket IDs (AUTH, DB, UI, etc.)
+- Count total tickets per component
+- Calculate completion rate per component
 - Identify components with no progress
 - Highlight fully completed components
 
-### 5. Implementation Status
+### 4. Analyze Dependencies and Blockers
 
 ```bash
-# List all feature branches
-git branch -a | grep "feature/"
+# Find UNPROCESSED tickets with unmet dependencies
+cat tickets/index.json | jq -r '
+  .tickets[] |
+  select(.state == "UNPROCESSED") |
+  select(.dependencies | length > 0) |
+  select(
+    any(.dependencies[];  . as $dep |
+      any($index.tickets[]; .id == $dep and .state != "COMPLETED")
+    )
+  ) |
+  .id
+'
 
-# Get recent commits
-git log --oneline --since="1 week ago"
-
-# Check current branch
-git branch --show-current
-
-# Find unmerged branches
-git branch --no-merged main
+# List DEFERRED tickets with reasons
+cat tickets/index.json | jq -r '
+  .tickets[] |
+  select(.state == "DEFERRED") |
+  "\(.id): \(.title) - \(.notes // "No reason provided")"
+'
 ```
 
 **Key Actions:**
+- Identify blocked UNPROCESSED tickets
+- Extract dependency chains
+- List DEFERRED tickets with deferral reasons
+- Calculate critical path impact
 
-- Map feature branches to phases
-- Identify active implementation work
-- Check for stale branches
-- Validate merged vs pending work
-
-### 6. Codebase Validation
+### 5. Calculate Velocity Metrics
 
 ```bash
-# Check if implementation files exist from breakdowns
-find docs/breakdown -name "breakdown.md" -exec grep -h "File:" {} \;
+# Tickets completed in last 7 days
+cat tickets/index.json | jq -r '
+  .tickets[] |
+  select(.state == "COMPLETED") |
+  select(.updated >= (now - 604800 | strftime("%Y-%m-%dT%H:%M:%SZ"))) |
+  .id
+' | wc -l
 
-# Verify existence of specified files
-# (Extract file paths from breakdowns and check if they exist)
+# Average ticket duration (completed tickets only)
+# Parse created and updated timestamps, calculate delta
 ```
 
 **Key Actions:**
+- Count tickets completed in last 7 days
+- Calculate average ticket completion time
+- Determine velocity trend (increasing/decreasing)
+- Project completion date for remaining tickets
 
-- Extract expected file paths from breakdowns
-- Verify which files are implemented
-- Identify missing implementations
-- Cross-reference with git history
-
-### 7. Progress Report Generation
+### 6. Progress Report Generation
 
 Using `SequentialThinking` to:
-
 - Synthesize all collected data
 - Calculate overall completion percentage
 - Identify critical path blockers
-- Determine next highest-priority actions
+- Determine next UNPROCESSED ticket to work on
 - Generate actionable recommendations
 
 **Output:** `TEMP_DOCS/PROGRESS_REPORT.md`
@@ -164,7 +156,7 @@ Using `SequentialThinking` to:
 
 **Generated:** <YYYY-MM-DD HH:MM>
 **Project:** [Project Name]
-**Overall Progress:** [XX%] ✅ Completed | [XX%] 🔄 In Progress | [XX%] 📋 Not Started
+**Overall Progress:** [XX%] ✅ COMPLETED | [XX%] 🔄 IN_PROGRESS | [XX%] ⚠️ DEFERRED | [XX%] 📋 UNPROCESSED
 
 ---
 
@@ -172,24 +164,28 @@ Using `SequentialThinking` to:
 
 **Status:** [On Track | At Risk | Delayed]
 
-**Key Metrics:**
-- Total Phases: [count]
-- Completed Phases: [count] ✅
-- In-Progress Phases: [count] 🔄
-- Total Tasks: [count]
-- Completed Tasks: [count] ([XX%])
-- Active Feature Branches: [count]
+**Ticket Metrics:**
+- Total Tickets: [count]
+- COMPLETED: [count] ✅ ([XX%])
+- IN_PROGRESS: [count] 🔄 ([XX%])
+- DEFERRED: [count] ⚠️ ([XX%])
+- UNPROCESSED: [count] 📋 ([XX%])
 
-**Current Focus:** [Phase name and key activities]
+**Velocity:**
+- Last 7 Days: [X] tickets completed
+- Average Duration: [Y] hours per ticket
+- Projected Completion: [Date] (based on current velocity)
+
+**Current Focus:** [Tickets currently IN_PROGRESS]
 
 **Top Achievements:**
-1. [Achievement 1]
-2. [Achievement 2]
-3. [Achievement 3]
+1. [Recent completed tickets]
+2. [Component milestones]
+3. [Unblocked dependencies]
 
 **Critical Blockers:**
-1. [Blocker 1]
-2. [Blocker 2]
+1. [DEFERRED tickets]
+2. [Blocked UNPROCESSED tickets]
 
 ---
 
@@ -347,7 +343,7 @@ Component D  ██████████████████░░  90%
 ## 📋 Documentation Status
 
 **Available Documentation:**
-- ✅ System Roadmap (`docs/roadmap.md`)
+- ✅ System Blueprint (`docs/blueprint.md`)
 - ✅ Component Specifications ([count] files)
 - ✅ Implementation Plans ([count] files)
 - ✅ Task Breakdowns ([count] files)
@@ -372,8 +368,8 @@ Component D  ██████████████████░░  90%
 # Commit completed work
 /commit
 
-# Generate updated roadmap
-/devflow
+# Generate updated blueprint
+/blueprint
 ```
 
 **To Address Blockers:**
@@ -449,33 +445,62 @@ Component D  ██████████████████░░  90%
 - **Sprint Velocity:** Tasks completed per sprint
 - **Trend:** Increasing, Stable, or Decreasing velocity
 
+## Ticket-Based Progress Metrics
+
+**Key Additions for Ticket System:**
+
+### State Distribution
+```
+COMPLETED   ████████████░░░░░░░░  60%
+IN_PROGRESS ███░░░░░░░░░░░░░░░░░  15%
+DEFERRED    ██░░░░░░░░░░░░░░░░░░  10%
+UNPROCESSED ███░░░░░░░░░░░░░░░░░  15%
+```
+
+### Component Breakdown
+```
+AUTH  ████████████████░░░░  80% (8/10 tickets)
+DB    ████████████████████  100% (5/5 tickets)
+UI    ████████░░░░░░░░░░░░  40% (4/10 tickets)
+API   ██████░░░░░░░░░░░░░░  30% (3/10 tickets)
+```
+
+### Dependency Graph Visualization
+```
+DB-001 (COMPLETED)
+  ↓
+AUTH-001 (COMPLETED)
+  ↓
+AUTH-002 (IN_PROGRESS)
+  ├→ UI-001 (UNPROCESSED - blocked)
+  └→ API-001 (UNPROCESSED - blocked)
+
+UI-003 (DEFERRED - missing design assets)
+```
+
 ## Integration Points
 
 **Inputs:**
-
-- `docs/roadmap.md` - Phase structure and milestones
-- `docs/specs/*/tasks.md` - Task completion tracking
-- `docs/specs/*/spec.md` - Component definitions
-- `docs/breakdown/*/breakdown.md` - Implementation expectations
-- Git repository state - Branches, commits, merges
+- `tickets/index.json` - Ticket states and metadata
+- `tickets/*.md` - Per-ticket details
+- Git repository state - Branches, commits for tickets
 
 **Outputs:**
-
-- `TEMP_DOCS/PROGRESS_REPORT.md` - Comprehensive progress report
+- `TEMP_DOCS/PROGRESS_REPORT.md` - Comprehensive progress report with ticket metrics
 
 **Workflow Position:**
-
-- **After:** `/implement` (track implementation progress)
-- **Before:** Sprint planning, status meetings, stakeholder updates
-- **Frequency:** Daily, weekly, or on-demand
+- **After:** `/implement` (track ticket completion)
+- **During:** `/stream` (cycle progress updates)
+- **Before:** `/commit`, sprint planning, stakeholder updates
+- **Frequency:** After each ticket completion, daily, or on-demand
 
 ## Error Scenarios and Recovery
 
-### Missing Roadmap
+### Missing Blueprint
 
 ```bash
-# Check if roadmap exists
-test -f docs/roadmap.md || echo "No roadmap found"
+# Check if blueprint exists
+test -f docs/blueprint.md || echo "No blueprint found"
 ```
 
 **Action:** Report warning, analyze components individually
