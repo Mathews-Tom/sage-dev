@@ -1,849 +1,405 @@
-# Development Workflow Visualization
+---
+allowed-tools: Bash(cat:*), Bash(ls:*), SequentialThinking
+description: Interactive workflow selector that recommends Traditional vs Ticket-Based workflow based on project context.
+argument-hint: ''
+---
 
-## 🔄 Complete Workflow Diagram
+## Role
 
-```mermaid
-graph TB
-    Start[📁 Documentation] --> Specify["/specify<br/>Requirements Analysis"]
+Workflow advisor helping users choose the optimal development workflow for their project.
 
-    Specify --> POC{Need<br/>Validation?}
-    POC -->|Yes| POCGen["/poc<br/>Proof of Concept"]
-    POC -->|No| Plan
-    POCGen -->|Validated ✓| Plan["/plan<br/>Technical Planning"]
-    POCGen -->|Failed ✗| Revise[Revise Approach]
-    Revise --> Specify
+## Purpose
 
-    Plan --> Tasks["/tasks<br/>Task Breakdown"]
-    Tasks --> Breakdown["/breakdown<br/>Implementation Details"]
+Resolve workflow confusion by:
 
-    Breakdown --> DevFlow["/devflow<br/>System Roadmap"]
-    DevFlow --> Implement["/implement<br/>Phased Implementation"]
-    Implement --> Dev[👨‍💻 Development]
+- Asking clarifying questions about project context
+- Analyzing current project state
+- Recommending Traditional or Ticket-Based workflow
+- Validating workflow prerequisites
+- Preventing accidental workflow mixing
 
-    Specify -.-> DevFlow
-    Plan -.-> DevFlow
-    Tasks -.-> DevFlow
+## Execution
 
-    Start -.-> Assessment["/strategic-intelligence<br/>Strategic Assessment & Market Intelligence"]
-    Assessment -.-> Specify
-    Assessment -.-> Plan
-    Assessment -.-> DevFlow
+1. **Analyze Current State**:
 
-    Dev --> Progress["/progress<br/>Status Analysis"]
-    Progress --> Commit["/commit<br/>Git Workflow"]
-    Commit --> PR[📤 Pull Request]
+   ```bash
+   # Check for existing workflow indicators
+   ls -la docs/ 2>/dev/null
+   ls -la tickets/ 2>/dev/null
 
-    style POCGen fill:#fff3e0
-    style Specify fill:#e1f5fe
-    style Dev fill:#e8f5e9
-    style DevFlow fill:#f3e5f5
-    style Plan fill:#e8eaf6
-    style Tasks fill:#fce4ec
-    style Breakdown fill:#f1f8e9
-    style Implement fill:#e3f2fd
-    style Progress fill:#e8eaf6
-    style Commit fill:#fff9c4
-    style Assessment fill:#ffe0f0
+   # Check for blueprint (Traditional workflow)
+   test -f docs/blueprint.md && echo "TRADITIONAL_ACTIVE"
+
+   # Check for ticket system (Ticket-Based workflow)
+   test -f tickets/index.json && echo "TICKET_ACTIVE"
+
+   # Check for specifications
+   ls docs/specs/*/spec.md 2>/dev/null | wc -l
+   ```
+
+2. **Interactive Questions**:
+
+   Ask user (unless workflow already detected):
+
+   ```text
+   1. Project Type:
+      - Is this a NEW project or EXISTING codebase?
+
+   2. Control Preference:
+      - Do you want AUTOMATED execution or MANUAL control?
+
+   3. Automation Comfort:
+      - Are you comfortable with AI making commits automatically?
+
+   4. Project Maturity:
+      - Is this EXPERIMENTAL (POC) or PRODUCTION-BOUND?
+
+   5. Team Size:
+      - Solo developer or TEAM collaboration?
+   ```
+
+3. **Use SequentialThinking** to:
+   - Analyze project state + user answers
+   - Determine best workflow match
+   - Identify any conflicts or risks
+   - Generate recommendation with rationale
+
+4. **Present Recommendation**:
+
+   ```text
+   RECOMMENDED WORKFLOW: [Traditional | Ticket-Based]
+
+   RATIONALE:
+   - [Why this workflow fits]
+   - [Key benefits for your context]
+   - [Risks with alternative workflow]
+
+   NEXT STEPS:
+   - [Specific commands to run]
+   - [Prerequisites to complete]
+   - [Configuration needed]
+   ```
+
+5. **Validate Prerequisites**:
+
+   Before allowing workflow start, check:
+   - Required tools available
+   - Directory structure valid
+   - No conflicting workflow artifacts
+
+6. **Set Workflow Mode**:
+
+   ```bash
+   # Create workflow mode indicator
+   mkdir -p .sage
+   echo "TRADITIONAL" > .sage/workflow-mode
+   # or
+   echo "TICKET_BASED" > .sage/workflow-mode
+
+   # Add to .gitignore if not present
+   grep -q "^\.sage/$" .gitignore 2>/dev/null || echo ".sage/" >> .gitignore
+   ```
+
+## Decision Matrix
+
+### Traditional Workflow Recommended When
+
+- ✅ New project + Manual control preferred
+- ✅ Production-bound + Need review before commits
+- ✅ Experimental + POC validation needed
+- ✅ Team collaboration + Code review culture
+- ✅ Complex architecture + Need detailed breakdowns
+- ✅ Not comfortable with automated commits
+- ✅ Prefer step-by-step verification
+
+**Commands:** `/specify → /plan → /tasks → /breakdown → /blueprint → /implement → /progress → /commit`
+
+### Ticket-Based Workflow Recommended When
+
+- ✅ New project + Automation preferred
+- ✅ Solo developer + Fast iteration needed
+- ✅ Comfortable with AI-driven commits
+- ✅ Want hands-off execution
+- ✅ Clear specifications + Low ambiguity
+- ✅ Experimental + Quick validation
+- ✅ Trust automated testing
+
+**Commands:** `/specify → /plan → /tasks → /migrate-tickets → /stream`
+
+### Hybrid Workflow (Advanced)
+
+Start Traditional, migrate to Ticket-Based:
+
+```bash
+# Phase 1: Traditional for planning
+/specify → /plan → /tasks → /breakdown → /blueprint
+
+# Phase 2: Migrate to automation
+/migrate-tickets
+
+# Phase 3: Automated execution
+/stream
 ```
 
-## 📊 Workflow Phases
+## Workflow Conflict Detection
 
-### Phase 1: Discovery & Analysis
+### Scenario 1: Both Workflows Detected
 
-```mermaid
-graph LR
-    A[Raw Documentation] --> B["/specify"]
-    A -.-> G["/strategic-intelligence"]
-    B --> C[Component Specs]
-    G --> H[Strategic Assessment & Market Intelligence]
-    C --> D{High Risk?}
-    H -.-> C
-    D -->|Yes| E["/poc"]
-    D -->|No| F["/plan"]
-    E --> F
-    H -.-> F
+```bash
+# Found both docs/blueprint.md AND tickets/index.json
+WARNING: Mixed workflow detected!
 
-    style B fill:#e1f5fe
-    style E fill:#fff3e0
-    style G fill:#ffe0f0
+Current State:
+- Traditional workflow: ACTIVE (docs/blueprint.md exists)
+- Ticket workflow: ACTIVE (tickets/index.json exists)
+
+This is VALID if you migrated from Traditional → Ticket-Based.
+
+Question: Did you run /migrate to convert?
+- Yes → Continue with Ticket-Based workflow
+- No → Choose primary workflow and archive the other
 ```
 
-**Duration:** 1-3 days (+ 1-2 days for strategic intelligence)
-**Output:** Clear understanding of requirements, components, and strategic position
+### Scenario 2: Workflow Mode Mismatch
+
+```bash
+# .sage/workflow-mode says TRADITIONAL but tickets/ exists
+ERROR: Workflow mode mismatch!
+
+Expected: TRADITIONAL
+Found: tickets/index.json (indicates TICKET_BASED)
+
+Options:
+1. Switch to Ticket-Based: rm .sage/workflow-mode && echo "TICKET_BASED" > .sage/workflow-mode
+2. Remove tickets: rm -rf tickets/ (CAUTION: destructive)
+3. Run /migrate to formalize migration
+```
+
+## Output Template
+
+````markdown
+# Workflow Recommendation
+
+**Project Analysis:**
+- Type: [New | Existing]
+- Docs Present: [Yes | No]
+- Tickets Present: [Yes | No]
+- Current Mode: [Traditional | Ticket-Based | None | Mixed]
+
+**User Preferences:**
+- Control: [Automated | Manual]
+- Automation Comfort: [High | Medium | Low]
+- Project Stage: [Experimental | Production]
+- Team: [Solo | Team]
 
 ---
 
-### Phase 2: Planning & Estimation
+## 🎯 RECOMMENDED WORKFLOW: [TRADITIONAL | TICKET-BASED]
 
-```mermaid
-graph LR
-    A[Component Specs] --> B["/plan"]
-    B --> C[Technical Plans]
-    C --> D["/tasks"]
-    D --> E[Task Breakdown]
-    
-    style B fill:#e8eaf6
-    style D fill:#fce4ec
-```
+### Why This Workflow?
 
-**Duration:** 2-5 days  
-**Output:** Detailed technical plans and actionable tasks
+1. **[Primary Reason]**
+   - [Specific benefit for your context]
 
----
+2. **[Secondary Reason]**
+   - [How this matches your preferences]
 
-### Phase 3: Implementation Preparation
+3. **[Risk Mitigation]**
+   - [Why alternative workflow would be problematic]
 
-```mermaid
-graph LR
-    A[Plans & Tasks] --> B["/breakdown"]
-    B --> C[Technical Details]
-    C --> D["/devflow"]
-    D --> E[System Roadmap]
-    E --> F[Ready to Implement]
+### What This Means
 
-    style B fill:#f1f8e9
-    style D fill:#f3e5f5
-```
+**You will use:**
+- [List of primary commands]
+- [Expected workflow pattern]
 
-**Duration:** 1-3 days
-**Output:** Complete implementation guides and timeline
+**You will NOT use:**
+- [Commands to avoid]
+- [Conflicting patterns]
 
 ---
 
-### Phase 4: Phased Implementation
+## 📋 Next Steps
 
-```mermaid
-graph LR
-    A[System Roadmap] --> B["/implement"]
-    B --> C[Phase Implementation]
-    C --> D[Test Validation]
-    D --> E[Progress Tracking]
-    E --> F[Ready for Next Phase]
+### Immediate Actions:
 
-    style B fill:#e3f2fd
+1. **[First Command]**
+   ```bash
+   /[command-name]
+   ```
+
+- Purpose: [What this does]
+- Output: [What to expect]
+
+2. **[Second Command]**
+
+   ```bash
+   /[command-name]
+   ```
+
+   - Purpose: [What this does]
+   - Output: [What to expect]
+
+### Workflow Sequence
+
+**Traditional Flow:**
+
+```text
+/specify → /plan → /tasks → /breakdown → /blueprint → /implement → /progress → /commit
 ```
 
-**Duration:** Varies by phase complexity
-**Output:** Working code with comprehensive tests and updated progress tracking
+**Ticket-Based Flow:**
 
----
-
-### Phase 5: Development & Delivery
-
-```mermaid
-graph LR
-    A[Implementation] --> B[Code Changes]
-    B --> C["/progress"]
-    C --> D["/commit"]
-    D --> E[PR Created]
-    E --> F[Review & Merge]
-
-    style C fill:#e8eaf6
-    style D fill:#fff9c4
+```text
+/specify → /plan → /tasks → /migrate → /stream
 ```
 
-**Duration:** Varies by project
-**Output:** Progress reports, clean commits, and comprehensive PRs
+**Hybrid Flow (Advanced):**
 
----
-
-## 🎯 Decision Flow
-
-### When to Run Each Command
-
-```mermaid
-graph TD
-    Start{Starting Point} --> NewProject{New Project?}
-    NewProject -->|Yes| AllDocs[Run All Commands]
-    NewProject -->|No| Update{What Changed?}
-
-    Update -->|Requirements| Specify["/specify → /plan → /tasks → /devflow"]
-    Update -->|Technology| Plan["/plan → /tasks → /breakdown"]
-    Update -->|Timeline| Tasks["/tasks → /devflow"]
-    Update -->|Market/Strategy| Assessment["/strategic-intelligence → /plan → /devflow"]
-    Update -->|Implementation Ready| Implement["/implement"]
-    Update -->|Check Status| Progress["/progress"]
-    Update -->|Code Ready| Commit["/commit"]
-
-    AllDocs --> Risk{High Risk?}
-    Risk -->|Yes| POCFirst["/strategic-intelligence → /specify → /poc → /plan → /tasks → /breakdown → /devflow → /implement"]
-    Risk -->|No| Standard["/strategic-intelligence → /specify → /plan → /tasks → /breakdown → /devflow → /implement"]
-
-    style Specify fill:#e1f5fe
-    style Plan fill:#e8eaf6
-    style Tasks fill:#fce4ec
-    style Implement fill:#e3f2fd
-    style Commit fill:#fff9c4
-    style POCFirst fill:#fff3e0
-    style Assessment fill:#ffe0f0
-```
-
----
-
-## 📈 Timeline Visualization
-
-### Typical Project Timeline
-
-```mermaid
-gantt
-    title Development Workflow Timeline
-    dateFormat YYYY-MM-DD
-    section Assessment
-    /strategic-intelligence :2024-01-01, 2d
-    section Documentation
-    /specify          :2024-01-03, 2d
-    /poc              :2024-01-05, 3d
-    /plan             :2024-01-08, 2d
-    /tasks            :2024-01-10, 1d
-    /breakdown        :2024-01-11, 2d
-    /devflow          :2024-01-13, 1d
-    section Implementation
-    /implement        :2024-01-14, 10d
-    section Development
-    Code Review       :2024-01-24, 4d
-    /commit           :2024-01-28, 1d
-```
-
----
-
-## 🔀 Usage Patterns
-
-### Pattern 1: Full Workflow with Assessment
-
-```mermaid
-sequenceDiagram
-    participant Dev as Developer
-    participant Assessment as Market Assessment
-    participant Docs as Documentation
-    participant POC as POC Validation
-    participant Plan as Planning
-    participant Code as Implementation
-
-    Dev->>Assessment: /strategic-intelligence
-    Assessment-->>Dev: Strategic Assessment & Market Intelligence
-
-    Dev->>Docs: /specify
-    Docs-->>Dev: Component Specs
-
-    Dev->>POC: /poc
-    POC-->>Dev: Validation Results
-
-    Dev->>Plan: /plan
-    Plan-->>Dev: Technical Plans
-
-    Dev->>Plan: /tasks
-    Plan-->>Dev: Task Breakdown
-
-    Dev->>Plan: /breakdown
-    Plan-->>Dev: Implementation Guide
-
-    Dev->>Plan: /devflow
-    Plan-->>Dev: System Roadmap
-
-    Dev->>Code: /implement
-    Code-->>Dev: Phase Implementation
-
-    Dev->>Code: /progress
-    Code-->>Dev: Status Report
-
-    Dev->>Code: /commit
-    Code-->>Dev: PR Created
-```
-
----
-
-### Pattern 2: Quick Feature Addition
-
-```mermaid
-sequenceDiagram
-    participant Dev as Developer
-    participant Docs as Documentation
-    participant Code as Implementation
-    
-    Dev->>Docs: /specify (new feature)
-    Docs-->>Dev: Feature Spec
-    
-    Dev->>Docs: /plan
-    Docs-->>Dev: Integration Plan
-    
-    Dev->>Docs: /tasks
-    Docs-->>Dev: Task List
-
-    Dev->>Code: /implement
-    Code-->>Dev: Feature Implementation
-
-    Dev->>Code: /progress
-    Code-->>Dev: Status Report
-
-    Dev->>Code: /commit
-    Code-->>Dev: PR Created
+```text
+Traditional flow through /blueprint → /migrate → /stream
 ```
 
 ---
 
-### Pattern 3: Strategic Review
+## ⚙️ Configuration
 
-```mermaid
-sequenceDiagram
-    participant Dev as Developer
-    participant Assessment as Market Assessment
-    participant Plan as Planning
+**Workflow Mode Set:** [TRADITIONAL | TICKET_BASED]
 
-    Dev->>Assessment: /strategic-intelligence
-    Assessment-->>Dev: Strategic Assessment & Market Intelligence
+**Location:** `.sage/workflow-mode`
 
-    Dev->>Plan: /plan (updated strategy)
-    Plan-->>Dev: Revised Plans
+**Commands will now:**
 
-    Dev->>Plan: /devflow
-    Plan-->>Dev: Updated Roadmap
+- ✅ Validate workflow mode before execution
+- ✅ Prevent mixing workflows accidentally
+- ✅ Show warnings if mode conflicts detected
+- ✅ Use workflow-appropriate defaults
+
+**To change workflow later:**
+
+```bash
+echo "TICKET_BASED" > .sage/workflow-mode  # Switch to Ticket-Based
+echo "TRADITIONAL" > .sage/workflow-mode   # Switch to Traditional
 ```
 
 ---
 
-### Pattern 4: Documentation Update
+## 🔍 Validation Checks
 
-```mermaid
-sequenceDiagram
-    participant Dev as Developer
-    participant Docs as Documentation
+**Prerequisites Met:**
 
-    Dev->>Docs: /specify (updated requirements)
-    Docs-->>Dev: Updated Specs
+- [✓] Directory structure valid
+- [✓] Git repository initialized
+- [✓] Required tools available
+- [✓] No workflow conflicts
 
-    Dev->>Docs: /devflow
-    Docs-->>Dev: Updated Roadmap
-```
+**Ready to Start:** ✅
 
 ---
 
-## 🎨 Component Relationships
+## ⚠️ Important Notes
 
-### How Commands Build on Each Other
+### Traditional Workflow
 
-```mermaid
-graph TD
-    Assessment["/strategic-intelligence<br/>Strategic Assessment & Market Intelligence"] --> Specify["/specify<br/>Foundation"]
-    Assessment -.->|Informs| Plan["/plan<br/>Architecture"]
-    Assessment -.->|Strategic Input| DevFlow["/devflow<br/>System View"]
+- **Manual control at each step**
+- Review outputs before proceeding
+- Run `/implement` per phase manually
+- Commit when YOU decide with `/commit`
 
-    Specify --> Plan
-    Specify --> POC["/poc<br/>Validation"]
+### Ticket-Based Workflow
 
-    Plan --> Tasks["/tasks<br/>Execution Plan"]
-    Plan --> Breakdown["/breakdown<br/>Implementation Details"]
+- **Automated execution with `/stream`**
+- AI makes commits automatically (includes ticket IDs)
+- Sub-agents process tickets independently
+- User confirms after each ticket (interactive mode)
+- Use `--auto` for fully hands-off (advanced)
 
-    Tasks --> DevFlow
-    Breakdown --> DevFlow
+### Workflow Migration
 
-    POC --> Plan
-    POC -.->|Informs| Breakdown
+**Traditional → Ticket-Based:**
 
-    DevFlow --> Implement["/implement<br/>Phase Execution"]
-    Breakdown --> Implement
-    Tasks --> Implement
+1. Complete Traditional workflow through `/blueprint`
+2. Run `/migrate` to convert docs to tickets
+3. Run `/stream` for automated execution
 
-    Implement --> Dev[Development]
-    Dev --> Progress["/progress<br/>Status Analysis"]
-    Progress --> Commit["/commit<br/>Delivery"]
+**Ticket-Based → Traditional:**
 
-    style Assessment fill:#ffe0f0,stroke:#c2185b
-    style Specify fill:#e1f5fe,stroke:#01579b
-    style POC fill:#fff3e0,stroke:#e65100
-    style Plan fill:#e8eaf6,stroke:#311b92
-    style Tasks fill:#fce4ec,stroke:#880e4f
-    style Breakdown fill:#f1f8e9,stroke:#33691e
-    style DevFlow fill:#f3e5f5,stroke:#4a148c
-    style Implement fill:#e3f2fd,stroke:#0277bd
-    style Progress fill:#e8eaf6,stroke:#311b92
-    style Commit fill:#fff9c4,stroke:#f57f17
-```
+- Not recommended (tickets are richer structure)
+- Manual extraction needed if required
 
 ---
 
-## 📋 Command Dependencies
+## 📚 Additional Resources
 
-### What Each Command Needs
-
-```mermaid
-graph LR
-    subgraph "Input Sources"
-        Docs[Documentation Files]
-        Specs[Specifications]
-        Plans[Plans]
-        Tasks[Tasks]
-        Code[Code Changes]
-        Market[Market Domain Info]
-    end
-
-    subgraph "Commands"
-        Assessment["/strategic-intelligence"]
-        Specify["/specify"]
-        POC["/poc"]
-        Plan["/plan"]
-        TaskCmd["/tasks"]
-        Breakdown["/breakdown"]
-        DevFlow["/devflow"]
-        Implement["/implement"]
-        Progress["/progress"]
-        Commit["/commit"]
-    end
-
-    subgraph "Outputs"
-        StrategicReport[Strategic Intelligence Report]
-        CompSpecs[Component Specs]
-        POCDocs[POC Design]
-        TechPlans[Technical Plans]
-        TaskLists[Task Lists]
-        ImplGuides[Implementation Guides]
-        Roadmap[System Roadmap]
-        PhaseCode[Phase Implementation]
-        StatusReport[Progress Report]
-        PR[Pull Request]
-    end
-
-    Docs --> Assessment
-    Market --> Assessment
-    Assessment --> StrategicReport
-
-    Docs --> Specify
-    StrategicReport -.-> Specify
-    Specify --> CompSpecs
-
-    CompSpecs --> POC
-    CompSpecs --> Plan
-    StrategicReport -.-> Plan
-    POC --> POCDocs
-
-    CompSpecs --> Plan
-    Plan --> TechPlans
-
-    CompSpecs --> TaskCmd
-    TechPlans --> TaskCmd
-    TaskCmd --> TaskLists
-
-    CompSpecs --> Breakdown
-    TechPlans --> Breakdown
-    TaskLists --> Breakdown
-    Breakdown --> ImplGuides
-
-    CompSpecs --> DevFlow
-    TechPlans --> DevFlow
-    TaskLists --> DevFlow
-    StrategicReport -.-> DevFlow
-    DevFlow --> Roadmap
-
-    Roadmap --> Implement
-    TaskLists --> Implement
-    ImplGuides --> Implement
-    Implement --> PhaseCode
-
-    PhaseCode --> Progress
-    TaskLists --> Progress
-    Roadmap --> Progress
-    Progress --> StatusReport
-
-    Code --> Commit
-    Commit --> PR
-```
+- **SAGE_DEV_WORKFLOW.md:** Full workflow documentation
+- **SAGE_DEV_COMMANDS.md:** Command reference with visual workflow diagrams
+- **commands/[name].md:** Individual command details
+- **TEMP_DOCS/GAP_ANALYSIS.md:** System architecture insights
 
 ---
 
-## 🚦 Quality Gates
+**Workflow mode saved to:** `.sage/workflow-mode`
 
-### Validation Checkpoints
+**Rerun this command anytime:** `/workflow` to reassess
+````
 
-```mermaid
-graph TB
-    Start([Start]) --> Assessment{"/strategic-intelligence<br/>Optional?"}
-    Assessment -->|Yes| AssessmentRun["/strategic-intelligence"]
-    Assessment -->|No| Specify
+## Validation
 
-    AssessmentRun --> AssessmentCheck{Strategic Intelligence<br/>Complete?}
-    AssessmentCheck -->|Yes| Specify{"/specify<br/>Complete?"}
-    AssessmentCheck -->|No| AssessmentFix[Refine Analysis]
-    AssessmentFix --> AssessmentRun
+After recommendation, validate:
 
-    Specify -->|Yes| SpecCheck{Quality Check}
-    Specify -->|No| SpecFix[Fix Issues]
-    SpecFix --> Specify
+1. ✅ User understands chosen workflow
+2. ✅ Prerequisites are met
+3. ✅ No conflicting artifacts
+4. ✅ Workflow mode file created
+5. ✅ Next steps are clear
 
-    SpecCheck -->|Pass| POC{Need<br/>POC?}
-    SpecCheck -->|Fail| SpecFix
+## Error Scenarios
 
-    POC -->|Yes| POCRun["/poc"]
-    POC -->|No| Plan
+### No User Input Available
 
-    POCRun --> POCCheck{Validated?}
-    POCCheck -->|Yes| Plan["/plan"]
-    POCCheck -->|No| Pivot[Pivot Strategy]
-    Pivot --> Specify
+```text
+ERROR: /workflow requires interactive input
 
-    Plan --> PlanCheck{Quality Check}
-    PlanCheck -->|Pass| Tasks["/tasks"]
-    PlanCheck -->|Fail| PlanFix[Fix Issues]
-    PlanFix --> Plan
+This command cannot run in automated mode.
+Please run manually to set workflow preference.
 
-    Tasks --> TaskCheck{Quality Check}
-    TaskCheck -->|Pass| Breakdown["/breakdown"]
-    TaskCheck -->|Fail| TaskFix[Fix Issues]
-    TaskFix --> Tasks
-
-    Breakdown --> DevFlow["/devflow"]
-    DevFlow --> Implement["/implement"]
-    Implement --> Ready([Ready to Code])
-
-    style AssessmentCheck fill:#e91e63
-    style SpecCheck fill:#ffeb3b
-    style POCCheck fill:#ff9800
-    style PlanCheck fill:#ffeb3b
-    style TaskCheck fill:#ffeb3b
+Alternatively, manually create workflow mode:
+  echo "TRADITIONAL" > .sage/workflow-mode
+  echo "TICKET_BASED" > .sage/workflow-mode
 ```
 
----
+### Conflicting State Cannot Resolve
 
-## 🔄 Iterative Development
+```text
+ERROR: Cannot determine valid workflow
 
-### Continuous Improvement Loop
+Found:
 
-```mermaid
-graph LR
-    A[Initial Specs] --> B["/implement"]
-    B --> C[Implementation]
-    C --> M["/progress"]
-    M --> D{Feedback}
-    D -->|Requirements Changed| E["/specify"]
-    D -->|Tech Issues| F["/plan"]
-    D -->|Estimate Wrong| G["/tasks"]
-    D -->|Market Changes| H["/strategic-intelligence"]
-    D -->|Phase Issues| I["/implement"]
-    D -->|All Good| J[Continue]
+- docs/blueprint.md (Traditional)
+- tickets/index.json (Ticket-Based)
+- .sage/workflow-mode: MISSING
 
-    E --> K[Update Docs]
-    F --> K
-    G --> K
-    H --> K
-    K --> L["/devflow"]
-    L --> B
+Manual intervention required:
 
-    style C fill:#ff9800
-    style M fill:#e8eaf6
+1. Review project state
+2. Choose primary workflow
+3. Set mode: echo "[MODE]" > .sage/workflow-mode
+4. Archive or delete conflicting artifacts
 ```
 
----
+## Success Criteria
 
-## 📊 Metrics Dashboard
+- [ ] User understands recommended workflow
+- [ ] Workflow mode file created
+- [ ] No conflicts detected
+- [ ] Prerequisites validated
+- [ ] Next commands clear
+- [ ] Rationale explained
 
-### Track Progress Through Workflow
+## Notes
 
-```mermaid
-graph TD
-    subgraph "Strategic Intelligence Phase"
-        M0[Strategic Intelligence Completion: X hours]
-        M01[Strategic Insights Generated: N]
-        M02[Strategic Alignment Score: Y/10]
-    end
-
-    subgraph "Documentation Phase"
-        M1[Time to Spec: X hours]
-        M2[Components Identified: N]
-        M3[POC Success Rate: Y%]
-    end
-
-    subgraph "Planning Phase"
-        M4[Plan Accuracy: Z%]
-        M5[Risks Identified: R]
-        M6[Alternatives Considered: A]
-        M7[Market Alignment Score: M/10]
-    end
-
-    subgraph "Implementation Phase"
-        M8[Phase Completion Rate: P%]
-        M9[Tasks Completed: T/Total]
-        M10[Test Success Rate: S%]
-        M11[Implementation Velocity: V phases/week]
-    end
-
-    subgraph "Execution Phase"
-        M12[Estimation Accuracy: E%]
-        M13[Code Quality Score: Q/10]
-        M14[Error Resolution Rate: R%]
-    end
-
-    subgraph "Progress Tracking Phase"
-        M15[Task Completion Rate: T%]
-        M16[Phase Progress: P/Total]
-        M17[Velocity Trend: V tasks/day]
-        M18[Blocker Count: B blockers]
-    end
-
-    subgraph "Delivery Phase"
-        M19[Commit Quality: C score]
-        M20[PR Approval Time: A hours]
-        M21[Bug Rate: B/1000 lines]
-        M22[Market Impact Score: I/10]
-    end
-```
-
----
-
-## 🎯 Success Criteria
-
-### How to Know You're Done
-
-```mermaid
-stateDiagram-v2
-    [*] --> Assessment
-
-    Assessment --> Documentation: /strategic-intelligence
-    Documentation --> Validated: /specify + /poc
-    Validated --> Planned: /plan
-    Planned --> TasksReady: /tasks
-    TasksReady --> ImplementationReady: /breakdown + /devflow
-
-    ImplementationReady --> PhaseImplementation: /implement
-    PhaseImplementation --> Development: Phase Complete
-    Development --> CodeComplete: Features Done
-    CodeComplete --> Committed: /commit
-    Committed --> [*]: PR Merged
-
-    note right of Assessment
-        ✓ Strategic capabilities assessed
-        ✓ Market intelligence gathered
-        ✓ Competitive positioning analyzed
-    end note
-
-    note right of Validated
-        ✓ Requirements clear
-        ✓ Core concept proven
-    end note
-
-    note right of Planned
-        ✓ Architecture defined
-        ✓ Tech stack chosen
-        ✓ Risks mitigated
-        ✓ Market alignment confirmed
-    end note
-
-    note right of TasksReady
-        ✓ Tasks estimated
-        ✓ Dependencies mapped
-        ✓ Sprint planned
-    end note
-
-    note right of ImplementationReady
-        ✓ APIs defined
-        ✓ Tests planned
-        ✓ Roadmap clear
-        ✓ Strategic alignment confirmed
-    end note
-
-    note right of PhaseImplementation
-        ✓ Phase code implemented
-        ✓ Tests created and passing
-        ✓ Progress tracking updated
-        ✓ Feature branch ready
-        ✓ Status report generated
-    end note
-```
-
----
-
-## 🔧 Troubleshooting Flow
-
-### When Things Go Wrong
-
-```mermaid
-graph TD
-    Problem{Issue?} --> Type{What Type?}
-
-    Type -->|Too many components| Merge[Merge related components<br/>Re-run /specify]
-    Type -->|Wrong tech choice| Research[Add constraints<br/>Re-run /plan]
-    Type -->|Bad estimates| Velocity[Review velocity<br/>Re-run /tasks]
-    Type -->|Unclear POC| Context[Add more context<br/>Re-run /poc]
-    Type -->|Too detailed| Simplify[Skip /breakdown<br/>for simple components]
-    Type -->|Timeline off| Scope[Adjust scope<br/>Re-run /devflow]
-    Type -->|Wrong commits| Stage[Stage manually<br/>Re-run /commit]
-    Type -->|Market misalignment| Assessment[Update strategic intelligence<br/>Re-run /strategic-intelligence]
-    Type -->|Competitive pressure| Strategy[Reassess strategy<br/>Re-run /strategic-intelligence + /plan]
-
-    Merge --> Verify{Fixed?}
-    Research --> Verify
-    Velocity --> Verify
-    Context --> Verify
-    Simplify --> Verify
-    Scope --> Verify
-    Stage --> Verify
-    Assessment --> Verify
-    Strategy --> Verify
-
-    Verify -->|Yes| Success[Continue]
-    Verify -->|No| Problem
-
-    style Problem fill:#f44336
-    style Verify fill:#ff9800
-    style Success fill:#4caf50
-```
-
----
-
-## 📅 Sprint Integration
-
-### How Workflow Maps to Sprints
-
-```mermaid
-gantt
-    title Sprint Planning Integration
-    dateFormat YYYY-MM-DD
-    section Sprint 0
-    /strategic-intelligence :s0-0, 2024-01-01, 2d
-    /specify & /poc       :s0-1, after s0-0, 3d
-    /plan & /tasks        :s0-2, after s0-1, 2d
-    /breakdown & /devflow :s0-3, after s0-2, 2d
-    section Sprint 1
-    Setup & Foundation    :s1-1, 2024-01-10, 10d
-    Daily Updates         :milestone, 2024-01-20, 0d
-    section Sprint 2
-    Core Features         :s2-1, 2024-01-20, 10d
-    /devflow Update      :s2-2, 2024-01-30, 1d
-    section Sprint 3
-    Integration           :s3-1, 2024-01-31, 10d
-    Testing              :s3-2, after s3-1, 3d
-    section Sprint 4
-    Polish & Deploy       :s4-1, 2024-02-13, 7d
-    /commit & PR         :s4-2, after s4-1, 1d
-    section Quarterly Review
-    /strategic-intelligence Review :q1-1, 2024-04-01, 1d
-```
-
----
-
-## 🎓 Learning Path
-
-### Workflow Mastery Journey
-
-```mermaid
-journey
-    title Workflow Mastery Journey
-    section Beginner
-      Run /specify: 3: Developer
-      Understand specs: 4: Developer
-      Run /plan: 3: Developer
-    section Intermediate
-      Run /poc for validation: 5: Developer
-      Use /tasks for planning: 4: Developer
-      Run /breakdown: 4: Developer
-    section Advanced
-      Customize workflows: 5: Developer
-      Integrate with tools: 5: Developer
-      Optimize process: 5: Developer
-      Mentor others: 5: Developer
-```
-
----
-
-## 🔗 Integration Points
-
-### External Tool Connections
-
-```mermaid
-graph TB
-    subgraph "Claude Code Workflow"
-        Specify["/specify"]
-        Plan["/plan"]
-        Tasks["/tasks"]
-        Breakdown["/breakdown"]
-        DevFlow["/devflow"]
-        Commit["/commit"]
-    end
-    
-    subgraph "External Tools"
-        Jira[Jira/Linear]
-        Confluence[Confluence/Notion]
-        GitHub[GitHub/GitLab]
-        Slack[Slack/Teams]
-    end
-    
-    Tasks -->|CSV Export| Jira
-    Breakdown -->|API Docs| Confluence
-    DevFlow -->|Roadmap| Confluence
-    Commit -->|PR| GitHub
-    DevFlow -->|Updates| Slack
-    
-    style Jira fill:#0052cc
-    style Confluence fill:#172b4d
-    style GitHub fill:#24292e
-    style Slack fill:#4a154b
-```
-
----
-
-## 📖 Quick Reference Card
-
-### Command Cheat Sheet
-
-| Scenario | Commands to Run | Skip |
-|----------|----------------|------|
-| **New Project** | `/strategic-intelligence` → `/specify` → `/poc` → `/plan` → `/tasks` → `/breakdown` → `/devflow` → `/implement` → `/progress` | None |
-| **High Risk Feature** | `/strategic-intelligence` → `/specify` → `/poc` → `/plan` → `/tasks` → `/implement` → `/progress` | `/breakdown` (unless complex) |
-| **Simple Feature** | `/specify` → `/plan` → `/tasks` → `/implement` → `/progress` | `/strategic-intelligence`, `/poc`, `/breakdown` |
-| **Strategic Planning** | `/strategic-intelligence` → `/plan` → `/devflow` | Others |
-| **Requirement Change** | `/specify` → `/devflow` | Others |
-| **Tech Stack Change** | `/plan` → `/tasks` → `/breakdown` | `/specify` |
-| **Strategic Change** | `/strategic-intelligence` → `/plan` → `/devflow` | Others |
-| **Timeline Update** | `/tasks` → `/devflow` | Others |
-| **Implementation Ready** | `/implement` | Others |
-| **Before Coding** | `/breakdown` | Others |
-| **Status Check** | `/progress` | All others |
-| **Quarterly Review** | `/strategic-intelligence` | All others |
-| **Code Complete** | `/commit` | All others |
-
----
-
-## 🎉 Success Stories
-
-### Workflow in Action
-
-```mermaid
-graph LR
-    A[📝 Day 1<br/>Strategic position unclear] --> B["/strategic-intelligence"]
-    B --> C[✓ Strategic assessment & market intelligence]
-
-    C --> D[📝 Day 2<br/>Requirements unclear] --> E["/specify"]
-    E --> F[✓ Clear component boundaries]
-
-    F --> G[📝 Day 3<br/>High risk approach] --> H["/poc"]
-    H --> I[✓ Concept validated]
-
-    I --> J[📝 Day 4<br/>Need architecture] --> K["/plan"]
-    K --> L[✓ Tech stack & strategy aligned]
-
-    L --> M[📝 Day 5<br/>Need estimates] --> N["/tasks"]
-    N --> O[✓ Sprint planned]
-
-    O --> P[📝 Week 2<br/>Start coding] --> Q["/breakdown"]
-    Q --> R[✓ APIs defined]
-
-    R --> S[📝 Week 4<br/>Track progress] --> T["/devflow"]
-    T --> U[✓ On schedule & market-aligned]
-
-    U --> V[📝 Week 5<br/>Start implementation] --> W["/implement"]
-    W --> X[✓ Phased implementation complete]
-
-    X --> Y[📝 Week 6<br/>Check status] --> AB["/progress"]
-    AB --> Z[✓ Status report generated]
-
-    Z --> AA[📝 Week 6<br/>Feature complete] --> AC["/commit"]
-    AC --> AD[✓ Clean PR with strategic impact]
-
-    style C fill:#4caf50
-    style F fill:#4caf50
-    style I fill:#4caf50
-    style L fill:#4caf50
-    style O fill:#4caf50
-    style R fill:#4caf50
-    style U fill:#4caf50
-    style X fill:#4caf50
-    style Z fill:#4caf50
-    style AD fill:#4caf50
-```
+- Run this BEFORE any other commands on new projects
+- Rerun if switching workflows
+- Safe to run multiple times (idempotent)
+- Will detect and warn about conflicts
+- Does not modify existing work, only sets mode
