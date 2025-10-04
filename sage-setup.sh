@@ -1,13 +1,19 @@
 #!/bin/bash
-# install-sage-commands.sh
-# Install Sage-Dev commands to AI coding agents (Claude Code, Cline, Roo-Cline, etc.)
+# sage-setup.sh
+# Setup Sage-Dev for AI coding agents with language-specific enforcement
+# Installs commands, agents, and rules to Claude Code, Cline, Roo-Cline, and more
 
 set -e
 
 # Configuration
-SAGE_DIR="$(cd "$(dirname "$0")/commands" && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+COMMANDS_DIR="$SCRIPT_DIR/commands"
+AGENTS_DIR="$SCRIPT_DIR/agents"
+RULES_DIR="$SCRIPT_DIR/rules"
+CONFIG_DIR="$SCRIPT_DIR/.sage"
+CONFIG_FILE="$CONFIG_DIR/config.json"
 
-# Supported AI agents and their command directories
+# Supported AI agents and their directories
 declare -A AGENT_DIRS=(
     ["claude-code"]="$HOME/.claude/commands"
     ["cline"]="$HOME/.config/cline/commands"
@@ -18,26 +24,124 @@ declare -A AGENT_DIRS=(
     ["droid"]="$HOME/.factory/commands"
 )
 
+# Agent directories for agents and rules
+declare -A AGENT_AGENT_DIRS=(
+    ["claude-code"]="$HOME/.claude/agents"
+    ["cline"]="$HOME/.config/cline/agents"
+    ["roo-cline"]="$HOME/.config/roo-cline/agents"
+    ["continue"]="$HOME/.continue/agents"
+    ["cursor"]="$HOME/.cursor/agents"
+    ["opencode"]="$HOME/.config/opencode/agents"
+    ["droid"]="$HOME/.factory/agents"
+)
+
+declare -A AGENT_RULES_DIRS=(
+    ["claude-code"]="$HOME/.claude/rules"
+    ["cline"]="$HOME/.config/cline/rules"
+    ["roo-cline"]="$HOME/.config/roo-cline/rules"
+    ["continue"]="$HOME/.continue/rules"
+    ["cursor"]="$HOME/.cursor/rules"
+    ["opencode"]="$HOME/.config/opencode/rules"
+    ["droid"]="$HOME/.factory/rules"
+)
+
 echo "╔════════════════════════════════════════════════════════════════╗"
-echo "║     Sage-Dev Command Installation for AI Coding Agents         ║"
+echo "║  Sage-Dev Setup for AI Coding Agents                          ║"
+echo "║  Language-Specific Enforcement • Commands • Agents • Rules     ║"
 echo "╚════════════════════════════════════════════════════════════════╝"
 echo ""
 
-# Check if sage-dev commands directory exists
-if [ ! -d "$SAGE_DIR" ]; then
+# Check if sage-dev directories exist
+if [ ! -d "$COMMANDS_DIR" ]; then
   echo "❌ ERROR: Sage-Dev commands directory not found"
-  echo "Expected: $SAGE_DIR"
+  echo "Expected: $COMMANDS_DIR"
   echo ""
   echo "Please run this script from the sage-dev directory:"
   echo "  cd /path/to/sage-dev"
-  echo "  ./install-sage-commands.sh [agent]"
+  echo "  ./sage-setup.sh [agent] [language]"
   exit 1
 fi
 
+# Language selection
+SELECTED_LANGUAGE=""
+SUPPORTED_LANGUAGES=("python" "javascript" "typescript")
+
+if [ -n "$2" ]; then
+  # Language specified via argument
+  SELECTED_LANGUAGE="$2"
+  if [[ ! " ${SUPPORTED_LANGUAGES[@]} " =~ " ${SELECTED_LANGUAGE} " ]]; then
+    echo "❌ ERROR: Unsupported language: $SELECTED_LANGUAGE"
+    echo ""
+    echo "Supported languages:"
+    for lang in "${SUPPORTED_LANGUAGES[@]}"; do
+      echo "  - $lang"
+    done
+    echo ""
+    echo "Usage: ./sage-setup.sh [agent] [language]"
+    echo "Example: ./sage-setup.sh claude-code python"
+    exit 1
+  fi
+elif [ -f "$CONFIG_FILE" ]; then
+  # Load from config if exists
+  if command -v jq &> /dev/null; then
+    SELECTED_LANGUAGE=$(jq -r '.language // "python"' "$CONFIG_FILE" 2>/dev/null || echo "python")
+  else
+    SELECTED_LANGUAGE="python"
+  fi
+  echo "📋 Using language from config: $SELECTED_LANGUAGE"
+  echo ""
+else
+  # Interactive language selection
+  echo "🌐 Select your programming language:"
+  echo ""
+  echo "   1) Python (default) - Type safety, test coverage, docstring validation"
+  echo "   2) JavaScript       - Code quality, secret scanning"
+  echo "   3) TypeScript       - Type safety, code quality, secret scanning"
+  echo ""
+  read -p "Enter choice [1-3] (default: 1): " lang_choice
+
+  case ${lang_choice:-1} in
+    1) SELECTED_LANGUAGE="python" ;;
+    2) SELECTED_LANGUAGE="javascript" ;;
+    3) SELECTED_LANGUAGE="typescript" ;;
+    *)
+      echo "Invalid choice. Defaulting to Python."
+      SELECTED_LANGUAGE="python"
+      ;;
+  esac
+
+  echo ""
+  echo "📌 Selected language: $SELECTED_LANGUAGE"
+  echo ""
+
+  # Save to config
+  mkdir -p "$CONFIG_DIR"
+  cat > "$CONFIG_FILE" <<EOF
+{
+  "language": "$SELECTED_LANGUAGE",
+  "enforcement_level": "BALANCED",
+  "configured_at": "$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+}
+EOF
+  echo "💾 Configuration saved to: $CONFIG_FILE"
+  echo ""
+fi
+
 # Show what will be installed
-COMMAND_COUNT=$(ls -1 "$SAGE_DIR"/*.md 2>/dev/null | wc -l | tr -d ' ')
-echo "📦 Found $COMMAND_COUNT command files in:"
-echo "   $SAGE_DIR"
+COMMAND_COUNT=$(ls -1 "$COMMANDS_DIR"/*.md 2>/dev/null | wc -l | tr -d ' ')
+SHARED_AGENT_COUNT=$(ls -1 "$AGENTS_DIR/shared"/*.md 2>/dev/null | wc -l | tr -d ' ')
+LANG_AGENT_COUNT=$(ls -1 "$AGENTS_DIR/$SELECTED_LANGUAGE"/*.md 2>/dev/null | wc -l | tr -d ' ')
+TOTAL_AGENT_COUNT=$((SHARED_AGENT_COUNT + LANG_AGENT_COUNT))
+RULE_COUNT=$(ls -1 "$RULES_DIR"/*.md 2>/dev/null | wc -l | tr -d ' ')
+
+echo "📦 Installation Plan:"
+echo "   • Language: $SELECTED_LANGUAGE"
+echo "   • Commands: $COMMAND_COUNT files"
+echo "   • Agents: $TOTAL_AGENT_COUNT files"
+echo "     - Shared: $SHARED_AGENT_COUNT (language-agnostic)"
+echo "     - $SELECTED_LANGUAGE: $LANG_AGENT_COUNT (language-specific)"
+echo "   • Rules: $RULE_COUNT files"
+echo "   • Agent registry: agents/index.json"
 echo ""
 
 # Detect or select agent
@@ -110,42 +214,92 @@ echo ""
 # Function to install to a specific agent
 install_to_agent() {
   local agent=$1
-  local target_dir="${AGENT_DIRS[$agent]}"
+  local commands_target="${AGENT_DIRS[$agent]}"
+  local agents_target="${AGENT_AGENT_DIRS[$agent]}"
+  local rules_target="${AGENT_RULES_DIRS[$agent]}"
 
   echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
   echo "Installing to: $agent"
   echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
   echo ""
 
-  # Create agent commands directory
-  echo "📁 Creating commands directory..."
-  mkdir -p "$target_dir"
-  echo "   ✓ $target_dir"
+  # Create directories
+  echo "📁 Creating directories..."
+  mkdir -p "$commands_target"
+  mkdir -p "$agents_target"
+  mkdir -p "$rules_target"
+  echo "   ✓ Commands: $commands_target"
+  echo "   ✓ Agents: $agents_target"
+  echo "   ✓ Rules: $rules_target"
   echo ""
 
-  # Backup existing commands if any
-  if [ -d "$target_dir" ] && [ "$(ls -A $target_dir 2>/dev/null)" ]; then
-    BACKUP_DIR="$target_dir.backup.$(date +%Y%m%d-%H%M%S)"
+  # Backup existing files if any
+  if [ -d "$commands_target" ] && [ "$(ls -A $commands_target 2>/dev/null)" ]; then
+    BACKUP_DIR="$commands_target.backup.$(date +%Y%m%d-%H%M%S)"
     echo "💾 Backing up existing commands..."
-    cp -r "$target_dir" "$BACKUP_DIR"
+    cp -r "$commands_target" "$BACKUP_DIR"
     echo "   ✓ Backup saved to: $BACKUP_DIR"
     echo ""
   fi
 
-  # Copy all command files
+  # Copy command files
   echo "📋 Copying command files..."
-  cp "$SAGE_DIR"/*.md "$target_dir/"
-
-  # Verify installation
-  INSTALLED_COUNT=$(ls -1 "$target_dir"/*.md 2>/dev/null | wc -l | tr -d ' ')
-
-  if [ "$INSTALLED_COUNT" -eq "$COMMAND_COUNT" ]; then
-    echo "   ✓ Successfully copied $INSTALLED_COUNT files"
-  else
-    echo "   ⚠️  Warning: Expected $COMMAND_COUNT files, but found $INSTALLED_COUNT"
-  fi
+  cp "$COMMANDS_DIR"/*.md "$commands_target/"
+  INSTALLED_COMMANDS=$(ls -1 "$commands_target"/*.md 2>/dev/null | wc -l | tr -d ' ')
+  echo "   ✓ Copied $INSTALLED_COMMANDS command files"
   echo ""
 
+  # Copy agent files (shared + language-specific)
+  echo "🤖 Copying agent files..."
+
+  # Copy shared agents (language-agnostic)
+  if [ -d "$AGENTS_DIR/shared" ]; then
+    cp "$AGENTS_DIR/shared"/*.md "$agents_target/" 2>/dev/null || true
+  fi
+
+  # Copy language-specific agents
+  if [ -d "$AGENTS_DIR/$SELECTED_LANGUAGE" ]; then
+    cp "$AGENTS_DIR/$SELECTED_LANGUAGE"/*.md "$agents_target/" 2>/dev/null || true
+  fi
+
+  # Copy agent registry
+  if [ -f "$AGENTS_DIR/index.json" ]; then
+    cp "$AGENTS_DIR/index.json" "$agents_target/"
+  fi
+
+  INSTALLED_AGENTS=$(ls -1 "$agents_target"/*.md 2>/dev/null | wc -l | tr -d ' ')
+  echo "   ✓ Copied $SHARED_AGENT_COUNT shared agents"
+  echo "   ✓ Copied $LANG_AGENT_COUNT $SELECTED_LANGUAGE agents"
+  echo "   ✓ Copied agent registry (index.json)"
+  echo ""
+
+  # Copy rule files
+  echo "📜 Copying rule files..."
+  cp "$RULES_DIR"/*.md "$rules_target/" 2>/dev/null || true
+  INSTALLED_RULES=$(ls -1 "$rules_target"/*.md 2>/dev/null | wc -l | tr -d ' ')
+  echo "   ✓ Copied $INSTALLED_RULES rule files"
+  echo ""
+
+  # Verify installation
+  if [ "$INSTALLED_COMMANDS" -eq "$COMMAND_COUNT" ]; then
+    echo "✅ Commands installation complete"
+  else
+    echo "⚠️  Commands: Expected $COMMAND_COUNT files, but found $INSTALLED_COMMANDS"
+  fi
+
+  if [ "$INSTALLED_AGENTS" -eq "$TOTAL_AGENT_COUNT" ]; then
+    echo "✅ Agents installation complete"
+  else
+    echo "⚠️  Agents: Expected $TOTAL_AGENT_COUNT files, but found $INSTALLED_AGENTS"
+  fi
+
+  if [ "$INSTALLED_RULES" -eq "$RULE_COUNT" ]; then
+    echo "✅ Rules installation complete"
+  else
+    echo "⚠️  Rules: Expected $RULE_COUNT files, but found $INSTALLED_RULES"
+  fi
+
+  echo ""
   return 0
 }
 
@@ -203,9 +357,22 @@ fi
 
 echo ""
 echo "📊 Installation Summary:"
-echo "   • Total files: $COMMAND_COUNT"
-echo "   • Commands: $(( COMMAND_COUNT - 4 ))  (executable slash commands)"
-echo "   • Documentation: 4  (SAGE_DEV_WORKFLOW, SAGE_DEV_COMMANDS, TESTING, INSTALLATION)"
+echo "   • Language: $SELECTED_LANGUAGE"
+echo "   • Commands: $COMMAND_COUNT files"
+echo "     - Slash commands: $(( COMMAND_COUNT - 4 ))"
+echo "     - Documentation: 4 (SAGE_DEV_WORKFLOW, SAGE_DEV_COMMANDS, TESTING, INSTALLATION)"
+echo "   • Agents: $TOTAL_AGENT_COUNT files + registry"
+echo "     - Shared ($SHARED_AGENT_COUNT): bs-check, bs-enforce, secret-scanner"
+if [ "$SELECTED_LANGUAGE" = "python" ]; then
+  echo "     - Python ($LANG_AGENT_COUNT): type-enforcer, doc-validator, test-coverage, import-enforcer"
+elif [ "$SELECTED_LANGUAGE" = "javascript" ]; then
+  echo "     - JavaScript ($LANG_AGENT_COUNT): (available for future implementation)"
+elif [ "$SELECTED_LANGUAGE" = "typescript" ]; then
+  echo "     - TypeScript ($LANG_AGENT_COUNT): (available for future implementation)"
+fi
+echo "   • Rules: $RULE_COUNT files"
+echo "     - enforcement-guide, typing-standards"
+echo "     - test-standards, security-standards, commit-standards"
 echo ""
 
 # Check and suggest .gitignore additions
@@ -276,6 +443,7 @@ echo "   4. Use /SAGE_DEV_COMMANDS for complete syntax guide"
 echo ""
 echo "💡 Quick Commands:"
 echo ""
+echo "   Workflow:"
 echo "   /workflow          Choose Traditional vs Ticket-Based workflow"
 echo "   /intel             Strategic system assessment"
 echo "   /specify           Generate specifications from docs"
@@ -283,8 +451,17 @@ echo "   /plan              Create implementation plans"
 echo "   /tasks             Break down into SMART tasks"
 echo "   /migrate           Convert to ticket system"
 echo "   /stream            Automated development loop"
+echo ""
+echo "   Quality & Validation:"
+echo "   /enforce           Run agent enforcement pipeline"
 echo "   /validate          Validate ticket system"
 echo "   /quality           Validate output quality"
+echo ""
+echo "   Enforcement Agents (NEW):"
+echo "   • bs-check         Remove bullshit code patterns"
+echo "   • type-enforcer    Python 3.12 typing validation"
+echo "   • secret-scanner   Detect hardcoded secrets"
+echo "   • test-coverage    Enforce coverage thresholds"
 echo ""
 echo "📚 Documentation:"
 echo ""
@@ -294,14 +471,18 @@ echo ""
 echo "   Or simply ask your AI agent:"
 echo "   \"How do I use /stream?\" or \"Explain the ticket workflow\""
 echo ""
-echo "🔄 To update commands in the future:"
+echo "🔄 To update in the future:"
 echo "   cd /path/to/sage-dev"
 echo "   git pull"
 if [ "$SELECTED_AGENT" = "all" ]; then
-  echo "   ./install-sage-commands.sh all"
+  echo "   ./sage-setup.sh all $SELECTED_LANGUAGE"
 else
-  echo "   ./install-sage-commands.sh $SELECTED_AGENT"
+  echo "   ./sage-setup.sh $SELECTED_AGENT $SELECTED_LANGUAGE"
 fi
+echo ""
+echo "💡 To change language:"
+echo "   ./sage-setup.sh $SELECTED_AGENT [python|javascript|typescript]"
+echo "   Or delete .sage/config.json to re-run the wizard"
 echo ""
 echo "💡 Supported AI Agents:"
 for agent in "${!AGENT_DIRS[@]}"; do
