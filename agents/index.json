@@ -1,0 +1,309 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "title": "Sage-Dev Agent Registry",
+  "description": "Central registry of all development enforcement agents with multi-language support",
+  "version": "2.0.0",
+  "last_updated": "2025-10-04",
+
+  "languages": {
+    "python": {
+      "name": "Python",
+      "version": "3.12+",
+      "default": true,
+      "file_extensions": ["*.py"],
+      "agents": ["type-enforcer", "doc-validator", "test-coverage", "import-enforcer"],
+      "shared_agents": ["bs-check", "bs-enforce", "secret-scanner"],
+      "test_framework": "pytest",
+      "linter": "ruff",
+      "type_checker": "mypy"
+    },
+    "javascript": {
+      "name": "JavaScript",
+      "version": "ES2022+",
+      "default": false,
+      "file_extensions": ["*.js", "*.jsx"],
+      "agents": [],
+      "shared_agents": ["bs-check", "bs-enforce", "secret-scanner"],
+      "test_framework": "jest",
+      "linter": "eslint",
+      "formatter": "prettier"
+    },
+    "typescript": {
+      "name": "TypeScript",
+      "version": "5.0+",
+      "default": false,
+      "file_extensions": ["*.ts", "*.tsx"],
+      "agents": [],
+      "shared_agents": ["bs-check", "bs-enforce", "secret-scanner"],
+      "test_framework": "jest",
+      "linter": "eslint",
+      "type_checker": "tsc"
+    }
+  },
+
+  "agents": {
+    "bs-check": {
+      "name": "bs-check",
+      "language": "shared",
+      "description": "Removes all bullshit code patterns (fallbacks, mocks, templates, error swallowing, graceful degradation, magic defaults)",
+      "file": "agents/shared/bs-check.md",
+      "model": "sonnet",
+      "color": "red",
+      "category": "code-quality",
+      "targets": ["*"],
+      "execution_phase": "pre-write",
+      "enabled": true,
+      "priority": 100
+    },
+
+    "bs-enforce": {
+      "name": "bs-enforce",
+      "language": "shared",
+      "description": "Enforcement officer that blocks any code containing bullshit patterns. Runs after every write operation",
+      "file": "agents/shared/bs-enforce.md",
+      "model": "sonnet",
+      "color": "orange",
+      "category": "code-quality",
+      "targets": ["*"],
+      "execution_phase": "post-write",
+      "enabled": true,
+      "priority": 200
+    },
+
+    "type-enforcer": {
+      "name": "type-enforcer",
+      "language": "python",
+      "description": "Validates Python 3.12 typing standards and blocks legacy typing imports",
+      "file": "agents/python/type-enforcer.md",
+      "model": "sonnet",
+      "color": "purple",
+      "category": "type-safety",
+      "targets": ["*.py"],
+      "execution_phase": "post-write",
+      "enabled": true,
+      "priority": 150
+    },
+
+    "doc-validator": {
+      "name": "doc-validator",
+      "language": "python",
+      "description": "Validates docstring completeness and quality for all Python functions and classes",
+      "file": "agents/python/doc-validator.md",
+      "model": "sonnet",
+      "color": "blue",
+      "category": "documentation",
+      "targets": ["*.py"],
+      "execution_phase": "post-write",
+      "enabled": false,
+      "priority": 50
+    },
+
+    "test-coverage": {
+      "name": "test-coverage",
+      "language": "python",
+      "description": "Enforces minimum test coverage thresholds and blocks commits below threshold",
+      "file": "agents/python/test-coverage.md",
+      "model": "sonnet",
+      "color": "green",
+      "category": "testing",
+      "targets": ["*.py"],
+      "execution_phase": "pre-commit",
+      "enabled": false,
+      "priority": 75
+    },
+
+    "import-enforcer": {
+      "name": "import-enforcer",
+      "language": "python",
+      "description": "Validates import ordering, absolute imports, and prevents circular dependencies",
+      "file": "agents/python/import-enforcer.md",
+      "model": "sonnet",
+      "color": "cyan",
+      "category": "code-structure",
+      "targets": ["*.py"],
+      "execution_phase": "post-write",
+      "enabled": false,
+      "priority": 125
+    },
+
+    "secret-scanner": {
+      "name": "secret-scanner",
+      "language": "shared",
+      "description": "Detects hardcoded secrets, API keys, credentials, and blocks commits containing secrets",
+      "file": "agents/shared/secret-scanner.md",
+      "model": "sonnet",
+      "color": "red",
+      "category": "security",
+      "targets": ["*"],
+      "execution_phase": "pre-commit",
+      "enabled": true,
+      "priority": 250
+    }
+  },
+
+  "execution_pipelines": {
+    "python": {
+      "pre-write": {
+        "description": "Agents that run before code is written",
+        "agents": ["bs-check"],
+        "fail_fast": true
+      },
+      "post-write": {
+        "description": "Agents that run after code is written",
+        "agents": ["type-enforcer", "import-enforcer", "bs-enforce"],
+        "fail_fast": false
+      },
+      "pre-commit": {
+        "description": "Agents that run before git commit",
+        "agents": ["secret-scanner", "test-coverage"],
+        "fail_fast": true
+      },
+      "full-validation": {
+        "description": "Complete validation suite (all enabled agents)",
+        "agents": ["bs-check", "type-enforcer", "import-enforcer", "bs-enforce", "secret-scanner"],
+        "fail_fast": false
+      }
+    },
+
+    "javascript": {
+      "pre-write": {
+        "description": "Agents that run before code is written",
+        "agents": ["bs-check"],
+        "fail_fast": true
+      },
+      "post-write": {
+        "description": "Agents that run after code is written",
+        "agents": ["bs-enforce"],
+        "fail_fast": false
+      },
+      "pre-commit": {
+        "description": "Agents that run before git commit",
+        "agents": ["secret-scanner"],
+        "fail_fast": true
+      },
+      "full-validation": {
+        "description": "Complete validation suite (all enabled agents)",
+        "agents": ["bs-check", "bs-enforce", "secret-scanner"],
+        "fail_fast": false
+      }
+    },
+
+    "typescript": {
+      "pre-write": {
+        "description": "Agents that run before code is written",
+        "agents": ["bs-check"],
+        "fail_fast": true
+      },
+      "post-write": {
+        "description": "Agents that run after code is written",
+        "agents": ["bs-enforce"],
+        "fail_fast": false
+      },
+      "pre-commit": {
+        "description": "Agents that run before git commit",
+        "agents": ["secret-scanner"],
+        "fail_fast": true
+      },
+      "full-validation": {
+        "description": "Complete validation suite (all enabled agents)",
+        "agents": ["bs-check", "bs-enforce", "secret-scanner"],
+        "fail_fast": false
+      }
+    }
+  },
+
+  "enforcement_levels": {
+    "STRICT": {
+      "description": "Zero tolerance - all violations blocked, all agents enabled",
+      "python": {
+        "enabled_agents": ["bs-check", "bs-enforce", "type-enforcer", "import-enforcer", "secret-scanner", "test-coverage", "doc-validator"],
+        "fail_fast": true,
+        "auto_fix_enabled": true,
+        "max_retries": 3
+      },
+      "javascript": {
+        "enabled_agents": ["bs-check", "bs-enforce", "secret-scanner"],
+        "fail_fast": true,
+        "auto_fix_enabled": true,
+        "max_retries": 3
+      },
+      "typescript": {
+        "enabled_agents": ["bs-check", "bs-enforce", "secret-scanner"],
+        "fail_fast": true,
+        "auto_fix_enabled": true,
+        "max_retries": 3
+      }
+    },
+
+    "BALANCED": {
+      "description": "Core quality checks with warnings for non-critical issues",
+      "python": {
+        "enabled_agents": ["bs-check", "bs-enforce", "type-enforcer", "secret-scanner"],
+        "fail_fast": false,
+        "auto_fix_enabled": true,
+        "max_retries": 2
+      },
+      "javascript": {
+        "enabled_agents": ["bs-check", "bs-enforce", "secret-scanner"],
+        "fail_fast": false,
+        "auto_fix_enabled": true,
+        "max_retries": 2
+      },
+      "typescript": {
+        "enabled_agents": ["bs-check", "bs-enforce", "secret-scanner"],
+        "fail_fast": false,
+        "auto_fix_enabled": true,
+        "max_retries": 2
+      }
+    },
+
+    "PROTOTYPE": {
+      "description": "Minimal checks for rapid prototyping - violations logged but not blocked",
+      "python": {
+        "enabled_agents": ["secret-scanner"],
+        "fail_fast": false,
+        "auto_fix_enabled": false,
+        "max_retries": 0
+      },
+      "javascript": {
+        "enabled_agents": ["secret-scanner"],
+        "fail_fast": false,
+        "auto_fix_enabled": false,
+        "max_retries": 0
+      },
+      "typescript": {
+        "enabled_agents": ["secret-scanner"],
+        "fail_fast": false,
+        "auto_fix_enabled": false,
+        "max_retries": 0
+      }
+    }
+  },
+
+  "categories": {
+    "code-quality": {
+      "description": "Code quality and anti-pattern detection",
+      "agents": ["bs-check", "bs-enforce"]
+    },
+    "type-safety": {
+      "description": "Type system validation and enforcement",
+      "agents": ["type-enforcer"]
+    },
+    "documentation": {
+      "description": "Documentation completeness and quality",
+      "agents": ["doc-validator"]
+    },
+    "testing": {
+      "description": "Test coverage and quality validation",
+      "agents": ["test-coverage"]
+    },
+    "code-structure": {
+      "description": "Code organization and structure validation",
+      "agents": ["import-enforcer"]
+    },
+    "security": {
+      "description": "Security scanning and secret detection",
+      "agents": ["secret-scanner"]
+    }
+  }
+}
