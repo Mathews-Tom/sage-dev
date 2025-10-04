@@ -1,0 +1,149 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "title": "Sage-Dev Enforcement Configuration",
+  "description": "Configure agent enforcement behavior and strictness levels",
+  "version": "1.0.0",
+
+  "level": "BALANCED",
+  "auto_fix_enabled": true,
+  "fail_fast": false,
+
+  "enabled_agents": [
+    "bs-check",
+    "bs-enforce",
+    "type-enforcer",
+    "secret-scanner"
+  ],
+
+  "disabled_agents": [
+    "doc-validator",
+    "test-coverage",
+    "import-enforcer"
+  ],
+
+  "agent_config": {
+    "bs-check": {
+      "enabled": true,
+      "auto_fix": true,
+      "severity_threshold": "ERROR"
+    },
+
+    "bs-enforce": {
+      "enabled": true,
+      "auto_fix": false,
+      "block_on_violation": true,
+      "severity_threshold": "ERROR"
+    },
+
+    "type-enforcer": {
+      "enabled": true,
+      "auto_fix": true,
+      "run_mypy": true,
+      "mypy_strict": true,
+      "severity_threshold": "ERROR"
+    },
+
+    "doc-validator": {
+      "enabled": false,
+      "auto_fix": true,
+      "minimum_coverage": 80,
+      "severity_threshold": "WARNING"
+    },
+
+    "test-coverage": {
+      "enabled": false,
+      "minimum_overall": 80,
+      "minimum_new_code": 90,
+      "minimum_critical": 95,
+      "block_on_regression": true,
+      "severity_threshold": "ERROR"
+    },
+
+    "import-enforcer": {
+      "enabled": false,
+      "auto_fix": true,
+      "detect_circular": true,
+      "enforce_ordering": true,
+      "severity_threshold": "WARNING"
+    },
+
+    "secret-scanner": {
+      "enabled": true,
+      "auto_fix": false,
+      "block_on_detection": true,
+      "scan_git_history": false,
+      "severity_threshold": "CRITICAL",
+      "allowlist_file": ".sage/secrets-allowlist.json"
+    }
+  },
+
+  "hooks": {
+    "pre_commit": {
+      "enabled": true,
+      "agents": ["secret-scanner", "bs-enforce"],
+      "fail_fast": true
+    },
+
+    "pre_push": {
+      "enabled": false,
+      "agents": ["test-coverage"],
+      "fail_fast": true
+    },
+
+    "post_write": {
+      "enabled": true,
+      "agents": ["type-enforcer", "import-enforcer", "bs-enforce"],
+      "fail_fast": false
+    }
+  },
+
+  "exemptions": {
+    "paths": [
+      "tests/**",
+      "**/migrations/**",
+      "**/fixtures/**",
+      "**/__pycache__/**",
+      ".venv/**",
+      "venv/**"
+    ],
+
+    "files": [
+      "conftest.py",
+      "setup.py",
+      "__init__.py"
+    ],
+
+    "patterns": [
+      "# noqa: enforcement",
+      "# skip: agent-check"
+    ]
+  },
+
+  "notifications": {
+    "slack_webhook": null,
+    "email": null,
+    "on_failure_only": true
+  },
+
+  "reporting": {
+    "output_file": ".sage/enforcement-report.md",
+    "format": "markdown",
+    "include_auto_fixes": true,
+    "include_warnings": true,
+    "verbose": false
+  },
+
+  "thresholds": {
+    "max_violations": 10,
+    "max_blocked": 0,
+    "max_warnings": 50
+  },
+
+  "auto_fix": {
+    "enabled": true,
+    "max_iterations": 3,
+    "verify_syntax": true,
+    "create_backup": false,
+    "batch_size": 10
+  }
+}

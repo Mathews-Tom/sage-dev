@@ -46,6 +46,7 @@ Algorithm:
         END
 
 Enforcement Rules:
+
 - Zero tolerance - ANY violation = FAIL
 - No warnings - only PASS or FAIL
 - Check runs on EVERY write/edit operation

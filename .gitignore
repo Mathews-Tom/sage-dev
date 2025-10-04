@@ -3,3 +3,7 @@
 
 # Local documentation
 .docs/
+
+# AI Coding Systems
+.claude/
+.opencode/
