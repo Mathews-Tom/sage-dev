@@ -595,7 +595,7 @@ Operational Concerns: Infra, monitoring, security
 **Outputs:**
 
 - Conventional commits
-- `.docs/PR_MESSAGE.md` - Comprehensive PR description
+- `.docs/PR_DESCRIPTION.md` - Comprehensive PR description
 
 **What it does:**
 
@@ -717,7 +717,7 @@ docs/
 
 .docs/
 ├── PROGRESS_REPORT.md   # Progress analysis (/progress)
-└── PR_MESSAGE.md        # PR description (/commit)
+└── PR_DESCRIPTION.md    # PR description (/commit)
 ```
 
 ## 🎯 Usage Patterns

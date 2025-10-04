@@ -111,7 +111,7 @@ Developer organizing changes into clean, conventional commits with comprehensive
 
    ```bash
    mkdir -p .docs
-   tee .docs/PR_MESSAGE.md
+   tee .docs/PR_DESCRIPTION.md
    ```
 
 ---
@@ -339,5 +339,5 @@ After pushing:
 
 1. **Update Ticket States**: If not done by `/implement`, manually update `tickets/index.json`
 2. **Run /sync**: Push ticket updates to GitHub
-3. **Create PR**: Use generated `.docs/PR_MESSAGE.md`
+3. **Create PR**: Use generated `.docs/PR_DESCRIPTION.md`
 4. **Link PR to Tickets**: Reference PR number in ticket markdown
