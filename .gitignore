@@ -1,2 +1,5 @@
 # macOS
 .DS_Store
+
+# Temporary development files
+TEMP_DOCS/
