@@ -227,7 +227,7 @@ if [ -f "$GITIGNORE_FILE" ]; then
 
   if [ "$NEEDS_UPDATE" = true ]; then
     echo ""
-    echo "   These directories contain developer-local files that shouldn't be committed:"
+    echo "   You might want to keep these directories out of version control, as they usually contain developer-local files:"
     echo "   • .sage/  - Workflow configuration and state"
     echo "   • .docs/  - Generated reports and analysis"
     echo ""
