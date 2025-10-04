@@ -2,19 +2,39 @@
 
 A systematic approach to software development from specifications to implementation using Claude Code slash commands.
 
+---
+
+## 🚀 Quick Installation
+
+**Install all commands directly into Claude Code:**
+
+```bash
+cd /path/to/sage-dev
+./install-sage-commands.sh
+```
+
+Once installed, type `/` in Claude Code to see all 20 commands!
+
+📖 **See [INSTALLATION.md](INSTALLATION.md) for detailed installation guide and integration options.**
+
+---
+
 ## 📋 Overview
 
 This workflow provides a structured methodology for analyzing requirements, validating concepts, planning implementation, and managing development through a series of purpose-built slash commands.
 
+**IMPORTANT:** Start with `/workflow` to choose between Traditional (manual) or Ticket-Based (automated) workflows.
+
 ```mermaid
 graph LR
-    H[System Design] --> A["/enhance"]
+    START["/workflow"] --> H[System Design]
+    H --> A["/enhance"]
     A --> B["/specify"]
     B --> C["/plan"]
     C --> D["/tasks"]
     D --> E["/poc"]
     E --> F["/breakdown"]
-    F --> G["/devflow"]
+    F --> G["/blueprint"]
     G --> I["/implement"]
     I --> K["/progress"]
     K --> J["/commit"]
@@ -34,6 +54,87 @@ graph LR
 - **Iterative Validation**: POC before heavy investment
 - **Minimal Complexity**: Focus on core value, exclude non-essentials
 - **Actionable Output**: Every document ready for immediate use
+
+---
+
+## 🔀 Workflow Selection (START HERE)
+
+### `/workflow` - Choose Your Development Workflow
+
+**Purpose:** Interactive tool that recommends Traditional vs Ticket-Based workflow based on your project context
+
+**When to use:** FIRST command for new projects, or when switching workflows
+
+**What it does:**
+
+- Analyzes current project state
+- Asks clarifying questions about preferences
+- Recommends optimal workflow with rationale
+- Sets workflow mode to prevent accidental mixing
+- Validates prerequisites before starting
+
+**Decision Matrix:**
+
+| Factor | Traditional Workflow | Ticket-Based Workflow |
+|--------|---------------------|----------------------|
+| **Control** | Manual, step-by-step | Automated execution |
+| **Commits** | You decide when | AI commits automatically |
+| **Review** | Review at each step | Review after ticket completion |
+| **Speed** | Slower, deliberate | Faster, hands-off |
+| **Best For** | Production, teams, learning | Solo, experimental, fast iteration |
+| **Comfort Level** | Prefer control | Trust automation |
+
+**Workflow Comparison:**
+
+```mermaid
+graph TD
+    Start{New Project} --> Selector["/workflow"]
+    Selector --> Questions["Questions:<br/>1. Manual or Automated?<br/>2. Production or Experimental?<br/>3. Team or Solo?"]
+    Questions --> Decision{Recommendation}
+
+    Decision -->|Manual Control| Traditional["Traditional Workflow<br/>/specify → /plan → /tasks →<br/>/breakdown → /blueprint →<br/>/implement → /commit"]
+    Decision -->|Automation| Ticket["Ticket-Based Workflow<br/>/specify → /plan → /tasks →<br/>/migrate → /stream"]
+
+    Traditional --> Review["Review at each step"]
+    Ticket --> Automated["Automated with confirmations"]
+
+    style Selector fill:#e1f5fe
+    style Traditional fill:#fff9c4
+    style Ticket fill:#c8e6c9
+```
+
+**Example workflow:**
+
+```bash
+# First time on project
+/workflow
+
+# Answer questions:
+# 1. New project or existing? NEW
+# 2. Manual or automated? AUTOMATED
+# 3. Comfortable with AI commits? YES
+# 4. Experimental or production? EXPERIMENTAL
+
+# Result: TICKET_BASED workflow recommended
+# Mode saved to: .sage/workflow-mode
+
+# Then follow recommended commands
+/specify
+/plan
+/tasks
+/migrate
+/stream  # Hands-off automation begins
+```
+
+**Key features:**
+
+- Prevents workflow confusion
+- Validates prerequisites
+- Detects workflow conflicts
+- Provides clear next steps
+- Safe to rerun anytime
+
+---
 
 ## 📚 Command Reference
 
@@ -60,7 +161,7 @@ graph LR
   - **Technology Innovation**: Emerging tech, modern architecture patterns, developer experience improvements
   - **Competitive Differentiation**: Unique value propositions, underserved use cases, competitive advantages
 - Prioritizes recommendations by impact, feasibility, and strategic alignment
-- Creates phased implementation roadmap with success metrics
+- Creates phased implementation blueprint with success metrics
 - Provides research-backed rationale for all enhancement suggestions
 
 **When to use:**
@@ -175,7 +276,7 @@ docs/specs/
   - Security and performance strategies
   - Development environment setup
   - Risk assessment and mitigation
-  - Phased implementation roadmap
+  - Phased implementation blueprint
 
 **When to use:**
 
@@ -340,9 +441,9 @@ Operational Concerns: Infra, monitoring, security
 
 ---
 
-### 6️⃣ `/devflow` - System Roadmap
+### 6️⃣ `/blueprint` - System Blueprint
 
-**Purpose:** Create unified cross-component development roadmap
+**Purpose:** Create unified cross-component development blueprint
 
 **Inputs:**
 
@@ -351,7 +452,7 @@ Operational Concerns: Infra, monitoring, security
 
 **Outputs:**
 
-- `docs/roadmap.md` - System-wide roadmap
+- `docs/blueprint.md` - System-wide blueprint
 
 **What it does:**
 
@@ -378,7 +479,7 @@ Operational Concerns: Infra, monitoring, security
 
 - Executive summary for leadership
 - Visual timeline with phases
-- Component roadmaps with links
+- Component blueprints with links
 - Dependency map
 - Resource allocation table
 
@@ -390,7 +491,7 @@ Operational Concerns: Infra, monitoring, security
 
 **Inputs:**
 
-- `docs/roadmap.md` - Phase structure and status
+- `docs/blueprint.md` - Phase structure and status
 - `docs/specs/*/tasks.md` - Task breakdown and progress
 - `docs/breakdown/*/breakdown.md` - Implementation specifications
 - Current git branch and repository state
@@ -415,14 +516,14 @@ Operational Concerns: Infra, monitoring, security
 
 **When to use:**
 
-- After roadmap creation (`/devflow`)
+- After blueprint creation (`/blueprint`)
 - Starting implementation of a new phase
 - Resuming interrupted implementation
 - Before creating commits (`/commit`)
 
 **Key features:**
 
-- Smart phase detection from roadmap
+- Smart phase detection from blueprint
 - Real-time progress tracking in task files
 - Test-driven completion validation
 - Automatic error recovery
@@ -437,7 +538,7 @@ Operational Concerns: Infra, monitoring, security
 
 **Inputs:**
 
-- `docs/roadmap.md` - Phase structure and status
+- `docs/blueprint.md` - Phase structure and status
 - `docs/specs/*/tasks.md` - Task completion tracking
 - `docs/specs/*/spec.md` - Component definitions
 - `docs/breakdown/*/breakdown.md` - Implementation expectations
@@ -445,11 +546,11 @@ Operational Concerns: Infra, monitoring, security
 
 **Outputs:**
 
-- `TEMP_DOCS/PROGRESS_REPORT.md` - Comprehensive progress report
+- `.docs/PROGRESS_REPORT.md` - Comprehensive progress report
 
 **What it does:**
 
-- Analyzes phase completion from roadmap
+- Analyzes phase completion from blueprint
 - Calculates task completion percentages
 - Tracks implementation status via git
 - Identifies blockers and dependencies
@@ -494,7 +595,7 @@ Operational Concerns: Infra, monitoring, security
 **Outputs:**
 
 - Conventional commits
-- `TEMP_DOCS/PR_MESSAGE.md` - Comprehensive PR description
+- `.docs/PR_DESCRIPTION.md` - Comprehensive PR description
 
 **What it does:**
 
@@ -527,7 +628,7 @@ Operational Concerns: Infra, monitoring, security
 
 ## 📊 Analysis & Assessment Tools
 
-### 🔍 `/strategic-intelligence` - Comprehensive Strategic Assessment & Market Intelligence
+### 🔍 `/intel` - Comprehensive Strategic Assessment & Market Intelligence
 
 **Purpose:** Gather strategic intelligence through comprehensive system assessment and market analysis to inform technical and business decisions
 
@@ -539,7 +640,7 @@ Operational Concerns: Infra, monitoring, security
 
 **Outputs:**
 
-- `docs/strategic-intelligence.md` - Comprehensive strategic intelligence report
+- `docs/intel.md` - Comprehensive strategic intelligence report
 
 **What it does:**
 
@@ -560,7 +661,7 @@ Operational Concerns: Infra, monitoring, security
   - Integrates internal capabilities with external market dynamics
   - Prioritizes strategic initiatives by impact and opportunity
   - Balances capability building with market positioning
-  - Creates strategic implementation roadmap
+  - Creates strategic implementation blueprint
   - Provides strategic ROI projections and success metrics
 
 **When to use:**
@@ -581,14 +682,14 @@ Current State Analysis: Capability assessment + market position
 Strategic Intelligence Analysis: Benchmarking + competitive intelligence
 Strategic Analysis: Capability gaps + market opportunities
 Strategic Recommendations: Phased strategic initiatives with ROI
-Implementation Roadmap: Strategic timeline with success metrics
+Implementation Blueprint: Strategic timeline with success metrics
 ```
 
 ---
 
 ## 📁 Generated Folder Structure
 
-```txt
+```text
 docs/
 ├── enhancement.md       # System enhancement research (/enhance)
 ├── specs/
@@ -611,12 +712,12 @@ docs/
 │   │   └── breakdown.md # Technical details (/breakdown)
 │   └── component-b/
 │       └── breakdown.md
-├── strategic-intelligence.md  # Strategic assessment & market intelligence (/strategic-intelligence)
-└── roadmap.md           # System-wide roadmap (/devflow)
+├── intel.md  # Strategic assessment & market intelligence (/intel)
+└── blueprint.md           # System-wide blueprint (/blueprint)
 
-TEMP_DOCS/
+.docs/
 ├── PROGRESS_REPORT.md   # Progress analysis (/progress)
-└── PR_MESSAGE.md        # PR description (/commit)
+└── PR_DESCRIPTION.md    # PR description (/commit)
 ```
 
 ## 🎯 Usage Patterns
@@ -644,8 +745,8 @@ TEMP_DOCS/
 # Step 6: Detail implementation
 /breakdown
 
-# Step 7: Create system roadmap
-/devflow
+# Step 7: Create system blueprint
+/blueprint
 
 # Step 8: Execute phased implementation
 /implement
@@ -676,7 +777,7 @@ TEMP_DOCS/
 /plan
 /tasks
 /breakdown
-/devflow
+/blueprint
 
 # Step 4: Execute implementation
 /implement
@@ -709,8 +810,8 @@ TEMP_DOCS/
 # Step 6: Implementation details
 /breakdown
 
-# Step 7: Update system roadmap
-/devflow
+# Step 7: Update system blueprint
+/blueprint
 
 # Step 8: Execute implementation
 /implement
@@ -740,8 +841,8 @@ TEMP_DOCS/
 # Step 5: Implementation details
 /breakdown
 
-# Step 6: Update system roadmap
-/devflow
+# Step 6: Update system blueprint
+/blueprint
 
 # Step 7: Execute implementation
 /implement
@@ -757,12 +858,12 @@ TEMP_DOCS/
 
 ```bash
 # Step 1: Strategic intelligence gathering
-/strategic-intelligence  # Strategic assessment + market intelligence
+/intel  # Strategic assessment + market intelligence
 
 # Step 2: Update plans based on strategic insights
 /plan     # Update technical strategy
 /tasks    # Adjust priorities and timeline
-/devflow  # Update roadmap
+/blueprint  # Update blueprint
 ```
 
 **Timeline:** 1-2 days for comprehensive assessment
@@ -780,7 +881,7 @@ TEMP_DOCS/
 /tasks    # Re-run for timeline updates
 
 # Step 2: Update system view
-/devflow
+/blueprint
 ```
 
 **Timeline:** Few hours for documentation sync
@@ -811,7 +912,7 @@ TEMP_DOCS/
    - Prevents rework and confusion
    - Ensures consistency
 
-5. **Keep `/devflow` updated**
+5. **Keep `/blueprint` updated**
    - Re-run after major changes
    - Use for stakeholder updates
    - Track progress weekly
@@ -826,10 +927,10 @@ TEMP_DOCS/
 | `/tasks` | Timeline shifts, team changes, priorities update |
 | `/poc` | Core assumptions need validation, pivot required |
 | `/breakdown` | Implementation approach changes, new patterns adopted |
-| `/devflow` | Component updates, integration changes, milestone reviews |
+| `/blueprint` | Component updates, integration changes, milestone reviews |
 | `/implement` | Ready to start implementation, phase completion, resuming work |
 | `/progress` | Daily/weekly check-ins, status updates, blocker identification |
-| `/strategic-intelligence` | Quarterly reviews, competitive changes, strategic planning |
+| `/intel` | Quarterly reviews, competitive changes, strategic planning |
 | `/commit` | Code ready for PR, feature complete |
 
 ### Quality Gates
@@ -839,7 +940,7 @@ TEMP_DOCS/
 - [ ] Enhancement opportunities identified across all categories
 - [ ] Research citations support all recommendations
 - [ ] Impact/effort analysis completed for prioritization
-- [ ] Enhancement roadmap aligns with project goals
+- [ ] Enhancement blueprint aligns with project goals
 
 **After `/specify`:**
 
@@ -877,7 +978,7 @@ TEMP_DOCS/
 - [ ] Security considered
 - [ ] Monitoring planned
 
-**After `/devflow`:**
+**After `/blueprint`:**
 
 - [ ] Critical path identified
 - [ ] Resource conflicts resolved
@@ -899,9 +1000,9 @@ TEMP_DOCS/
 - [ ] Phase and component status identified
 - [ ] Blockers and dependencies highlighted
 - [ ] Next actions clearly recommended
-- [ ] Progress report generated in TEMP_DOCS/
+- [ ] Progress report generated in .docs/
 
-**After `/strategic-intelligence`:**
+**After `/intel`:**
 
 - [ ] Strategic capabilities and market position assessed
 - [ ] Competitive positioning and market intelligence gathered
@@ -931,7 +1032,7 @@ mkdir -p docs
 /plan       # Create implementation plans
 /tasks      # Break down into actionable tasks
 /breakdown  # Detail technical implementation
-/devflow    # Create system roadmap
+/blueprint    # Create system blueprint
 /implement  # Execute phased implementation
 ```
 
@@ -939,7 +1040,7 @@ mkdir -p docs
 
 - Use `docs/breakdown/` as implementation guide
 - Track tasks from `docs/specs/*/tasks.md`
-- Reference `docs/roadmap.md` for timeline
+- Reference `docs/blueprint.md` for timeline
 
 4. **Commit your work:**
 
@@ -951,22 +1052,22 @@ mkdir -p docs
 
 ```bash
 # Full workflow in sequence (new projects)
-/enhance && /specify && /poc && /plan && /tasks && /breakdown && /devflow && /implement && /progress
+/enhance && /specify && /poc && /plan && /tasks && /breakdown && /blueprint && /implement && /progress
 
 # Enhancement-driven development
-/enhance && /specify && /plan && /tasks && /devflow && /implement && /progress
+/enhance && /specify && /plan && /tasks && /blueprint && /implement && /progress
 
 # Strategic intelligence workflow
-/strategic-intelligence && /plan && /tasks && /devflow && /implement && /progress
+/intel && /plan && /tasks && /blueprint && /implement && /progress
 
 # Update all documentation
-/specify && /plan && /tasks && /devflow
+/specify && /plan && /tasks && /blueprint
 
 # Just planning and tasks
 /plan && /tasks
 
 # Just system overview
-/devflow
+/blueprint
 
 # Check project progress
 /progress
@@ -975,7 +1076,7 @@ mkdir -p docs
 /enhance
 
 # Quarterly strategic review
-/strategic-intelligence
+/intel
 ```
 
 ---
@@ -1033,7 +1134,7 @@ mkdir -p docs
 - Well-documented frameworks
 - Prototypes and MVPs
 
-### How often to run `/devflow`?
+### How often to run `/blueprint`?
 
 **Frequency:**
 
@@ -1049,7 +1150,7 @@ mkdir -p docs
 - ❌ No external stakeholders
 - ❌ Single component system
 
-### When to run `/strategic-intelligence`?
+### When to run `/intel`?
 
 **Essential for:**
 
@@ -1105,6 +1206,386 @@ Track these metrics to measure workflow effectiveness:
 
 ---
 
+## 🎫 Enhanced Ticket System (Advanced)
+
+The ticket-based workflow now includes advanced validation, sub-task processing, and component-level checkpointing for robust automated development.
+
+### Ticket Types & Validation Types
+
+Every ticket has TWO types that determine how it's implemented and validated:
+
+#### Ticket Types (What Kind of Work)
+
+| Type | Purpose | When to Use | Example |
+|------|---------|-------------|---------|
+| **implementation** | Build new features from scratch | New components, APIs, UI pages | "Build User Authentication System" |
+| **enhancement** | Improve existing features | Performance optimizations, UX improvements | "Add OAuth2 support to existing auth" |
+| **bugfix** | Fix defects in existing code | Production bugs, test failures | "Fix memory leak in session cleanup" |
+| **refactor** | Improve code quality without changing behavior | Code cleanup, architecture improvements | "Migrate auth module to TypeScript" |
+
+#### Validation Types (How to Validate)
+
+| Type | Purpose | Auto-Fix | Best For | Example |
+|------|---------|----------|----------|---------|
+| **stateflow** | Stateful behavior chains & UI cascades | ✓ | Auth flows, state management | Login → Dashboard → UI updates |
+| **content** | Field data, calculations, displayed values | ✓ | Percentages, counters, statistics | Completion % calculation |
+| **interactive** | Buttons, links, forms, event handlers | ✓ | User interactions, form submissions | "Add Project Creation Button" |
+| **integration** | External APIs, third-party services | ✗ | GitHub integration, external APIs | "Implement GitHub Issue Sync" |
+| **generic** | Standard implementation (default) | ✓ | General features, mixed requirements | "Implement User Profile Page" |
+
+### Sub-Task Processing
+
+Tickets can contain fine-grained **tasks** arrays for atomic execution and validation:
+
+```json
+{
+  "id": "AUTH-001",
+  "title": "Implement Authentication System",
+  "type": "implementation",
+  "validation_type": "stateflow",
+  "tasks": [
+    {
+      "id": "TASK-001-1",
+      "type": "interactive",
+      "description": "Implement login button handler",
+      "status": "UNPROCESSED",
+      "validation_script": "npm test -- LoginButton.test",
+      "auto_fix": true,
+      "max_retries": 3
+    },
+    {
+      "id": "TASK-001-2",
+      "type": "stateflow",
+      "description": "Validate auth state cascade",
+      "status": "UNPROCESSED",
+      "validation_script": "npm test -- AuthFlow.test",
+      "auto_fix": true,
+      "max_retries": 3
+    }
+  ]
+}
+```
+
+**Sub-Task Processing Flow:**
+
+```
+1. SELECT_NEXT_TASK (status: UNPROCESSED)
+2. IMPLEMENT_TASK
+3. RUN_VALIDATION_SCRIPT
+4. If validation fails → AUTO_FIX_LOOP (max 3 attempts)
+5. If still failing → DEFER_TASK (continue to next)
+6. If passes → COMMIT_TASK (atomic commit)
+7. MARK_TASK_COMPLETE
+8. Repeat until all tasks complete
+```
+
+### Component-Level Checkpointing
+
+Tickets can group related work into **components** for selective rollback:
+
+```json
+{
+  "id": "AUTH-001",
+  "components": [
+    {
+      "name": "AuthModule",
+      "description": "Core authentication logic",
+      "checkpoint_id": "abc123def",
+      "status": "COMPLETED",
+      "tasks": ["TASK-001-1", "TASK-001-2"]
+    },
+    {
+      "name": "AuthUI",
+      "description": "Authentication UI components",
+      "checkpoint_id": "",
+      "status": "UNPROCESSED",
+      "tasks": ["TASK-001-3", "TASK-001-4"]
+    }
+  ]
+}
+```
+
+**Component Processing (Interactive Mode):**
+
+```
+1. PROCESS_COMPONENT_A
+2. Execute all tasks for component
+3. CREATE_COMPONENT_CHECKPOINT (git commit with file tracking)
+4. REQUEST_USER_CONFIRMATION
+5. User reviews → Accept/Rollback/Quit
+6. If rollback → RESTORE_COMPONENT_CHECKPOINT
+7. If accept → MARK_COMPONENT_COMPLETE
+8. Proceed to next component
+```
+
+### Auto-Fix Loop
+
+When validation scripts fail, the system automatically attempts fixes (max 3 attempts):
+
+```
+VALIDATION_FAILED
+  ↓
+Attempt 1 → Analyze error → Generate fix → Apply → Validate
+  ↓ (still failing)
+Attempt 2 → Alternative fix → Apply → Validate
+  ↓ (still failing)
+Attempt 3 → Final fix attempt → Apply → Validate
+  ↓ (still failing)
+DEFER_TASK (with categorized reason)
+```
+
+**Defer Reasons:**
+- `missing_dependencies` - Required files/modules not found
+- `persistent_test_failure` - Tests fail after 3 fix attempts
+- `validation_script_error` - Validation command itself failed
+- `external_blocker` - External service unavailable
+- `user_rejected` - Component rejected in interactive mode
+
+### Validation Commands
+
+#### `/validate` - System Integrity Check
+
+Validates ticket system before destructive operations:
+
+```bash
+/validate
+
+# Checks:
+# ✓ Valid JSON schema
+# ✓ No duplicate IDs
+# ✓ All required fields present
+# ✓ Ticket type values valid (implementation/enhancement/bugfix/refactor)
+# ✓ Validation type values valid (stateflow/content/interactive/integration/generic)
+# ✓ Sub-task schema valid
+# ✓ Validation scripts well-formed
+# ✓ Component checkpoints valid
+# ✓ Dependencies valid
+# ✓ No circular dependencies
+```
+
+#### `/quality` - Quality Scoring
+
+Scores ticket system quality (0-100):
+
+```bash
+/quality --command=tickets
+
+# Ticket System Quality (100 points):
+# - Sub-tasks have descriptions (10 pts)
+# - Validation scripts exist for non-generic types (10 pts)
+# - Auto-fix enabled appropriately (10 pts)
+# - Component groupings logical (5 pts)
+# - Validation types match content (15 pts)
+```
+
+#### `/repair` - Automatic Fixes
+
+Repairs common ticket system issues:
+
+```bash
+/repair
+
+# Repairs:
+# ✓ Deduplicate ticket IDs
+# ✓ Fix invalid states
+# ✓ Fix missing required fields (including validation_type)
+# ✓ Fix invalid ticket types
+# ✓ Fix invalid validation types (defaults to 'generic')
+# ✓ Fix sub-task schema
+# ✓ Clean orphaned component checkpoints
+```
+
+### Component Rollback
+
+Granular rollback at component level (not just entire tickets):
+
+```bash
+# Rollback specific component only
+/rollback --component=AuthUI
+
+# Rollback entire ticket
+/rollback --ticket=AUTH-001
+
+# Full system rollback
+/rollback
+```
+
+**Use Case:**
+```bash
+# Ticket AUTH-001 has two components: AuthModule ✓, AuthUI ✗
+# AuthModule works perfectly, but AuthUI has bugs
+
+# Rollback only AuthUI
+/rollback --component=AuthUI
+
+# Result:
+# - AuthModule preserved (still COMPLETED)
+# - AuthUI reverted to UNPROCESSED
+# - Files modified by AuthUI restored from checkpoint
+# - AuthUI tasks reset
+
+# Re-implement AuthUI with fixes
+/stream --ticket=AUTH-001 --component=AuthUI
+```
+
+### Enhanced /migrate Command
+
+Generates enhanced ticket schema with validation types, sub-tasks, and components:
+
+**Validation Type Detection (Automatic):**
+```bash
+# Analyzes task descriptions for keywords:
+# "auth|login|state|flow|cascade" → validation_type: stateflow
+# "percentage|calculation|counter|total" → validation_type: content
+# "button|click|form|link|handler" → validation_type: interactive
+# "github|api|integration|external" → validation_type: integration
+# Otherwise → validation_type: generic
+```
+
+**Sub-Task Generation:**
+```bash
+# Reads docs/specs/component/tasks.md
+# Each task becomes a sub-task with:
+# - Unique ID (TASK-XXX-N)
+# - Validation type (inherited or specific)
+# - Validation script (auto-generated based on project type)
+# - Auto-fix enabled (true for stateflow/content/interactive)
+# - Max retries: 3
+```
+
+**Component Grouping Strategy:**
+```bash
+# Groups tasks by logical components from breakdown or spec structure
+# Example: Auth ticket → AuthModule + AuthUI components
+```
+
+### Enhanced /stream Command
+
+Processes tickets with sub-task execution, validation, and auto-fix:
+
+**New Execution Flow:**
+
+```
+1. Load ticket
+2. Check for sub-tasks array
+3. If sub-tasks exist:
+   3a. For each sub-task (status: UNPROCESSED):
+       - Spawn sub-agent to implement
+       - Run validation script
+       - If fails → AUTO_FIX_LOOP (max 3 attempts)
+       - If passes → COMMIT (atomic)
+       - Update sub-task status to COMPLETED
+       - Continue to next sub-task
+   3b. If all sub-tasks complete → Ticket COMPLETED
+   3c. If some deferred → Ticket IN_PROGRESS (manual intervention)
+4. Else: Standard ticket processing (spawn single sub-agent)
+```
+
+**Interactive Component Confirmation:**
+
+```bash
+/stream  # Default: Interactive mode
+
+# After completing each component:
+# ================================================
+# Component: AuthModule
+# Status: COMPLETED
+# Files modified: 3
+# Tests passed: ✓
+# ================================================
+#
+# Options:
+#   [c] Continue to next component
+#   [r] Rollback this component
+#   [q] Quit (save checkpoint)
+#
+# Your choice: _
+```
+
+### Best Practices
+
+**1. Choose Appropriate Validation Type:**
+
+✅ **Good:**
+```yaml
+# Auth flow with UI cascades
+validation_type: stateflow
+```
+
+❌ **Bad:**
+```yaml
+# Auth flow with UI cascades
+validation_type: generic  # Too generic, misses cascade validation
+```
+
+**2. Break Down Complex Tickets:**
+
+✅ **Good:**
+```json
+{
+  "tasks": [
+    {"id": "TASK-1", "description": "Login button"},
+    {"id": "TASK-2", "description": "Logout button"},
+    {"id": "TASK-3", "description": "Auth state cascade"}
+  ]
+}
+```
+
+❌ **Bad:**
+```json
+{
+  "tasks": [
+    {"id": "TASK-1", "description": "All auth functionality"}
+  ]
+}
+```
+
+**3. Enable Auto-Fix for Appropriate Types:**
+
+✅ **Enable auto-fix:**
+- `stateflow` - UI cascade fixes
+- `content` - Calculation corrections
+- `interactive` - Handler wiring fixes
+
+❌ **Disable auto-fix:**
+- Security-sensitive code
+- Production data migrations
+- External API integrations (manual review)
+
+**4. Use Component Grouping Wisely:**
+
+✅ **Good grouping:**
+```json
+"components": [
+  {"name": "AuthLogic", "tasks": ["TASK-1", "TASK-2"]},
+  {"name": "AuthUI", "tasks": ["TASK-3", "TASK-4"]}
+]
+```
+
+❌ **Bad grouping:**
+```json
+"components": [
+  {"name": "Everything", "tasks": ["TASK-1", "TASK-2", "TASK-3", "TASK-4"]}
+]
+```
+
+### Reference Documentation
+
+For detailed information about the enhanced ticket system:
+
+- **Ticket Types & Validation**: `commands/TICKET_TYPES.md`
+- **Validation Framework**: `commands/VALIDATION_FRAMEWORK.md`
+- **Specialized Validators**: `commands/VALIDATORS.md`
+- **Command Details**:
+  - `/migrate` - `commands/migrate.md` (Step 6: Enhance Tickets with Validation Configuration)
+  - `/stream` - `commands/stream.md` (Steps 3b-3c: Sub-task Processing)
+  - `/validate` - `commands/validate.md` (Steps 11-15: Enhanced Schema Validation)
+  - `/quality` - `commands/quality.md` (Section 3a: Validate Ticket System Quality)
+  - `/repair` - `commands/repair.md` (Steps 9a-9d: Enhanced Schema Repairs)
+  - `/rollback` - `commands/rollback.md` (Component-Level Checkpointing)
+
+---
+
 ## 🔧 Troubleshooting
 
 ### Common Issues
@@ -1124,11 +1605,278 @@ Track these metrics to measure workflow effectiveness:
 **Issue:** `/breakdown` too detailed for simple component  
 **Solution:** Use for complex components only, simpler components can skip this
 
-**Issue:** `/devflow` shows unrealistic timeline  
+**Issue:** `/blueprint` shows unrealistic timeline
 **Solution:** Review individual component plans, adjust scope or resources
 
 **Issue:** `/commit` groups changes incorrectly  
 **Solution:** Stage files manually before running, provide clearer change context
+
+---
+
+## 🔄 Workflow Transitions & Migration Guide
+
+### When to Switch Workflows
+
+**From Traditional to Ticket-Based:**
+
+You should migrate when:
+
+- ✅ Manual implementation becomes tedious
+- ✅ You trust AI-driven automation
+- ✅ Ready to trade control for speed
+- ✅ Working solo or with AI-first team
+- ✅ Project is experimental/non-critical
+
+**From Ticket-Based to Traditional:**
+
+You should switch back when:
+
+- ⚠️ Need more control over each step
+- ⚠️ Working with team requiring reviews
+- ⚠️ Project becomes production-critical
+- ⚠️ Automation quality doesn't meet standards
+
+### Migration Decision Tree
+
+```mermaid
+graph TD
+    Start{Current Workflow?} --> Trad[Traditional Workflow]
+    Start --> Tick[Ticket-Based Workflow]
+    Start --> None[No Workflow Set]
+
+    None --> Question1{Want Automation?}
+    Question1 -->|Yes| SetTicket["/workflow<br/>Choose TICKET_BASED"]
+    Question1 -->|No| SetTrad["/workflow<br/>Choose TRADITIONAL"]
+
+    Trad --> HasTasks{Has tasks.md<br/>files?}
+    HasTasks -->|Yes| ReadyMigrate["✅ Ready to Migrate<br/>/migrate"]
+    HasTasks -->|No| NeedTasks["Run first:<br/>/specify → /plan → /tasks"]
+    NeedTasks --> ReadyMigrate
+
+    ReadyMigrate --> PostMigrate["Ticket system created<br/>tickets/index.json<br/>tickets/*.md"]
+    PostMigrate --> UseDevstream["/stream<br/>Automated development"]
+
+    Tick --> WantManual{Want Manual<br/>Control?}
+    WantManual -->|Yes| BackToTrad["/workflow<br/>Choose TRADITIONAL"]
+    WantManual -->|No| KeepTicket["Continue with<br/>/stream"]
+
+    BackToTrad --> ManualImpl["Manual /implement<br/>Manual /commit"]
+
+    style ReadyMigrate fill:#c8e6c9
+    style UseDevstream fill:#c8e6c9
+    style NeedTasks fill:#fff9c4
+    style BackToTrad fill:#ffccbc
+```
+
+### Hybrid Workflow (Advanced)
+
+You can combine both workflows for maximum flexibility:
+
+**Scenario 1: Traditional Planning, Ticket Execution**
+
+```bash
+# Phase 1: Traditional planning (manual control)
+/workflow  # Choose TRADITIONAL
+/specify
+/plan
+/tasks
+/breakdown  # Optional: detailed architecture
+
+# Phase 2: Switch to automation
+/migrate    # Convert tasks to tickets
+/workflow  # Switch to TICKET_BASED
+/stream          # Automated implementation
+```
+
+**Scenario 2: Ticket Automation with Manual Review**
+
+```bash
+# Setup ticket automation
+/workflow  # Choose TICKET_BASED
+/specify → /plan → /tasks → /migrate
+
+# Run automation in interactive mode (default)
+/stream  # Review at each checkpoint
+
+# Or preview first
+/stream --dry-run  # See what would happen
+/stream            # Execute with confirmations
+```
+
+**Scenario 3: Mixed Manual and Automated**
+
+```bash
+# Automated for most tickets
+/stream  # Process bulk tickets
+
+# Manual for critical/complex tickets
+/implement TICKET-042  # Single ticket, full control
+# ... review code, run tests manually ...
+/commit
+```
+
+### Migration Checklist
+
+#### Before Running `/migrate`
+
+- [ ] ✅ All specifications complete (`docs/specs/*/spec.md`)
+- [ ] ✅ All implementation plans exist (`docs/specs/*/plan.md`)
+- [ ] ✅ All task breakdowns created (`docs/specs/*/tasks.md`)
+- [ ] ✅ Tasks follow SMART criteria (Specific, Measurable, Achievable, Relevant, Time-bound)
+- [ ] ✅ Clean git state (commit or stash changes)
+- [ ] ✅ Understand automation implications (AI will commit code)
+- [ ] ✅ Backup created (automatic via rollback mechanism)
+
+#### After Migration
+
+- [ ] ✅ Verify `tickets/index.json` created
+- [ ] ✅ Verify ticket markdown files in `tickets/`
+- [ ] ✅ Check `.sage/workflow-mode` set to TICKET_BASED
+- [ ] ✅ Review ticket priorities and estimates
+- [ ] ✅ Sync with GitHub if using `/sync`
+
+#### First `/stream` Run
+
+- [ ] ✅ Start with `--dry-run` to preview
+- [ ] ✅ Use interactive mode (default) first time
+- [ ] ✅ Review confirmation points (6 checkpoints)
+- [ ] ✅ Monitor ticket progress
+- [ ] ✅ Check rollback available if needed (`/rollback`)
+
+### Common Transition Scenarios
+
+#### Scenario A: New Project, Automation from Start
+
+```bash
+/workflow     # Choose TICKET_BASED
+/specify
+/plan
+/tasks
+/migrate       # Convert to tickets immediately
+/stream --dry-run   # Preview automation
+/stream             # Execute with confirmations
+```
+
+**Timeline:** Day 1 - Automation ready
+**Best For:** Solo developers, experimental projects, fast prototyping
+
+#### Scenario B: Existing Project, Gradual Migration
+
+```bash
+# Already have docs/specs/*/tasks.md from traditional workflow
+
+/workflow     # Choose TICKET_BASED
+/migrate       # Convert existing tasks
+/stream --dry-run   # Preview first
+/stream             # Start automation
+
+# Can switch back anytime
+/workflow     # Choose TRADITIONAL if needed
+```
+
+**Timeline:** Migration in minutes
+**Best For:** Projects with complete task breakdowns, ready to accelerate
+
+#### Scenario C: Traditional Workflow, Manual Control
+
+```bash
+/workflow     # Choose TRADITIONAL
+/specify
+/plan
+/tasks
+/breakdown             # Optional detailed design
+
+# Implement manually, component by component
+# ... write code, tests manually ...
+/progress              # Check completion
+/commit                # Manual commits
+```
+
+**Timeline:** Days to weeks (depends on scope)
+**Best For:** Production systems, team projects, learning projects
+
+#### Scenario D: Ticket Automation with Review Gates
+
+```bash
+/workflow     # Choose TICKET_BASED
+/specify → /plan → /tasks → /migrate
+
+# Use interactive mode for control
+/stream  # Default: 6 confirmation checkpoints
+# 1. Start cycle
+# 2. Before each ticket
+# 3. After implementation
+# 4. Before commit (optional diff review)
+# 5. Before push
+# 6. Continue/pause/stop
+
+# Review code at each checkpoint
+# Can defer tickets for manual review
+```
+
+**Timeline:** Faster than manual, safer than full auto
+**Best For:** Solo developers wanting automation with oversight
+
+### Transition Warning Signs
+
+**Switch to Traditional if:**
+
+- 🚨 Automation quality declining
+- 🚨 Tests failing frequently
+- 🚨 Need detailed code review at each step
+- 🚨 Team collaboration requires manual coordination
+- 🚨 Production criticality increased
+
+**Switch to Ticket-Based if:**
+
+- 🚀 Manual work feels repetitive
+- 🚀 Confident in specifications and tests
+- 🚀 Want faster iteration
+- 🚀 Working alone or with AI-first team
+- 🚀 Project is experimental/low-risk
+
+### Rollback from Failed Migration
+
+If `/migrate` fails or produces unexpected results:
+
+```bash
+/rollback  # Restore pre-migration state
+
+# Fix issues in task files
+# Re-run migration when ready
+/migrate
+```
+
+Checkpoint includes:
+
+- Git working directory
+- tickets/index.json (if existed)
+- All task files
+- Workflow mode
+
+### Workflow Mode Reference
+
+**Check current mode:**
+
+```bash
+cat .sage/workflow-mode  # Shows TRADITIONAL or TICKET_BASED
+```
+
+**Switch mode:**
+
+```bash
+/workflow  # Interactive questionnaire
+# Or manually:
+echo "TRADITIONAL" > .sage/workflow-mode
+echo "TICKET_BASED" > .sage/workflow-mode
+```
+
+**Mode validation:**
+
+- `/implement` - Requires TICKET_BASED mode
+- `/stream` - Requires TICKET_BASED mode
+- `/migrate` - Sets mode to TICKET_BASED
+- Other commands - Workflow agnostic
 
 ---
 

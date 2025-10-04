@@ -1,11 +1,11 @@
 ---
 allowed-tools: Bash(find:*), Bash(cat:*), Bash(grep:*), SequentialThinking
-description: Generate unified system roadmap from all component documentation with cross-dependencies.
+description: Generate unified system blueprint from all component documentation with cross-dependencies.
 ---
 
 ## Role
 
-Senior program manager creating unified development roadmap across all components.
+Senior program manager creating unified development blueprint across all components.
 
 ## Execution
 
@@ -27,14 +27,14 @@ Senior program manager creating unified development roadmap across all component
    - Resource bottlenecks
    - Risk cascades
 
-4. **Generate**: Create `docs/roadmap.md`
+4. **Generate**: Create `docs/blueprint.md`
 
 5. **Validate**: Ensure all components and phases covered
 
-## Roadmap Template
+## Blueprint Template
 
 ````markdown
-# System Development Roadmap
+# System Development Blueprint
 
 **Generated:** <YYYY-MM-DD>  
 **Components:** [count] | **Duration:** [weeks] | **Team Size:** [count]

@@ -26,9 +26,44 @@ Senior software architect creating actionable technical implementation plans.
    - Security standards for identified requirements
    - Performance patterns for scale requirements
 
-4. **Generate**: `tee docs/specs/<component>/plan.md` per component
+4. **Generate Plans**: `tee docs/specs/<component>/plan.md` per component
 
-5. **Validate**: `grep` verify critical sections present
+5. **Update Epic Tickets**:
+
+   ```bash
+   # Load tickets/index.json
+   cat tickets/index.json
+
+   # For each component, find corresponding epic ticket
+   TICKET_ID="AUTH-001"
+
+   # Update ticket with:
+   # - Dependencies from plan (cross-component)
+   # - Architecture notes
+   # - Technology stack
+   # - Risk factors
+
+   # Update tickets/[ID].md
+   cat >> tickets/${TICKET_ID}.md <<EOF
+
+   ## Architecture
+   [Architecture pattern and key decisions]
+
+   ## Technology Stack
+   - [Framework, database, etc.]
+
+   ## Dependencies (Updated)
+   - #DB-001 (data layer required)
+   - #API-001 (REST endpoints needed)
+
+   ## Risks
+   - [Key risk from plan]
+   EOF
+
+   # Update index.json with dependency array
+   ```
+
+6. **Validate**: `grep` verify critical sections present in plans and tickets
 
 ## Plan Template
 
@@ -149,3 +184,27 @@ Top 6 critical endpoints:
 - Risk mitigation for critical paths
 - Timeline realistic based on scope
 - Source traceability maintained
+- Epic tickets updated with dependencies and architecture context
+
+## Ticket Updates
+
+**What Gets Added to Epic Tickets:**
+
+- **Dependencies**: Cross-component blocking relationships (e.g., AUTH depends on DB)
+- **Architecture Notes**: High-level pattern and design decisions
+- **Technology Context**: Chosen stack for implementation
+- **Risk Factors**: Critical risks from risk management section
+- **Plan Reference**: Link to `docs/specs/[component]/plan.md`
+
+**Update Strategy:**
+
+- Load existing epic ticket from `/specify`
+- Append architecture, tech stack, and dependency sections
+- Update `index.json` with dependency array for graph traversal
+- Preserve existing ticket content (description, acceptance criteria)
+
+**Integration with Workflow:**
+
+- Epic tickets now have architectural context for `/tasks` breakdown
+- Dependencies enable `/stream` to sequence ticket execution correctly
+- Risk notes help prioritize and defer problematic tickets

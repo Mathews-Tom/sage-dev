@@ -25,9 +25,64 @@ Senior project manager creating actionable, estimable task breakdowns.
    - Common implementation risks and mitigation
    - Team velocity data for technology stack
 
-4. **Generate**: `tee docs/specs/<component>/tasks.md` per component
+4. **Generate Task Breakdown**: `tee docs/specs/<component>/tasks.md` per component
 
-5. **Validate**: Ensure all phases have measurable deliverables
+5. **Generate Story and Subtask Tickets**:
+
+   ```bash
+   # Load tickets/index.json
+   cat tickets/index.json
+
+   # For each task in tasks.md, create story/subtask ticket
+   PARENT_TICKET="AUTH-001"  # Epic from /specify
+   TASK_NUMBER="002"
+   TICKET_ID="AUTH-${TASK_NUMBER}"
+
+   # Generate story ticket markdown
+   tee tickets/${TICKET_ID}.md <<EOF
+   # ${TICKET_ID}: [Task Title]
+
+   **State:** UNPROCESSED
+   **Priority:** P0
+   **Type:** Story
+
+   ## Description
+   [Task description from tasks.md]
+
+   ## Acceptance Criteria
+   - [ ] [Criterion from task]
+   - [ ] [Criterion from task]
+
+   ## Dependencies
+   - #${PARENT_TICKET} (parent epic)
+   - #[OTHER-TICKET] (if task depends on another task)
+
+   ## Context
+   **Specs:** docs/specs/[component]/spec.md
+   **Plans:** docs/specs/[component]/plan.md
+   **Tasks:** docs/specs/[component]/tasks.md
+
+   ## Effort
+   **Story Points:** [from tasks.md]
+   **Estimated Duration:** [from tasks.md]
+
+   ## Progress
+   **Notes:** Generated from /tasks command
+   EOF
+
+   # Update index.json with:
+   # - New ticket entry
+   # - parent: PARENT_TICKET
+   # - Add ticket ID to parent's children array
+   # - dependencies from task breakdown
+   ```
+
+6. **Maintain Hierarchy**:
+   - Epic (from /specify) → Story (from /tasks) → Subtask (detailed tasks)
+   - Update parent epic with children array
+   - Link dependencies between related tasks
+
+7. **Validate**: Ensure all phases have measurable deliverables and corresponding tickets
 
 ## Task Template
 
@@ -186,3 +241,40 @@ COMP-002,Database Schema,Implement models...,5,P0,Backend,COMP-001,1
 - Include 20% buffer for unknowns
 - Research similar feature estimates
 - Front-load risky tasks for early validation
+
+## Ticket Generation Strategy
+
+**Hierarchy:**
+
+```text
+Epic (AUTH-001) [from /specify]
+  ├─ Story (AUTH-002) [from /tasks - Phase 1, Task 1]
+  ├─ Story (AUTH-003) [from /tasks - Phase 1, Task 2]
+  │   ├─ Subtask (AUTH-004) [if task needs breakdown]
+  │   └─ Subtask (AUTH-005) [if task needs breakdown]
+  └─ Story (AUTH-006) [from /tasks - Phase 2, Task 1]
+```
+
+**Ticket Attributes:**
+
+- **ID**: Sequential within component (AUTH-002, AUTH-003, etc.)
+- **Type**: Story for main tasks, Subtask for detailed breakdowns
+- **Parent**: Reference to epic ticket ID
+- **Dependencies**: Inter-task dependencies from critical path
+- **Priority**: Inherited from epic, adjusted per task importance
+- **Effort**: Story points and estimated duration from tasks.md
+- **Context**: Links to spec.md, plan.md, tasks.md
+
+**Integration with /implement:**
+
+- `/implement` processes leaf tickets (stories/subtasks without children)
+- Dependencies ensure correct execution order
+- Completed tickets update parent epic progress
+- `/stream` uses ticket graph to auto-sequence work
+
+**Benefits:**
+
+- Atomic work units from SMART task breakdown
+- Clear parent-child traceability
+- Dependency graph for automated execution
+- Progress tracking at epic and story level

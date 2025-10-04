@@ -50,7 +50,7 @@ Gather strategic intelligence by evaluating both internal technical capabilities
 5. **Report Generation**:
 
    ```bash
-   tee docs/strategic-intelligence.md
+   tee docs/intel.md
    ```
 
 ## Research Areas
@@ -157,12 +157,14 @@ Use `SequentialThinking` with this structured approach:
 ### Phase 2: Strategic Intelligence Gathering
 
 **Strategic Assessment Research:**
+
 - Research current best practices for each technical category
 - Identify relevant frameworks and standards
 - Collect benchmark metrics and guidelines
 - Assess internal capabilities and maturity
 
 **Market Intelligence Research:**
+
 - Analyze market trends and competitive landscape
 - Research customer needs and pain points
 - Study business models and pricing strategies
@@ -172,12 +174,14 @@ Use `SequentialThinking` with this structured approach:
 ### Phase 3: Integrated Analysis
 
 **Strategic Assessment (Internal):**
+
 - Compare current state against technical standards for each category
 - Identify missing elements, outdated practices, and improvement areas
 - Assess criticality and impact of each technical gap
 - Evaluate organizational capabilities and constraints
 
 **Market Intelligence (External):**
+
 - Compare current positioning against market leaders
 - Identify competitive disadvantages and market opportunities
 - Assess customer needs not being addressed
@@ -191,7 +195,7 @@ Use `SequentialThinking` with this structured approach:
 - Estimate effort required considering both technical and market factors
 - Consider market timing and competitive pressure
 - Group related initiatives into strategic themes
-- Create implementation roadmap balancing technical debt and market positioning
+- Create implementation blueprint balancing technical debt and market positioning
 - Align technical improvements with market requirements
 
 ## Report Template
@@ -364,7 +368,7 @@ Use `SequentialThinking` with this structured approach:
 - Adoption Rates: [Technology adoption timeline and penetration]
 - Technology Disruption: [Potential disruptive technologies]
 - Innovation Opportunities: [Areas for technological innovation]
-- Technology Roadmap: [Industry technology evolution]
+- Technology Blueprint: [Industry technology evolution]
 
 **Business Intelligence:**
 - Pricing Models: [Common pricing strategies in the market]
@@ -580,7 +584,7 @@ Use `SequentialThinking` with this structured approach:
 
 ---
 
-## 🗓️ Implementation Roadmap
+## 🗓️ Implementation Blueprint
 
 ### Quarter 1: Foundation Building
 
@@ -662,7 +666,7 @@ Use `SequentialThinking` with this structured approach:
 - [Industry reports and strategic analyses]
 - [Competitive intelligence platforms]
 - [Customer feedback and market research]
-- [Technology roadmap and innovation reports]
+- [Technology blueprint and innovation reports]
 - [Business strategy and market positioning studies]
 
 ---
