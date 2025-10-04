@@ -208,6 +208,48 @@ echo "   • Commands: $(( COMMAND_COUNT - 4 ))  (executable slash commands)"
 echo "   • Documentation: 4  (SAGE_DEV_WORKFLOW, SAGE_DEV_COMMANDS, TESTING, INSTALLATION)"
 echo ""
 
+# Check and suggest .gitignore additions
+echo "⚙️  Gitignore Recommendations:"
+echo ""
+
+GITIGNORE_FILE=".gitignore"
+NEEDS_UPDATE=false
+
+if [ -f "$GITIGNORE_FILE" ]; then
+  if ! grep -q "^\.sage" "$GITIGNORE_FILE" 2>/dev/null; then
+    echo "   ⚠️  Consider adding '.sage/' to your .gitignore"
+    NEEDS_UPDATE=true
+  fi
+  if ! grep -q "^\.docs" "$GITIGNORE_FILE" 2>/dev/null; then
+    echo "   ⚠️  Consider adding '.docs/' to your .gitignore"
+    NEEDS_UPDATE=true
+  fi
+
+  if [ "$NEEDS_UPDATE" = true ]; then
+    echo ""
+    echo "   These directories contain developer-local files that shouldn't be committed:"
+    echo "   • .sage/  - Workflow configuration and state"
+    echo "   • .docs/  - Generated reports and analysis"
+    echo ""
+    echo "   Add to $GITIGNORE_FILE:"
+    echo ""
+    echo "   # Developer workspace (Sage-Dev generated files)"
+    echo "   .sage/"
+    echo "   .docs/"
+    echo ""
+  else
+    echo "   ✓ .gitignore is properly configured"
+    echo ""
+  fi
+else
+  echo "   ℹ️  No .gitignore found. Consider creating one with:"
+  echo ""
+  echo "   # Developer workspace (Sage-Dev generated files)"
+  echo "   .sage/"
+  echo "   .docs/"
+  echo ""
+fi
+
 # Agent-specific getting started instructions
 if [ "$SELECTED_AGENT" = "all" ]; then
   AGENT_NAME="your AI coding agent"
