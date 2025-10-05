@@ -29,7 +29,7 @@ cd sage-dev
 ```
 
 The setup wizard will:
-1. Detect your AI coding agent (Claude Code, Cline, Roo-Cline, etc.)
+1. Detect your AI coding agent (Claude Code, Opencode, DROID, etc.)
 2. Let you choose your programming language
 3. Install commands, agents, and rules
 4. Configure enforcement settings
@@ -115,8 +115,8 @@ Auto-detects your AI agent and prompts for language selection.
 # Install for Claude Code with Python
 ./sage-setup.sh claude-code python
 
-# Install for Cline with TypeScript
-./sage-setup.sh cline typescript
+# Install for Opencode with TypeScript
+./sage-setup.sh opencode typescript
 
 # Install for all detected agents
 ./sage-setup.sh all python
@@ -136,10 +136,6 @@ rm .sage/config.json
 ## Supported AI Coding Agents
 
 - **Claude Code** → `~/.claude/`
-- **Cline** → `~/.config/cline/`
-- **Roo-Cline** → `~/.config/roo-cline/`
-- **Continue** → `~/.continue/`
-- **Cursor** → `~/.cursor/`
 - **Opencode** → `~/.config/opencode/`
 - **DROID** → `~/.factory/`
 
@@ -386,7 +382,7 @@ See [agents/LANGUAGES.md](agents/LANGUAGES.md) for detailed contribution guide.
 
 **Q: Which AI agents are supported?**
 
-A: Claude Code, Cline, Roo-Cline, Continue, Cursor, Opencode, DROID. The setup script auto-detects installed agents.
+A: Claude Code, Opencode, DROID. The setup script auto-detects installed agents.
 
 **Q: Can I use multiple languages in one project?**
 

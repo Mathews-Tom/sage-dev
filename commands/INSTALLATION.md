@@ -1,6 +1,6 @@
 # Installing Sage-Dev Commands for AI Coding Agents
 
-This guide explains how to install and use the sage-dev command system directly within AI coding agents like Claude Code, Cline, Roo-Cline, Continue, Cursor, and others.
+This guide explains how to install and use the sage-dev command system directly within AI coding agents like Claude Code, Opencode, DROID, and others.
 
 ## 🤖 Supported AI Agents
 
@@ -9,10 +9,6 @@ The sage-dev command system works with **any AI coding agent that supports markd
 | Agent | Directory | Status |
 |-------|-----------|--------|
 | **Claude Code** | `~/.claude/commands` | ✅ Fully supported |
-| **Cline** | `~/.config/cline/commands` | ✅ Fully supported |
-| **Roo-Cline** | `~/.config/roo-cline/commands` | ✅ Fully supported |
-| **Continue** | `~/.continue/commands` | ✅ Fully supported |
-| **Cursor** | `~/.cursor/commands` | ✅ Fully supported |
 | **Opencode CLI** | `~/.config/opencode/commands` | ✅ Fully supported |
 | **DROID CLI** | `~/.factory/commands` | ✅ Fully supported |
 
@@ -43,18 +39,6 @@ The sage-dev command system consists of 20 markdown-based slash commands that Cl
 # Claude Code
 mkdir -p ~/.claude/commands
 
-# Cline
-mkdir -p ~/.config/cline/commands
-
-# Roo-Cline
-mkdir -p ~/.config/roo-cline/commands
-
-# Continue
-mkdir -p ~/.continue/commands
-
-# Cursor
-mkdir -p ~/.cursor/commands
-
 # Opencode CLI
 mkdir -p ~/.config/opencode/commands
 
@@ -73,12 +57,6 @@ cd /path/to/sage-dev/commands
 
 # For Claude Code:
 cp *.md ~/.claude/commands/
-
-# For Cline:
-cp *.md ~/.config/cline/commands/
-
-# For Roo-Cline:
-cp *.md ~/.config/roo-cline/commands/
 
 # For Opencode CLI:
 cp *.md ~/.config/opencode/commands/
@@ -144,10 +122,6 @@ The script will:
 ```bash
 # Install to specific agent
 ./install-sage-commands.sh claude-code
-./install-sage-commands.sh cline
-./install-sage-commands.sh roo-cline
-./install-sage-commands.sh continue
-./install-sage-commands.sh cursor
 ./install-sage-commands.sh opencode
 ./install-sage-commands.sh droid
 ```
@@ -171,12 +145,12 @@ The script will:
 🔍 Detecting installed AI coding agents...
 
    ✓ Found: claude-code (~/.claude/commands)
-   ✓ Found: cline (~/.config/cline/commands)
+   ✓ Found: opencode (~/.config/opencode/commands)
 
 Multiple agents detected. Please choose:
 
 1) claude-code
-2) cline
+2) opencode
 3) Install to all
 4) Cancel
 #? 3
@@ -192,11 +166,11 @@ Installing to: claude-code
    ✓ Successfully copied 24 files
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Installing to: cline
+Installing to: opencode
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 📁 Creating commands directory...
-   ✓ ~/.config/cline/commands
+   ✓ ~/.config/opencode/commands
 
 📋 Copying command files...
    ✓ Successfully copied 24 files
@@ -207,7 +181,7 @@ Installing to: cline
 
 📍 Installed to 2 agents:
    • claude-code: ~/.claude/commands
-   • cline: ~/.config/cline/commands
+   • opencode: ~/.config/opencode/commands
 ```
 
 ---
@@ -220,14 +194,6 @@ If you're actively developing/modifying commands, use symlinks to keep them in s
 # For Claude Code
 rm -rf ~/.claude/commands
 ln -s /path/to/sage-dev/commands ~/.claude/commands
-
-# For Cline
-rm -rf ~/.config/cline/commands
-ln -s /path/to/sage-dev/commands ~/.config/cline/commands
-
-# For Roo-Cline
-rm -rf ~/.config/roo-cline/commands
-ln -s /path/to/sage-dev/commands ~/.config/roo-cline/commands
 
 # For Opencode CLI
 rm -rf ~/.config/opencode/commands
