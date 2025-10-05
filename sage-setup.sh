@@ -16,10 +16,6 @@ CONFIG_FILE="$CONFIG_DIR/config.json"
 # Supported AI agents and their directories
 declare -A AGENT_DIRS=(
     ["claude-code"]="$HOME/.claude/commands"
-    ["cline"]="$HOME/.config/cline/commands"
-    ["roo-cline"]="$HOME/.config/roo-cline/commands"
-    ["continue"]="$HOME/.continue/commands"
-    ["cursor"]="$HOME/.cursor/commands"
     ["opencode"]="$HOME/.config/opencode/command"
     ["droid"]="$HOME/.factory/commands"
 )
@@ -27,26 +23,18 @@ declare -A AGENT_DIRS=(
 # Agent directories for agents and rules
 declare -A AGENT_AGENT_DIRS=(
     ["claude-code"]="$HOME/.claude/agents"
-    ["cline"]="$HOME/.config/cline/agents"
-    ["roo-cline"]="$HOME/.config/roo-cline/agents"
-    ["continue"]="$HOME/.continue/agents"
-    ["cursor"]="$HOME/.cursor/agents"
     ["opencode"]="$HOME/.config/opencode/agents"
     ["droid"]="$HOME/.factory/agents"
 )
 
 declare -A AGENT_RULES_DIRS=(
     ["claude-code"]="$HOME/.claude/rules"
-    ["cline"]="$HOME/.config/cline/rules"
-    ["roo-cline"]="$HOME/.config/roo-cline/rules"
-    ["continue"]="$HOME/.continue/rules"
-    ["cursor"]="$HOME/.cursor/rules"
     ["opencode"]="$HOME/.config/opencode/rules"
     ["droid"]="$HOME/.factory/rules"
 )
 
 echo "╔════════════════════════════════════════════════════════════════╗"
-echo "║  Sage-Dev Setup for AI Coding Agents                          ║"
+echo "║  Sage-Dev Setup for AI Coding Agents                           ║"
 echo "║  Language-Specific Enforcement • Commands • Agents • Rules     ║"
 echo "╚════════════════════════════════════════════════════════════════╝"
 echo ""
@@ -62,7 +50,7 @@ if [ ! -d "$COMMANDS_DIR" ]; then
   exit 1
 fi
 
-# Language selection
+# Language selection - determine but don't prompt yet
 SELECTED_LANGUAGE=""
 SUPPORTED_LANGUAGES=("python" "javascript" "typescript")
 
@@ -88,43 +76,72 @@ elif [ -f "$CONFIG_FILE" ]; then
   else
     SELECTED_LANGUAGE="python"
   fi
-  echo "📋 Using language from config: $SELECTED_LANGUAGE"
-  echo ""
 else
-  # Interactive language selection
-  echo "🌐 Select your programming language:"
-  echo ""
-  echo "   1) Python (default) - Type safety, test coverage, docstring validation"
-  echo "   2) JavaScript       - Code quality, secret scanning"
-  echo "   3) TypeScript       - Type safety, code quality, secret scanning"
-  echo ""
-  read -p "Enter choice [1-3] (default: 1): " lang_choice
+  # Default to python
+  SELECTED_LANGUAGE="python"
+fi
 
-  case ${lang_choice:-1} in
-    1) SELECTED_LANGUAGE="python" ;;
-    2) SELECTED_LANGUAGE="javascript" ;;
-    3) SELECTED_LANGUAGE="typescript" ;;
-    *)
-      echo "Invalid choice. Defaulting to Python."
-      SELECTED_LANGUAGE="python"
-      ;;
-  esac
+# Detect or select agent - determine but don't prompt yet
+SELECTED_AGENT=""
+DETECTED_AGENTS=()
 
-  echo ""
-  echo "📌 Selected language: $SELECTED_LANGUAGE"
-  echo ""
+if [ -n "$1" ]; then
+  # Agent specified via argument
+  SELECTED_AGENT="$1"
+  if [ "$SELECTED_AGENT" != "all" ] && [ -z "${AGENT_DIRS[$SELECTED_AGENT]}" ]; then
+    echo "❌ ERROR: Unknown agent: $SELECTED_AGENT"
+    echo ""
+    echo "Supported agents:"
+    for agent in "${!AGENT_DIRS[@]}"; do
+      echo "  - $agent"
+    done
+    echo " - all (install to all detected agents)"
+    echo ""
+    echo "Usage: ./sage-setup.sh [agent] [language]"
+    echo "Example: ./sage-setup.sh claude-code python"
+    exit 1
+  fi
 
-  # Save to config
-  mkdir -p "$CONFIG_DIR"
-  cat > "$CONFIG_FILE" <<EOF
-{
-  "language": "$SELECTED_LANGUAGE",
-  "enforcement_level": "BALANCED",
-  "configured_at": "$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
-}
-EOF
-  echo "💾 Configuration saved to: $CONFIG_FILE"
-  echo ""
+  # If specific agent was specified, populate DETECTED_AGENTS for later use
+  if [ "$SELECTED_AGENT" = "all" ]; then
+    # Detect all agents
+    for agent in "${!AGENT_DIRS[@]}"; do
+      agent_dir="${AGENT_DIRS[$agent]}"
+      parent_dir=$(dirname "$agent_dir")
+      if [ -d "$parent_dir" ]; then
+        DETECTED_AGENTS+=("$agent")
+      fi
+    done
+  else
+    DETECTED_AGENTS=("$SELECTED_AGENT")
+  fi
+else
+  # Auto-detect installed agents
+  for agent in "${!AGENT_DIRS[@]}"; do
+    agent_dir="${AGENT_DIRS[$agent]}"
+    parent_dir=$(dirname "$agent_dir")
+
+    if [ -d "$parent_dir" ]; then
+      DETECTED_AGENTS+=("$agent")
+    fi
+  done
+
+  if [ ${#DETECTED_AGENTS[@]} -eq 0 ]; then
+    echo "❌ ERROR: No AI coding agents detected"
+    echo ""
+    echo "Please specify an agent manually:"
+    echo "  ./sage-setup.sh claude-code"
+    echo "  ./sage-setup.sh all"
+    echo ""
+    echo "Supported agents:"
+    for agent in "${!AGENT_DIRS[@]}"; do
+      echo "  - $agent"
+    done
+    exit 1
+  fi
+
+  # Default to installing to all detected agents
+  SELECTED_AGENT="all"
 fi
 
 # Show what will be installed
@@ -134,82 +151,45 @@ LANG_AGENT_COUNT=$(ls -1 "$AGENTS_DIR/$SELECTED_LANGUAGE"/*.md 2>/dev/null | wc 
 TOTAL_AGENT_COUNT=$((SHARED_AGENT_COUNT + LANG_AGENT_COUNT))
 RULE_COUNT=$(ls -1 "$RULES_DIR"/*.md 2>/dev/null | wc -l | tr -d ' ')
 
+echo "╔════════════════════════════════════════════════════════════════╗"
+echo "║              Installation Confirmation                         ║"
+echo "╚════════════════════════════════════════════════════════════════╝"
+echo ""
 echo "📦 Installation Plan:"
-echo "   • Language: $SELECTED_LANGUAGE"
-echo "   • Commands: $COMMAND_COUNT files"
-echo "   • Agents: $TOTAL_AGENT_COUNT files"
-echo "     - Shared: $SHARED_AGENT_COUNT (language-agnostic)"
-echo "     - $SELECTED_LANGUAGE: $LANG_AGENT_COUNT (language-specific)"
-echo "   • Rules: $RULE_COUNT files"
-echo "   • Agent registry: agents/index.json"
 echo ""
-
-# Detect or select agent
-SELECTED_AGENT=""
-
-if [ -n "$1" ]; then
-  # Agent specified via argument
-  SELECTED_AGENT="$1"
-  if [ -z "${AGENT_DIRS[$SELECTED_AGENT]}" ]; then
-    echo "❌ ERROR: Unknown agent: $SELECTED_AGENT"
-    echo ""
-    echo "Supported agents:"
-    for agent in "${!AGENT_DIRS[@]}"; do
-      echo "  - $agent"
-    done
-    echo ""
-    echo "Usage: ./install-sage-commands.sh [agent]"
-    echo "Example: ./install-sage-commands.sh claude-code"
-    exit 1
-  fi
-else
-  # Auto-detect installed agents
-  echo "🔍 Detecting installed AI coding agents..."
-  echo ""
-
-  DETECTED_AGENTS=()
-  for agent in "${!AGENT_DIRS[@]}"; do
-    agent_dir="${AGENT_DIRS[$agent]}"
-    parent_dir=$(dirname "$agent_dir")
-
-    if [ -d "$parent_dir" ]; then
-      echo "   ✓ Found: $agent ($agent_dir)"
-      DETECTED_AGENTS+=("$agent")
-    fi
+if [ "$SELECTED_AGENT" = "all" ]; then
+  echo "   🎯 Target: All detected agents (${#DETECTED_AGENTS[@]})"
+  for agent in "${DETECTED_AGENTS[@]}"; do
+    echo "      • $agent → ${AGENT_DIRS[$agent]}"
   done
-
-  if [ ${#DETECTED_AGENTS[@]} -eq 0 ]; then
-    echo "   ℹ️  No AI coding agents detected"
-    echo ""
-    echo "Please specify an agent manually:"
-    echo "  ./install-sage-commands.sh claude-code"
-    echo "  ./install-sage-commands.sh cline"
-    echo "  ./install-sage-commands.sh roo-cline"
-    exit 1
-  elif [ ${#DETECTED_AGENTS[@]} -eq 1 ]; then
-    SELECTED_AGENT="${DETECTED_AGENTS[0]}"
-    echo ""
-    echo "📌 Auto-selected: $SELECTED_AGENT"
-  else
-    echo ""
-    echo "Multiple agents detected. Please choose:"
-    echo ""
-    select agent in "${DETECTED_AGENTS[@]}" "Install to all" "Cancel"; do
-      if [ "$agent" = "Cancel" ]; then
-        echo "Installation cancelled."
-        exit 0
-      elif [ "$agent" = "Install to all" ]; then
-        SELECTED_AGENT="all"
-        break
-      elif [ -n "$agent" ]; then
-        SELECTED_AGENT="$agent"
-        break
-      fi
-    done
-  fi
+else
+  echo "   🎯 Target: $SELECTED_AGENT"
+  echo "      → ${AGENT_DIRS[$SELECTED_AGENT]}"
 fi
-
 echo ""
+echo "   🌐 Language: $SELECTED_LANGUAGE"
+echo "   📋 Commands: $COMMAND_COUNT files"
+echo "   🤖 Agents: $TOTAL_AGENT_COUNT files"
+echo "      - Shared: $SHARED_AGENT_COUNT (language-agnostic)"
+echo "      - $SELECTED_LANGUAGE: $LANG_AGENT_COUNT (language-specific)"
+echo "   📜 Rules: $RULE_COUNT files"
+echo "   📑 Agent registry: agents/index.json"
+echo ""
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo ""
+read -p "Proceed with installation? (y/n): " response
+echo ""
+
+case "$response" in
+  [yY][eE][sS]|[yY])
+    echo "✓ Proceeding with installation..."
+    echo ""
+    ;;
+  *)
+    echo "Installation cancelled."
+    exit 0
+    ;;
+esac
 
 # Function to install to a specific agent
 install_to_agent() {
@@ -313,6 +293,17 @@ else
   install_to_agent "$SELECTED_AGENT"
   INSTALL_COUNT=1
 fi
+
+# Save configuration
+mkdir -p "$CONFIG_DIR"
+cat > "$CONFIG_FILE" <<EOF
+{
+  "language": "$SELECTED_LANGUAGE",
+  "agent": "$SELECTED_AGENT",
+  "enforcement_level": "BALANCED",
+  "configured_at": "$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+}
+EOF
 
 # List installed commands (from first installed agent)
 SAMPLE_DIR=""
@@ -422,10 +413,6 @@ if [ "$SELECTED_AGENT" = "all" ]; then
   AGENT_NAME="your AI coding agent"
 elif [ "$SELECTED_AGENT" = "claude-code" ]; then
   AGENT_NAME="Claude Code"
-elif [ "$SELECTED_AGENT" = "cline" ]; then
-  AGENT_NAME="Cline"
-elif [ "$SELECTED_AGENT" = "roo-cline" ]; then
-  AGENT_NAME="Roo-Cline"
 elif [ "$SELECTED_AGENT" = "opencode" ]; then
   AGENT_NAME="Opencode CLI"
 elif [ "$SELECTED_AGENT" = "droid" ]; then

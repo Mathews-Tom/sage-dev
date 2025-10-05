@@ -1,9 +1,22 @@
 # macOS
 .DS_Store
 
+# Python
+.venv/
+*.pyc
+__pycache__/
+*.egg-info/
+dist/
+build/
+.python-version
+uv.lock
+
 # Local documentation
 .docs/
 
 # AI Coding Systems
 .claude/
 .opencode/
+
+# Sage-Dev local configuration
+.sage/
