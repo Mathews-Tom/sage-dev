@@ -1,7 +1,7 @@
 # Sage-Dev Agents & Rules Enhancement
 
-**Version:** 2.0.0 (Multi-Language Support)
-**Completed:** 2025-10-04
+**Version:** 2.1.0 (Improved Organization)
+**Completed:** 2025-10-06
 
 ## Summary
 
@@ -11,19 +11,22 @@ Enhanced sage-dev system with comprehensive **multi-language** agent enforcement
 
 ### 1. Multi-Language Architecture
 
-**NEW in v2.0.0**: Language-specific enforcement with intelligent agent selection.
+**Multi-language support** (v2.0.0+): Language-specific enforcement with intelligent agent selection.
 
 **Supported Languages:**
+
 - **Python** (3.12+) - Fully supported with 4 language-specific agents
 - **JavaScript** (ES2022+) - Framework ready, shared agents available
 - **TypeScript** (5.0+) - Framework ready, shared agents available
 
 **Language Selection:**
+
 - Interactive wizard during setup
 - Automatic language detection from `.sage/config.json`
 - Manual selection via command-line argument
 
 **Agent Organization:**
+
 ```
 agents/
 ├── shared/          # Language-agnostic (bs-check, bs-enforce, secret-scanner)
@@ -33,6 +36,7 @@ agents/
 ```
 
 **Configuration:**
+
 - Language preference stored in `.sage/config.json`
 - Language-specific execution pipelines
 - Per-language enforcement levels
@@ -43,6 +47,7 @@ See [agents/LANGUAGES.md](agents/LANGUAGES.md) for complete language support gui
 ### 2. Agent Registry System (`agents/index.json`)
 
 Central registry cataloging all development enforcement agents with:
+
 - **Language metadata** - Supported languages, file extensions, tool versions
 - **Agent categorization** - Language-specific vs shared agents
 - **Execution pipelines** - Per-language pipeline configurations
@@ -56,6 +61,7 @@ Central registry cataloging all development enforcement agents with:
 ### 3. Shared Enforcement Agents (All Languages)
 
 **`agents/shared/bs-check.md`** - Bullshit code pattern removal
+
 - Detects fallbacks, mocks, templates
 - Error swallowing detection
 - Graceful degradation removal
@@ -63,12 +69,14 @@ Central registry cataloging all development enforcement agents with:
 - Works across Python, JavaScript, TypeScript
 
 **`agents/shared/bs-enforce.md`** - No-bullshit enforcement
+
 - Post-write validation
 - Blocks bullshit patterns
 - Enforces explicit errors
 - Language-agnostic rules
 
 **`agents/shared/secret-scanner.md`** - Hardcoded secret detection
+
 - Scans for API keys, passwords, tokens
 - Detects AWS, Google, GitHub, OpenAI credentials
 - Private key detection (RSA, SSH, PGP)
@@ -79,6 +87,7 @@ Central registry cataloging all development enforcement agents with:
 ### 4. Python-Specific Enforcement Agents
 
 **`agents/python/type-enforcer.md`** - Python 3.12 typing validation
+
 - Enforces `from __future__ import annotations`
 - Converts legacy typing imports (List→list, Optional→|None)
 - Validates type annotations completeness
@@ -86,6 +95,7 @@ Central registry cataloging all development enforcement agents with:
 - Auto-fixes legacy patterns
 
 **`agents/python/doc-validator.md`** - Docstring completeness checker
+
 - Validates Google-style docstrings
 - Checks function/class documentation
 - Verifies Args, Returns, Raises sections
@@ -94,6 +104,7 @@ Central registry cataloging all development enforcement agents with:
 - Python-specific documentation standards
 
 **`agents/python/test-coverage.md`** - Coverage threshold enforcement
+
 - Minimum overall coverage: 80%
 - New code coverage: 90%
 - Critical files: 95%
@@ -103,6 +114,7 @@ Central registry cataloging all development enforcement agents with:
 - Python-specific test validation
 
 **`agents/python/import-enforcer.md`** - Import validation
+
 - PEP 8 import ordering
 - Absolute imports only (no relative)
 - Alphabetical sorting within groups
@@ -114,6 +126,7 @@ Central registry cataloging all development enforcement agents with:
 ### 5. Enhanced Rules Framework
 
 **`rules/typing-standards.md`** - Python 3.12 typing standards
+
 - Built-in generics only (list[T], dict[K,V])
 - | unions only (T | None)
 - Type annotation requirements
@@ -121,6 +134,7 @@ Central registry cataloging all development enforcement agents with:
 - Auto-fix transformations
 
 **`rules/test-standards.md`** - Test coverage and quality
+
 - Coverage thresholds
 - Test organization standards
 - AAA pattern enforcement
@@ -129,6 +143,7 @@ Central registry cataloging all development enforcement agents with:
 - Parametrized testing
 
 **`rules/security-standards.md`** - Security and secret management
+
 - Zero tolerance secret policy
 - Input validation (SQL injection, XSS, path traversal)
 - Authentication standards (password hashing, JWT)
@@ -137,6 +152,7 @@ Central registry cataloging all development enforcement agents with:
 - Secret rotation procedures
 
 **`rules/commit-standards.md`** - Conventional commits
+
 - Commit format: type(scope): subject
 - Commit types (feat, fix, docs, etc.)
 - Subject line rules
@@ -147,6 +163,7 @@ Central registry cataloging all development enforcement agents with:
 ### 6. Agent Pipeline Executor
 
 **`commands/enforce.md`** - Pipeline orchestration command
+
 - Executes agents in configured sequence
 - Supports multiple pipelines (pre-write, post-write, pre-commit, full-validation)
 - Auto-fix capabilities
@@ -157,12 +174,14 @@ Central registry cataloging all development enforcement agents with:
 ### 7. Enforcement Configuration
 
 **`.sage/config.json`** - Language and setup configuration
+
 - Selected programming language (python/javascript/typescript)
 - Enforcement level (STRICT/BALANCED/PROTOTYPE)
 - Configuration timestamp
 - Auto-generated during setup
 
 **`.sage/enforcement.json.template`** - Configuration template
+
 - Enforcement level selection
 - Agent enable/disable
 - Auto-fix settings
@@ -171,6 +190,7 @@ Central registry cataloging all development enforcement agents with:
 - Thresholds and notifications
 
 **`.sage/README.md`** - Configuration guide
+
 - Setup instructions
 - Enforcement level explanations
 - Agent configuration
@@ -180,6 +200,7 @@ Central registry cataloging all development enforcement agents with:
 ### 8. Updated Installation Script
 
 **`sage-setup.sh`** (renamed from `install-sage-commands.sh`) - Multi-language setup
+
 - **NEW:** Interactive language selection wizard
 - **NEW:** Language-specific agent installation
 - Auto-detects AI coding agents
@@ -191,40 +212,40 @@ Central registry cataloging all development enforcement agents with:
 
 ## File Structure
 
-```
+```text
 sage-dev/
 ├── agents/
-│   ├── index.json              # Agent registry v2.0.0 (UPDATED - multi-language)
-│   ├── LANGUAGES.md            # NEW - Language support guide
+│   ├── index.json              # Agent registry v2.1.0 (UPDATED - multi-language)
+│   ├── LANGUAGES.md            # Language support guide
 │   │
-│   ├── shared/                 # NEW - Language-agnostic agents
+│   ├── shared/                 # Language-agnostic agents
 │   │   ├── bs-check.md         # Moved from agents/
 │   │   ├── bs-enforce.md       # Moved from agents/
 │   │   └── secret-scanner.md   # NEW
 │   │
-│   ├── python/                 # NEW - Python-specific agents
+│   ├── python/                 # Python-specific agents
 │   │   ├── type-enforcer.md
 │   │   ├── doc-validator.md
 │   │   ├── test-coverage.md
 │   │   └── import-enforcer.md
 │   │
-│   ├── javascript/             # NEW - JavaScript-specific (future)
+│   ├── javascript/             # JavaScript-specific (future)
 │   │
-│   └── typescript/             # NEW - TypeScript-specific (future)
+│   └── typescript/             # TypeScript-specific (future)
 │
 ├── rules/
 │   ├── enforcement-guide.md    # Existing
-│   ├── typing-standards.md     # NEW - Python 3.12 typing
-│   ├── test-standards.md       # NEW - Test coverage
-│   ├── security-standards.md   # NEW - Security & secrets
-│   └── commit-standards.md     # NEW - Conventional commits
+│   ├── typing-standards.md     # Python 3.12 typing
+│   ├── test-standards.md       # Test coverage
+│   ├── security-standards.md   # Security & secrets
+│   └── commit-standards.md     # Conventional commits
 │
 ├── commands/
-│   └── enforce.md              # NEW - Pipeline executor
+│   └── enforce.md              # Pipeline executor
 │
 ├── .sage/
-│   ├── config.json             # NEW - Language & enforcement level
-│   ├── enforcement.json.template  # NEW - Agent configuration
+│   ├── config.json             # Language & enforcement level
+│   ├── enforcement.json.template  # Agent configuration
 │   └── README.md               # UPDATED - Config + language info
 │
 ├── sage-setup.sh               # RENAMED & UPDATED - Multi-language setup
@@ -246,12 +267,14 @@ sage-dev/
 ```
 
 The wizard will:
+
 1. Detect your AI coding agent
 2. Prompt for language selection (Python/JavaScript/TypeScript)
 3. Install commands, shared agents, and language-specific agents
 4. Create `.sage/config.json` with your preferences
 
 Installs to (example for Claude Code + Python):
+
 - `~/.claude/commands/` - Commands (13 files)
 - `~/.claude/agents/` - Agents (3 shared + 4 Python-specific + registry)
 - `~/.claude/rules/` - Rules (5 files)
@@ -299,6 +322,7 @@ chmod +x .git/hooks/pre-commit
 ## Enforcement Levels
 
 ### STRICT
+
 - All agents enabled
 - Auto-fix enabled
 - Fail-fast: true
@@ -306,6 +330,7 @@ chmod +x .git/hooks/pre-commit
 - Best for: Production code
 
 ### BALANCED (Default)
+
 - Core agents enabled
 - Auto-fix enabled
 - Fail-fast: false
@@ -313,6 +338,7 @@ chmod +x .git/hooks/pre-commit
 - Best for: Standard development
 
 ### PROTOTYPE
+
 - Security agents only
 - Auto-fix disabled
 - Fail-fast: false
@@ -326,22 +352,30 @@ chmod +x .git/hooks/pre-commit
 ### Python Pipelines
 
 #### pre-write
+
 Runs before code is written:
+
 - bs-check (shared)
 
 #### post-write
+
 Runs after code is written:
+
 - type-enforcer (Python)
 - import-enforcer (Python)
 - bs-enforce (shared)
 
 #### pre-commit
+
 Runs before git commit:
+
 - secret-scanner (shared)
 - test-coverage (Python)
 
 #### full-validation
+
 Complete suite (all enabled agents):
+
 - bs-check (shared)
 - type-enforcer (Python)
 - import-enforcer (Python)
@@ -351,6 +385,7 @@ Complete suite (all enabled agents):
 ### JavaScript/TypeScript Pipelines
 
 Currently use shared agents only:
+
 - **pre-write:** bs-check
 - **post-write:** bs-enforce
 - **pre-commit:** secret-scanner
@@ -405,14 +440,17 @@ The agent system integrates seamlessly with existing sage-dev commands:
 ## Next Steps
 
 1. **Run setup wizard**:
+
    ```bash
    ./sage-setup.sh
    ```
+
    - Select your AI coding agent
    - Choose your programming language
    - Installation happens automatically
 
 2. **Verify installation**:
+
    ```bash
    # Check language config
    cat .sage/config.json
@@ -422,17 +460,20 @@ The agent system integrates seamlessly with existing sage-dev commands:
    ```
 
 3. **Configure enforcement** (optional):
+
    ```bash
    cp .sage/enforcement.json.template .sage/enforcement.json
    # Edit enforcement level, enable/disable agents, set thresholds
    ```
 
 4. **Test enforcement**:
+
    ```bash
    /enforce --dry-run
    ```
 
 5. **Enable git hooks** (recommended):
+
    ```bash
    # Add pre-commit hook for automatic enforcement
    cat > .git/hooks/pre-commit <<'EOF'
@@ -458,6 +499,7 @@ The agent system integrates seamlessly with existing sage-dev commands:
 ## Files Changed
 
 **Version 2.0.0 (Multi-Language Support):**
+
 - **Created**: 15 new files
   - `agents/LANGUAGES.md` - Language support guide
   - `agents/shared/bs-check.md` - Moved from agents/
@@ -476,7 +518,7 @@ The agent system integrates seamlessly with existing sage-dev commands:
   - `.sage/config.json` (template, generated on setup)
 
 - **Updated**: 4 files
-  - `agents/index.json` - v2.0.0 with language metadata
+  - `agents/index.json` - v2.1.0 with language metadata
   - `sage-setup.sh` - Renamed from install-sage-commands.sh, language wizard added
   - `.sage/README.md` - Language configuration documented
   - `README.md` - Multi-language setup guide
@@ -503,7 +545,15 @@ The agent system integrates seamlessly with existing sage-dev commands:
 
 ## Version History
 
+### v2.1.0 (2025-10-06) - Improved Organization
+
+- Moved ticket system to `.sage/tickets/` for better organization
+- All tickets now stored in `.sage/tickets/index.json` and `.sage/tickets/*.md`
+- Updated all commands to reference new ticket location
+- Improved separation between project code and tooling state
+
 ### v2.0.0 (2025-10-04) - Multi-Language Support
+
 - Added support for Python, JavaScript, TypeScript
 - Restructured agents into language-specific directories
 - Created shared agent category for language-agnostic checks
@@ -515,6 +565,7 @@ The agent system integrates seamlessly with existing sage-dev commands:
 - Updated all documentation for multi-language architecture
 
 ### v1.0.0 (Initial Release)
+
 - Agent registry system (`agents/index.json`)
 - 5 new enforcement agents (Python-focused)
 - 4 new rule sets
@@ -526,9 +577,10 @@ The agent system integrates seamlessly with existing sage-dev commands:
 
 ## Summary
 
-Sage-Dev v2.0.0 introduces **comprehensive multi-language support** to the agent enforcement system. The system now intelligently selects and runs the appropriate agents based on your chosen programming language, while maintaining universal security and quality checks through shared agents.
+Sage-Dev v2.1.0 brings **improved organization** with ticket system relocation to `.sage/tickets/` alongside existing multi-language support. The system intelligently selects and runs the appropriate agents based on your chosen programming language, while maintaining universal security and quality checks through shared agents.
 
 **Key Improvements:**
+
 - 🌐 Multi-language architecture (Python, JavaScript, TypeScript)
 - 🎯 Language-specific agent selection
 - 🔄 Interactive setup wizard with language selection
@@ -537,6 +589,7 @@ Sage-Dev v2.0.0 introduces **comprehensive multi-language support** to the agent
 - 📚 Comprehensive language support documentation
 
 **For Python Developers:**
+
 - Full type safety with Python 3.12 modern typing
 - Docstring validation
 - Test coverage enforcement (80%+ overall, 90%+ new code)
@@ -544,11 +597,13 @@ Sage-Dev v2.0.0 introduces **comprehensive multi-language support** to the agent
 - Plus all shared agents (bs-check, bs-enforce, secret-scanner)
 
 **For JavaScript/TypeScript Developers:**
+
 - Shared quality agents (bs-check, bs-enforce)
 - Secret scanning
 - Framework ready for language-specific agents
 
 **Getting Started:**
+
 ```bash
 ./sage-setup.sh
 # Follow the wizard to select your language and AI agent
@@ -556,12 +611,14 @@ Sage-Dev v2.0.0 introduces **comprehensive multi-language support** to the agent
 ```
 
 **Next Steps:**
+
 - Add more language-specific agents for JavaScript/TypeScript
 - Implement Go, Rust, Ruby language support
 - Expand shared agent library
 - Enhance auto-fix capabilities
 
 **Documentation:**
+
 - [agents/LANGUAGES.md](agents/LANGUAGES.md) - Language support guide
 - [README.md](README.md) - Installation and setup
 - [.sage/README.md](.sage/README.md) - Configuration reference
