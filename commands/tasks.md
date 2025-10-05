@@ -30,8 +30,8 @@ Senior project manager creating actionable, estimable task breakdowns.
 5. **Generate Story and Subtask Tickets**:
 
    ```bash
-   # Load tickets/index.json
-   cat tickets/index.json
+   # Load .sage/tickets/index.json
+   cat .sage/tickets/index.json
 
    # For each task in tasks.md, create story/subtask ticket
    PARENT_TICKET="AUTH-001"  # Epic from /specify
@@ -39,7 +39,7 @@ Senior project manager creating actionable, estimable task breakdowns.
    TICKET_ID="AUTH-${TASK_NUMBER}"
 
    # Generate story ticket markdown
-   tee tickets/${TICKET_ID}.md <<EOF
+   tee .sage/tickets/${TICKET_ID}.md <<EOF
    # ${TICKET_ID}: [Task Title]
 
    **State:** UNPROCESSED

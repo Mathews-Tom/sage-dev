@@ -61,10 +61,10 @@ Requirements analyst creating actionable software specifications.
 
    ```bash
    # Create tickets directory if not exists
-   mkdir -p tickets
+   mkdir -p .sage/tickets
 
    # Load or initialize index.json
-   test -f tickets/index.json || echo '{"version":"1.0","tickets":[]}' > tickets/index.json
+   test -f .sage/tickets/index.json || echo '{"version":"1.0","tickets":[]}' > .sage/tickets/index.json
 
    # For each component spec, create epic ticket
    COMPONENT_ID="AUTH"  # e.g., AUTH, DB, UI, API
@@ -72,7 +72,7 @@ Requirements analyst creating actionable software specifications.
    TICKET_ID="${COMPONENT_ID}-${TICKET_NUMBER}"
 
    # Generate ticket markdown
-   tee tickets/${TICKET_ID}.md <<EOF
+   tee .sage/tickets/${TICKET_ID}.md <<EOF
    # ${TICKET_ID}: [Component Name] Implementation
 
    **State:** UNPROCESSED

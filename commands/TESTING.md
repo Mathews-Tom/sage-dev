@@ -215,8 +215,8 @@ Test command sequences:
 
 - [ ] Requires valid task breakdowns
 - [ ] Run `/quality --command=tasks` first
-- [ ] Creates `tickets/index.json`
-- [ ] Creates `tickets/TICKET-*.md` files
+- [ ] Creates `.sage/.sage/tickets/index.json`
+- [ ] Creates `.sage/tickets/TICKET-*.md` files
 - [ ] Sets `.sage/workflow-mode` to TICKET_BASED
 - [ ] Run `/validate` after
 - [ ] All validation checks pass
@@ -268,7 +268,7 @@ Test command sequences:
 
 - [ ] Requires checkpoint exists
 - [ ] Restores git state
-- [ ] Restores tickets/index.json
+- [ ] Restores .sage/.sage/tickets/index.json
 - [ ] Restores ticket files
 - [ ] Restores task files
 - [ ] Archives checkpoint after use
@@ -328,7 +328,7 @@ echo "TRADITIONAL" > .sage/workflow-mode
 /stream  # Should fail with clear error
 
 # Test corrupted ticket system
-echo "invalid json" > tickets/index.json
+echo "invalid json" > .sage/.sage/tickets/index.json
 /validate  # Should detect and report error
 ```
 
@@ -411,7 +411,7 @@ test-fixtures/
 ├── expected-tasks/
 │   ├── auth/tasks.md          # Expected /tasks output
 │   └── ...
-└── sample-tickets/
+└── sample-.sage/tickets/
     ├── index.json             # Sample valid ticket system
     ├── TICKET-001.md
     └── TICKET-002.md

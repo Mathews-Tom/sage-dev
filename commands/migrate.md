@@ -88,10 +88,10 @@ git status
 
 ```bash
 # Create tickets directory
-mkdir -p tickets
+mkdir -p .sage/tickets
 
 # Generate index.json
-tee tickets/index.json <<EOF
+tee .sage/tickets/index.json <<EOF
 {
   "version": "1.0",
   "generated": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
@@ -100,7 +100,7 @@ tee tickets/index.json <<EOF
 EOF
 
 # Generate per-ticket markdown files
-tee tickets/AUTH-001.md <<EOF
+tee .sage/tickets/AUTH-001.md <<EOF
 # AUTH-001: Implement JWT Validation
 ...
 EOF
@@ -501,8 +501,8 @@ UI-005 (DEFERRED - blocked)
 
 ## Files Created
 
-- tickets/index.json
-- tickets/AUTH-001.md (N files total)
+- .sage/tickets/index.json
+- .sage/tickets/AUTH-001.md (N files total)
 - .docs/MIGRATION_REPORT.md
 
 ```
@@ -532,10 +532,10 @@ Your choice: [1/2/3]
 
 ```bash
 # Verify JSON structure
-cat tickets/index.json | grep -c '"id"'
+cat .sage/tickets/index.json | grep -c '"id"'
 
 # Count tickets by state
-grep -r "^**State:**" tickets/*.md | sort | uniq -c
+grep -r "^**State:**" .sage/tickets/*.md | sort | uniq -c
 
 # Check for orphaned dependencies
 # (dependencies referencing non-existent tickets)
@@ -554,8 +554,8 @@ grep -r "^**State:**" tickets/*.md | sort | uniq -c
 
 **Outputs:**
 
-- `tickets/index.json` - Central ticket graph
-- `tickets/[ID].md` - Per-ticket markdown files
+- `.sage/tickets/index.json` - Central ticket graph
+- `.sage/tickets/[ID].md` - Per-ticket markdown files
 - `.docs/MIGRATION_REPORT.md` - Migration summary
 - Ready-to-use ticket system for `/implement` and `/stream`
 
@@ -599,7 +599,7 @@ git status 2>&1 | grep -q "not a git repository"
 - [ ] Dependencies mapped from plan documentation
 - [ ] Git commits matched to completed tickets
 - [ ] Active branches mapped to in-progress tickets
-- [ ] tickets/index.json created with valid structure
+- [ ] .sage/tickets/index.json created with valid structure
 - [ ] Per-ticket markdown files generated
 - [ ] Migration report produced with statistics
 - [ ] Ambiguous cases resolved with user input
@@ -615,8 +615,8 @@ git status 2>&1 | grep -q "not a git repository"
 cat .docs/MIGRATION_REPORT.md
 
 # Inspect generated tickets
-ls tickets/
-cat tickets/index.json
+ls .sage/tickets/
+cat .sage/tickets/index.json
 ```
 
 ## Notes

@@ -22,32 +22,32 @@ Keep ticketing system synchronized across multiple representations:
 
 ```bash
 # Read ticket index
-cat tickets/index.json
+cat .sage/.sage/tickets/index.json
 
 # List all ticket markdown files
 find tickets -type f -name "*.md" | sort
 
 # Check git status
-git status tickets/
+git status .sage/tickets/
 ```
 
 **Key Actions:**
 
-- Parse `tickets/index.json` as canonical source
-- Read all `tickets/*.md` files
+- Parse `.sage/.sage/tickets/index.json` as canonical source
+- Read all `.sage/tickets/*.md` files
 - Identify modified files in git
 
 ### 2. Validate JSON Integrity
 
 ```bash
 # Check JSON syntax
-cat tickets/index.json | jq empty
+cat .sage/.sage/tickets/index.json | jq empty
 
 # Validate required fields
-cat tickets/index.json | jq '.tickets[] | select(.id == null or .state == null)'
+cat .sage/.sage/tickets/index.json | jq '.tickets[] | select(.id == null or .state == null)'
 
 # Check for duplicate IDs
-cat tickets/index.json | jq -r '.tickets[].id' | sort | uniq -d
+cat .sage/.sage/tickets/index.json | jq -r '.tickets[].id' | sort | uniq -d
 ```
 
 **Key Actions:**
@@ -85,7 +85,7 @@ These fields in Markdown can update JSON:
 
 ```bash
 # For each ticket in index.json:
-# 1. Read corresponding tickets/[ID].md
+# 1. Read corresponding .sage/tickets/[ID].md
 # 2. Parse user-editable fields from markdown
 # 3. Update JSON if markdown values differ
 # 4. Regenerate markdown from JSON for canonical fields
@@ -124,7 +124,7 @@ These fields in Markdown can update JSON:
 
 ```bash
 # Update index.json with reconciled data
-cat > tickets/index.json <<EOF
+cat > .sage/.sage/tickets/index.json <<EOF
 {
   "version": "1.0",
   "generated": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
@@ -133,8 +133,8 @@ cat > tickets/index.json <<EOF
 EOF
 
 # Regenerate markdown files from JSON
-for ticket in $(jq -r '.tickets[].id' tickets/index.json); do
-  cat > tickets/${ticket}.md <<EOF
+for ticket in $(jq -r '.tickets[].id' .sage/.sage/tickets/index.json); do
+  cat > .sage/tickets/${ticket}.md <<EOF
 # ${ticket}: [title]
 ...
 EOF
@@ -152,7 +152,7 @@ done
 
 ```bash
 # Stage ticket changes
-git add tickets/
+git add .sage/tickets/
 
 # Create descriptive commit message
 git commit -m "$(cat <<'EOF'
@@ -285,7 +285,7 @@ gh pr create --title "Ticket Sync Updates" --body "Automated ticket synchronizat
 
 ```bash
 # Commit directly to current branch
-git add tickets/
+git add .sage/tickets/
 git commit -m "chore(tickets): sync updates"
 git push
 ```
@@ -303,15 +303,15 @@ auto_pr = true  # create PR automatically
 
 **Inputs:**
 
-- `tickets/index.json` - Canonical ticket data (AI managed)
-- `tickets/*.md` - Human-readable tickets (user editable)
+- `.sage/.sage/tickets/index.json` - Canonical ticket data (AI managed)
+- `.sage/tickets/*.md` - Human-readable tickets (user editable)
 - Git repository state (branches, remote status)
 - User configuration for sync strategy
 
 **Outputs:**
 
-- Updated `tickets/index.json` with reconciled data
-- Regenerated `tickets/*.md` files
+- Updated `.sage/.sage/tickets/index.json` with reconciled data
+- Regenerated `.sage/tickets/*.md` files
 - Git commit with descriptive message
 - `.docs/SYNC_REPORT.md` with sync details
 - Pushed commits to GitHub (tickets-sync or main branch)
@@ -342,7 +342,7 @@ auto_pr = true  # create PR automatically
 ### Scenario 2: Human Edits Markdown Ticket
 
 ```bash
-# User manually edits tickets/AUTH-002.md:
+# User manually edits .sage/tickets/AUTH-002.md:
 # - Changes priority: P1 → P0
 # - Adds notes: "Blocking production release"
 
@@ -377,7 +377,7 @@ auto_pr = true  # create PR automatically
 ### Invalid JSON Structure
 
 ```bash
-cat tickets/index.json | jq empty 2>&1
+cat .sage/.sage/tickets/index.json | jq empty 2>&1
 ```
 
 **Action**: Report parse error, refuse to sync, preserve backup
@@ -385,7 +385,7 @@ cat tickets/index.json | jq empty 2>&1
 ### Missing Ticket Files
 
 ```bash
-# JSON references AUTH-001 but tickets/AUTH-001.md missing
+# JSON references AUTH-001 but .sage/tickets/AUTH-001.md missing
 find tickets -name "AUTH-001.md"
 ```
 
@@ -395,7 +395,7 @@ find tickets -name "AUTH-001.md"
 
 ```bash
 # Ticket references non-existent dependency
-jq '.tickets[] | select(.dependencies[] | IN("INVALID-001"))' tickets/index.json
+jq '.tickets[] | select(.dependencies[] | IN("INVALID-001"))' .sage/.sage/tickets/index.json
 ```
 
 **Action**: Warn in sync report, do not block sync
@@ -437,7 +437,7 @@ git status | grep -q "both modified"
 /sync
 
 # Sync after manual markdown edits
-# (user edited tickets/AUTH-001.md)
+# (user edited .sage/tickets/AUTH-001.md)
 /sync
 
 # Sync as part of automated loop

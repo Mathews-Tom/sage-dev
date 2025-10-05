@@ -38,7 +38,7 @@ if [ -f .sage/workflow-mode ]; then
 fi
 
 # Validate ticket system exists
-if [ ! -f tickets/index.json ]; then
+if [ ! -f .sage/tickets/index.json ]; then
   echo "ERROR: No ticket system found"
   echo ""
   echo "Run /migrate first to create ticket system"
@@ -55,7 +55,7 @@ echo "└───────────────────────�
 echo ""
 echo "Loading ticket system..."
 
-TICKET_INDEX=$(cat tickets/index.json)
+TICKET_INDEX=$(cat .sage/tickets/index.json)
 TOTAL_TICKETS=$(echo "$TICKET_INDEX" | jq '.tickets | length')
 
 echo "✓ Loaded $TOTAL_TICKETS tickets"
@@ -120,14 +120,14 @@ if [ $UNESTIMATED_COUNT -gt 0 ]; then
     else
       .
     end
-  )' tickets/index.json > /tmp/tickets-estimated.json
+  )' .sage/tickets/index.json > /tmp/tickets-estimated.json
 
-  mv /tmp/tickets-estimated.json tickets/index.json
+  mv /tmp/tickets-estimated.json .sage/tickets/index.json
 
   echo "✓ Added estimates to $UNESTIMATED_COUNT tickets"
 
   # Reload ticket index
-  TICKET_INDEX=$(cat tickets/index.json)
+  TICKET_INDEX=$(cat .sage/tickets/index.json)
 fi
 ```
 
@@ -291,14 +291,14 @@ jq '.tickets |= map(
 
   # Add updated timestamp
   .updated = (now | strftime("%Y-%m-%dT%H:%M:%SZ"))
-)' tickets/index.json > /tmp/tickets-enhanced.json
+)' .sage/tickets/index.json > /tmp/tickets-enhanced.json
 
-mv /tmp/tickets-enhanced.json tickets/index.json
+mv /tmp/tickets-enhanced.json .sage/tickets/index.json
 
 echo "✓ Enhanced ticket schema with state tracking"
 
 # Reload ticket index
-TICKET_INDEX=$(cat tickets/index.json)
+TICKET_INDEX=$(cat .sage/tickets/index.json)
 ```
 
 ### 8. Generate Estimation Report
@@ -424,7 +424,7 @@ cat >> reports/estimation-report.md <<EOF
 
 ## 🔄 Next Steps
 
-1. **Review Estimates:** Check \`tickets/index.json\` for accuracy
+1. **Review Estimates:** Check \`.sage/tickets/index.json\` for accuracy
 2. **Adjust if Needed:** Manually update \`estimated_hours\` for specific tickets
 3. **Track Progress:** Run \`/stream\` to record actual completion times
 4. **Refine Projections:** Re-run \`/estimate\` after completing tickets
@@ -457,12 +457,12 @@ echo "✅ Burndown data created"
 echo ""
 echo "Next Steps:"
 echo "  1. Review: cat reports/estimation-report.md"
-echo "  2. Adjust: Edit tickets/index.json to refine estimates"
+echo "  2. Adjust: Edit .sage/tickets/index.json to refine estimates"
 echo "  3. Track: Run /stream to record actual times"
 echo "  4. Monitor: Re-run /estimate to update projections"
 echo ""
 echo "Files Updated:"
-echo "  - tickets/index.json (enhanced with estimates + timestamps)"
+echo "  - .sage/tickets/index.json (enhanced with estimates + timestamps)"
 echo "  - reports/estimation-report.md (detailed report)"
 echo "  - .sage/burndown-data.json (chart data)"
 echo "  - .sage/velocity-metrics.json (velocity analytics)"

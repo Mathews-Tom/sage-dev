@@ -1653,7 +1653,7 @@ graph TD
     HasTasks -->|No| NeedTasks["Run first:<br/>/specify → /plan → /tasks"]
     NeedTasks --> ReadyMigrate
 
-    ReadyMigrate --> PostMigrate["Ticket system created<br/>tickets/index.json<br/>tickets/*.md"]
+    ReadyMigrate --> PostMigrate["Ticket system created<br/>.sage/tickets/index.json<br/>.sage/tickets/*.md"]
     PostMigrate --> UseDevstream["/stream<br/>Automated development"]
 
     Tick --> WantManual{Want Manual<br/>Control?}
@@ -1729,8 +1729,8 @@ You can combine both workflows for maximum flexibility:
 
 #### After Migration
 
-- [ ] ✅ Verify `tickets/index.json` created
-- [ ] ✅ Verify ticket markdown files in `tickets/`
+- [ ] ✅ Verify `.sage/tickets/index.json` created
+- [ ] ✅ Verify ticket markdown files in `.sage/tickets/`
 - [ ] ✅ Check `.sage/workflow-mode` set to TICKET_BASED
 - [ ] ✅ Review ticket priorities and estimates
 - [ ] ✅ Sync with GitHub if using `/sync`
@@ -1850,7 +1850,7 @@ If `/migrate` fails or produces unexpected results:
 Checkpoint includes:
 
 - Git working directory
-- tickets/index.json (if existed)
+- .sage/tickets/index.json (if existed)
 - All task files
 - Workflow mode
 

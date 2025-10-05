@@ -31,8 +31,8 @@ Senior software architect creating actionable technical implementation plans.
 5. **Update Epic Tickets**:
 
    ```bash
-   # Load tickets/index.json
-   cat tickets/index.json
+   # Load .sage/tickets/index.json
+   cat .sage/tickets/index.json
 
    # For each component, find corresponding epic ticket
    TICKET_ID="AUTH-001"
@@ -43,8 +43,8 @@ Senior software architect creating actionable technical implementation plans.
    # - Technology stack
    # - Risk factors
 
-   # Update tickets/[ID].md
-   cat >> tickets/${TICKET_ID}.md <<EOF
+   # Update .sage/tickets/[ID].md
+   cat >> .sage/tickets/${TICKET_ID}.md <<EOF
 
    ## Architecture
    [Architecture pattern and key decisions]

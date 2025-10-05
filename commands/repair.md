@@ -57,10 +57,10 @@ create_checkpoint() {
   CHECKPOINT_ID=$(git stash create 2>/dev/null || echo "")
 
   # Backup ticket system
-  if [ -f tickets/index.json ]; then
-    cp tickets/index.json .sage/checkpoint-tickets-index.json
+  if [ -f .sage/.sage/tickets/index.json ]; then
+    cp .sage/.sage/tickets/index.json .sage/checkpoint-tickets-index.json
     mkdir -p .sage/checkpoint-tickets
-    cp tickets/*.md .sage/checkpoint-tickets/ 2>/dev/null
+    cp .sage/tickets/*.md .sage/checkpoint-.sage/tickets/ 2>/dev/null
   fi
 
   # Create checkpoint metadata
@@ -92,7 +92,7 @@ DUPLICATES=$(jq -r '
   map(select(length > 1)) |
   .[] |
   .[0].id
-' tickets/index.json)
+' .sage/.sage/tickets/index.json)
 
 if [ -n "$DUPLICATES" ]; then
   echo "Fixing duplicate IDs..."
@@ -121,9 +121,9 @@ if [ -n "$DUPLICATES" ]; then
       ) |
       flatten
     )
-  ' tickets/index.json > /tmp/tickets-dedup.json
+  ' .sage/.sage/tickets/index.json > /tmp/tickets-dedup.json
 
-  mv /tmp/tickets-dedup.json tickets/index.json
+  mv /tmp/tickets-dedup.json .sage/.sage/tickets/index.json
   echo "✓ Duplicate IDs fixed"
 else
   echo "✓ No duplicate IDs found"
@@ -146,7 +146,7 @@ INVALID_STATES=$(jq -r '
     .state != "DEFERRED"
   ) |
   .id
-' tickets/index.json)
+' .sage/.sage/tickets/index.json)
 
 if [ -n "$INVALID_STATES" ]; then
   echo "Fixing invalid states..."
@@ -167,9 +167,9 @@ if [ -n "$INVALID_STATES" ]; then
         .state = "UNPROCESSED"
       end
     )
-  ' tickets/index.json > /tmp/tickets-states.json
+  ' .sage/.sage/tickets/index.json > /tmp/tickets-states.json
 
-  mv /tmp/tickets-states.json tickets/index.json
+  mv /tmp/tickets-states.json .sage/.sage/tickets/index.json
   echo "✓ Invalid states fixed"
 else
   echo "✓ All states valid"
@@ -194,7 +194,7 @@ MISSING_FIELDS=$(jq -r '
     .validation_type == null
   ) |
   .id // "UNKNOWN"
-' tickets/index.json)
+' .sage/.sage/tickets/index.json)
 
 if [ -n "$MISSING_FIELDS" ]; then
   echo "Adding missing required fields..."
@@ -220,9 +220,9 @@ if [ -n "$MISSING_FIELDS" ]; then
         .title = "Untitled Ticket"
       end
     )
-  ' tickets/index.json > /tmp/tickets-fields.json
+  ' .sage/.sage/tickets/index.json > /tmp/tickets-fields.json
 
-  mv /tmp/tickets-fields.json tickets/index.json
+  mv /tmp/tickets-fields.json .sage/.sage/tickets/index.json
   echo "✓ Missing fields fixed"
 else
   echo "✓ All required fields present"
@@ -236,7 +236,7 @@ fi
 echo ""
 echo "Checking for invalid dependencies..."
 
-ALL_IDS=$(jq -r '.tickets[].id' tickets/index.json)
+ALL_IDS=$(jq -r '.tickets[].id' .sage/.sage/tickets/index.json)
 
 jq --arg all_ids "$ALL_IDS" '
   .tickets |= map(
@@ -252,9 +252,9 @@ jq --arg all_ids "$ALL_IDS" '
       end
     end
   )
-' tickets/index.json > /tmp/tickets-deps.json
+' .sage/.sage/tickets/index.json > /tmp/tickets-deps.json
 
-mv /tmp/tickets-deps.json tickets/index.json
+mv /tmp/tickets-deps.json .sage/.sage/tickets/index.json
 echo "✓ Invalid dependencies removed"
 ```
 
@@ -287,9 +287,9 @@ jq '
       end
     end
   )
-' tickets/index.json > /tmp/tickets-cycles.json
+' .sage/.sage/tickets/index.json > /tmp/tickets-cycles.json
 
-mv /tmp/tickets-cycles.json tickets/index.json
+mv /tmp/tickets-cycles.json .sage/.sage/tickets/index.json
 echo "✓ Circular dependencies broken"
 ```
 
@@ -300,7 +300,7 @@ echo "✓ Circular dependencies broken"
 echo ""
 echo "Checking for orphaned tickets..."
 
-ALL_IDS=$(jq -r '.tickets[].id' tickets/index.json)
+ALL_IDS=$(jq -r '.tickets[].id' .sage/.sage/tickets/index.json)
 
 jq --arg all_ids "$ALL_IDS" '
   .tickets |= map(
@@ -315,9 +315,9 @@ jq --arg all_ids "$ALL_IDS" '
       .
     end
   )
-' tickets/index.json > /tmp/tickets-parents.json
+' .sage/.sage/tickets/index.json > /tmp/tickets-parents.json
 
-mv /tmp/tickets-parents.json tickets/index.json
+mv /tmp/tickets-parents.json .sage/.sage/tickets/index.json
 echo "✓ Orphaned tickets fixed"
 ```
 
@@ -330,14 +330,14 @@ echo "Checking for missing ticket files..."
 
 MISSING_COUNT=0
 
-jq -r '.tickets[] | .id' tickets/index.json | while read TICKET_ID; do
-  TICKET_FILE="tickets/${TICKET_ID}.md"
+jq -r '.tickets[] | .id' .sage/.sage/tickets/index.json | while read TICKET_ID; do
+  TICKET_FILE=".sage/.sage/tickets/${TICKET_ID}.md"
 
   if [ ! -f "$TICKET_FILE" ]; then
     echo "Creating $TICKET_FILE..."
 
     # Extract ticket data
-    TICKET_DATA=$(jq --arg id "$TICKET_ID" '.tickets[] | select(.id == $id)' tickets/index.json)
+    TICKET_DATA=$(jq --arg id "$TICKET_ID" '.tickets[] | select(.id == $id)' .sage/.sage/tickets/index.json)
     TITLE=$(echo "$TICKET_DATA" | jq -r '.title')
     DESCRIPTION=$(echo "$TICKET_DATA" | jq -r '.description // "No description provided"')
     TYPE=$(echo "$TICKET_DATA" | jq -r '.type')
@@ -400,9 +400,9 @@ jq '
       .priority = "P2"
     end
   )
-' tickets/index.json > /tmp/tickets-priority.json
+' .sage/.sage/tickets/index.json > /tmp/tickets-priority.json
 
-mv /tmp/tickets-priority.json tickets/index.json
+mv /tmp/tickets-priority.json .sage/.sage/tickets/index.json
 echo "✓ Priorities normalized"
 ```
 
@@ -422,7 +422,7 @@ INVALID_TYPES=$(jq -r '
     .type != "refactor"
   ) |
   .id
-' tickets/index.json)
+' .sage/.sage/tickets/index.json)
 
 if [ -n "$INVALID_TYPES" ]; then
   echo "Normalizing ticket types..."
@@ -442,9 +442,9 @@ if [ -n "$INVALID_TYPES" ]; then
         .type = "implementation"
       end
     )
-  ' tickets/index.json > /tmp/tickets-types.json
+  ' .sage/.sage/tickets/index.json > /tmp/tickets-types.json
 
-  mv /tmp/tickets-types.json tickets/index.json
+  mv /tmp/tickets-types.json .sage/.sage/tickets/index.json
   echo "✓ Ticket types fixed"
 else
   echo "✓ All ticket types valid"
@@ -468,7 +468,7 @@ INVALID_VALIDATION=$(jq -r '
     .validation_type != "generic"
   ) |
   .id
-' tickets/index.json)
+' .sage/.sage/tickets/index.json)
 
 if [ -n "$INVALID_VALIDATION" ]; then
   echo "Defaulting invalid validation types to generic..."
@@ -483,9 +483,9 @@ if [ -n "$INVALID_VALIDATION" ]; then
         .validation_type = "generic"
       end
     )
-  ' tickets/index.json > /tmp/tickets-validation-types.json
+  ' .sage/.sage/tickets/index.json > /tmp/tickets-validation-types.json
 
-  mv /tmp/tickets-validation-types.json tickets/index.json
+  mv /tmp/tickets-validation-types.json .sage/.sage/tickets/index.json
   echo "✓ Validation types fixed"
 else
   echo "✓ All validation types valid"
@@ -512,7 +512,7 @@ INVALID_TASK_SCHEMA=$(jq -r '
     )
   ) |
   .id
-' tickets/index.json)
+' .sage/.sage/tickets/index.json)
 
 if [ -n "$INVALID_TASK_SCHEMA" ]; then
   echo "Fixing sub-task schema..."
@@ -543,9 +543,9 @@ if [ -n "$INVALID_TASK_SCHEMA" ]; then
         )
       end
     )
-  ' tickets/index.json > /tmp/tickets-task-schema.json
+  ' .sage/.sage/tickets/index.json > /tmp/tickets-task-schema.json
 
-  mv /tmp/tickets-task-schema.json tickets/index.json
+  mv /tmp/tickets-task-schema.json .sage/.sage/tickets/index.json
   echo "✓ Sub-task schema fixed"
 else
   echo "✓ Sub-task schema valid"
@@ -565,7 +565,7 @@ ORPHANED_CHECKPOINTS=$(jq -r '
   .components[] |
   select(.checkpoint_id != null and .checkpoint_id != "") |
   .checkpoint_id
-' tickets/index.json)
+' .sage/.sage/tickets/index.json)
 
 if [ -n "$ORPHANED_CHECKPOINTS" ]; then
   echo "Verifying component checkpoints..."
@@ -583,9 +583,9 @@ if [ -n "$ORPHANED_CHECKPOINTS" ]; then
         )
       end
     )
-  ' tickets/index.json > /tmp/tickets-checkpoints.json
+  ' .sage/.sage/tickets/index.json > /tmp/tickets-checkpoints.json
 
-  mv /tmp/tickets-checkpoints.json tickets/index.json
+  mv /tmp/tickets-checkpoints.json .sage/.sage/tickets/index.json
   echo "✓ Component checkpoints verified"
 else
   echo "✓ No component checkpoints to verify"
@@ -682,7 +682,7 @@ fi
 ### Scenario 1: Duplicate IDs After Manual Edits
 
 ```bash
-# Problem: Manually edited tickets/index.json, created duplicates
+# Problem: Manually edited .sage/.sage/tickets/index.json, created duplicates
 /validate  # Shows duplicate IDs
 /repair --deduplicate
 /validate  # Confirms fixed
@@ -691,7 +691,7 @@ fi
 ### Scenario 2: Corrupted JSON
 
 ```bash
-# Problem: tickets/index.json is invalid JSON
+# Problem: .sage/.sage/tickets/index.json is invalid JSON
 /validate  # Shows JSON parse error
 
 # Manual fix required:
@@ -747,7 +747,7 @@ fi
 
 ### Missing Files
 
-**Strategy:** Generate basic ticket markdown from tickets/index.json data
+**Strategy:** Generate basic ticket markdown from .sage/.sage/tickets/index.json data
 
 ## Integration with Other Commands
 
@@ -803,7 +803,7 @@ fi
 ## Notes
 
 - Always creates checkpoint before repairs
-- Destructive operation (modifies tickets/index.json)
+- Destructive operation (modifies .sage/.sage/tickets/index.json)
 - Use `/rollback` if repairs cause issues
 - Some issues require manual intervention (e.g., invalid JSON)
 - Safe to run multiple times (idempotent)

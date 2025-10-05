@@ -25,13 +25,13 @@ Resolve workflow confusion by:
    ```bash
    # Check for existing workflow indicators
    ls -la docs/ 2>/dev/null
-   ls -la tickets/ 2>/dev/null
+   ls -la .sage/tickets/ 2>/dev/null
 
    # Check for blueprint (Traditional workflow)
    test -f docs/blueprint.md && echo "TRADITIONAL_ACTIVE"
 
    # Check for ticket system (Ticket-Based workflow)
-   test -f tickets/index.json && echo "TICKET_ACTIVE"
+   test -f .sage/tickets/index.json && echo "TICKET_ACTIVE"
 
    # Check for specifications
    ls docs/specs/*/spec.md 2>/dev/null | wc -l
@@ -146,12 +146,12 @@ Start Traditional, migrate to Ticket-Based:
 ### Scenario 1: Both Workflows Detected
 
 ```bash
-# Found both docs/blueprint.md AND tickets/index.json
+# Found both docs/blueprint.md AND .sage/tickets/index.json
 WARNING: Mixed workflow detected!
 
 Current State:
 - Traditional workflow: ACTIVE (docs/blueprint.md exists)
-- Ticket workflow: ACTIVE (tickets/index.json exists)
+- Ticket workflow: ACTIVE (.sage/tickets/index.json exists)
 
 This is VALID if you migrated from Traditional → Ticket-Based.
 
@@ -163,15 +163,15 @@ Question: Did you run /migrate to convert?
 ### Scenario 2: Workflow Mode Mismatch
 
 ```bash
-# .sage/workflow-mode says TRADITIONAL but tickets/ exists
+# .sage/workflow-mode says TRADITIONAL but .sage/tickets/ exists
 ERROR: Workflow mode mismatch!
 
 Expected: TRADITIONAL
-Found: tickets/index.json (indicates TICKET_BASED)
+Found: .sage/tickets/index.json (indicates TICKET_BASED)
 
 Options:
 1. Switch to Ticket-Based: rm .sage/workflow-mode && echo "TICKET_BASED" > .sage/workflow-mode
-2. Remove tickets: rm -rf tickets/ (CAUTION: destructive)
+2. Remove tickets: rm -rf .sage/tickets/ (CAUTION: destructive)
 3. Run /migrate to formalize migration
 ```
 
@@ -376,7 +376,7 @@ ERROR: Cannot determine valid workflow
 Found:
 
 - docs/blueprint.md (Traditional)
-- tickets/index.json (Ticket-Based)
+- .sage/tickets/index.json (Ticket-Based)
 - .sage/workflow-mode: MISSING
 
 Manual intervention required:
