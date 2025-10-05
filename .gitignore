@@ -16,5 +16,4 @@ uv.lock
 .opencode/
 
 # Sage-Dev local configuration
-.sage/
 .docs/
