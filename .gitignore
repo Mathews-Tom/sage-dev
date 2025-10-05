@@ -17,3 +17,6 @@ uv.lock
 # AI Coding Systems
 .claude/
 .opencode/
+
+# Sage-Dev local configuration
+.sage/
