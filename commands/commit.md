@@ -43,7 +43,7 @@ Developer organizing changes into clean, conventional commits with comprehensive
    CURRENT_BRANCH=$(git branch --show-current)
 
    # Find tickets associated with this branch
-   cat tickets/index.json | jq -r "
+   cat .sage/.sage/tickets/index.json | jq -r "
      .tickets[] |
      select(.git.branch == \"$CURRENT_BRANCH\") |
      .id
@@ -85,14 +85,14 @@ Developer organizing changes into clean, conventional commits with comprehensive
    TICKET_ID="AUTH-001"
    COMMITS=$(git log --format="%H" origin/main..HEAD)
 
-   # Append to tickets/[ID].md
-   cat >> tickets/${TICKET_ID}.md <<EOF
+   # Append to .sage/tickets/[ID].md
+   cat >> .sage/tickets/${TICKET_ID}.md <<EOF
 
    ## Final Commits
    $(git log --format="- [%h]: %s" origin/main..HEAD)
    EOF
 
-   # Update tickets/index.json git.commits array
+   # Update .sage/.sage/tickets/index.json git.commits array
    ```
 
 6. **Validate**: Check commit history:
@@ -283,7 +283,7 @@ Decision tree:
 - [ ] No console errors/warnings
 - [ ] Reviewed own code
 - [ ] All ticket acceptance criteria met
-- [ ] Ticket marked COMPLETED in tickets/index.json
+- [ ] Ticket marked COMPLETED in .sage/.sage/tickets/index.json
 - [ ] Ready for review
 
 ## 📋 Review Notes
@@ -310,7 +310,7 @@ Before pushing:
 
 * [ ] All commits follow conventional format with ticket IDs
 * [ ] Commit messages include `#TICKET-ID` references
-* [ ] Ticket IDs match active tickets in `tickets/index.json`
+* [ ] Ticket IDs match active tickets in `.sage/.sage/tickets/index.json`
 * [ ] Commit messages are descriptive
 * [ ] No WIP or temp commits
 * [ ] Related changes grouped together
@@ -361,7 +361,7 @@ Depends-On: #DEPENDENCY-ID
 
 After pushing:
 
-1. **Update Ticket States**: If not done by `/implement`, manually update `tickets/index.json`
+1. **Update Ticket States**: If not done by `/implement`, manually update `.sage/.sage/tickets/index.json`
 2. **Run /sync**: Push ticket updates to GitHub
 3. **Create PR**: Use generated `.docs/PR_DESCRIPTION.md`
 4. **Link PR to Tickets**: Reference PR number in ticket markdown

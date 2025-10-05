@@ -2,8 +2,8 @@
   "$schema": "https://json-schema.org/draft-07/schema#",
   "title": "Sage-Dev Agent Registry",
   "description": "Central registry of all development enforcement agents with multi-language support",
-  "version": "2.0.0",
-  "last_updated": "2025-10-04",
+  "version": "2.1.0",
+  "last_updated": "2025-10-06",
 
   "languages": {
     "python": {

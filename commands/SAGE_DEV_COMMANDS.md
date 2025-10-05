@@ -293,8 +293,8 @@ Quick reference for command syntax, parameters, and usage.
 
 **Outputs:**
 
-- `tickets/index.json`
-- `tickets/TICKET-*.md` files
+- `.sage/tickets/index.json`
+- `.sage/tickets/TICKET-*.md` files
 - `.sage/workflow-mode` set to TICKET_BASED
 
 **When to Use:**
@@ -315,7 +315,7 @@ Quick reference for command syntax, parameters, and usage.
 
 - Ticket-Based workflow mode
 - GitHub repository configured
-- `tickets/` directory exists
+- `.sage/tickets/` directory exists
 
 **Usage:**
 
@@ -325,7 +325,7 @@ Quick reference for command syntax, parameters, and usage.
 
 **Outputs:**
 
-- Updated `tickets/index.json`
+- Updated `.sage/tickets/index.json`
 - GitHub issues created/updated
 - Bidirectional sync
 
@@ -344,7 +344,7 @@ Quick reference for command syntax, parameters, and usage.
 **Prerequisites:**
 
 - Ticket-Based workflow mode
-- Ticket exists in tickets/index.json
+- Ticket exists in .sage/tickets/index.json
 - Ticket status = UNPROCESSED
 
 **Usage:**
@@ -358,7 +358,7 @@ Quick reference for command syntax, parameters, and usage.
 - Code implementation
 - Tests created and run
 - Ticket marked COMPLETED or DEFERRED
-- Updated `tickets/index.json`
+- Updated `.sage/tickets/index.json`
 
 **When to Use:**
 
@@ -404,7 +404,7 @@ Quick reference for command syntax, parameters, and usage.
 - Code implemented and tested
 - Commits created
 - Changes pushed to GitHub (if confirmed)
-- Updated `tickets/index.json`
+- Updated `.sage/tickets/index.json`
 
 **When to Use:**
 
@@ -423,7 +423,7 @@ Quick reference for command syntax, parameters, and usage.
 **Prerequisites:**
 
 - Ticket-Based workflow mode
-- Ticket system exists (`tickets/index.json`)
+- Ticket system exists (`.sage/tickets/index.json`)
 
 **Usage:**
 
@@ -433,7 +433,7 @@ Quick reference for command syntax, parameters, and usage.
 
 **Outputs:**
 
-- Enhanced `tickets/index.json` with:
+- Enhanced `.sage/tickets/index.json` with:
   - `estimated_hours` for all tickets
   - `created` and `updated` timestamps
   - `state_history` array tracking state transitions
@@ -486,7 +486,7 @@ Quick reference for command syntax, parameters, and usage.
 **Restores:**
 
 - Git working directory (via stash)
-- `tickets/index.json`
+- `.sage/tickets/index.json`
 - Ticket markdown files
 - Task progress files
 - `.sage/workflow-mode`
@@ -625,8 +625,8 @@ These commands require confirmation in interactive mode:
 
 ### Tickets
 
-- `tickets/index.json` - Ticket system index
-- `tickets/TICKET-*.md` - Individual ticket files
+- `.sage/tickets/index.json` - Ticket system index
+- `.sage/tickets/TICKET-*.md` - Individual ticket files
 
 ### Reports
 

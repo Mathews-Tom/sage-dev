@@ -88,7 +88,7 @@ elif [ "$ROLLBACK_MODE" = "full" ]; then
   echo ""
   echo "This will restore:"
   echo "  - Git working directory"
-  echo "  - tickets/index.json (if exists)"
+  echo "  - .sage/.sage/tickets/index.json (if exists)"
   echo "  - Task progress files"
   echo "  - .sage/workflow-mode"
 fi
@@ -125,7 +125,7 @@ if [ "$ROLLBACK_MODE" = "component" ]; then
     .components[] |
     select(.name == $comp) |
     .checkpoint_id
-  ' tickets/index.json | head -1)
+  ' .sage/.sage/tickets/index.json | head -1)
 
   if [ -z "$COMPONENT_CHECKPOINT" ]; then
     echo "ERROR: Component checkpoint not found for: $COMPONENT_ONLY"
@@ -161,7 +161,7 @@ elif [ "$ROLLBACK_MODE" = "ticket" ]; then
     .tickets[] |
     select(.id == $ticket) |
     .git.checkpoint_id // empty
-  ' tickets/index.json)
+  ' .sage/.sage/tickets/index.json)
 
   if [ -z "$TICKET_CHECKPOINT" ]; then
     echo "ERROR: Ticket checkpoint not found for: $TICKET_ONLY"
@@ -214,9 +214,9 @@ if [ "$ROLLBACK_MODE" = "component" ]; then
         .
       end
     )
-  ' tickets/index.json > /tmp/tickets-rollback.json
+  ' .sage/.sage/tickets/index.json > /tmp/tickets-rollback.json
 
-  mv /tmp/tickets-rollback.json tickets/index.json
+  mv /tmp/tickets-rollback.json .sage/.sage/tickets/index.json
   echo "✓ Component status reset to UNPROCESSED"
 
   # Also reset associated tasks
@@ -240,9 +240,9 @@ if [ "$ROLLBACK_MODE" = "component" ]; then
         .
       end
     )
-  ' tickets/index.json > /tmp/tickets-rollback-tasks.json
+  ' .sage/.sage/tickets/index.json > /tmp/tickets-rollback-tasks.json
 
-  mv /tmp/tickets-rollback-tasks.json tickets/index.json
+  mv /tmp/tickets-rollback-tasks.json .sage/.sage/tickets/index.json
   echo "✓ Component tasks reset"
 
 elif [ "$ROLLBACK_MODE" = "ticket" ]; then
@@ -267,23 +267,23 @@ elif [ "$ROLLBACK_MODE" = "ticket" ]; then
         .
       end
     )
-  ' tickets/index.json > /tmp/tickets-rollback.json
+  ' .sage/.sage/tickets/index.json > /tmp/tickets-rollback.json
 
-  mv /tmp/tickets-rollback.json tickets/index.json
+  mv /tmp/tickets-rollback.json .sage/.sage/tickets/index.json
   echo "✓ Ticket reset to UNPROCESSED"
 
 elif [ "$ROLLBACK_MODE" = "full" ]; then
   # Full system: Restore entire ticket system
   if [ -f .sage/checkpoint-tickets-index.json ]; then
     echo "Restoring ticket system..."
-    cp .sage/checkpoint-tickets-index.json tickets/index.json
-    echo "✓ tickets/index.json restored"
+    cp .sage/checkpoint-tickets-index.json .sage/.sage/tickets/index.json
+    echo "✓ .sage/.sage/tickets/index.json restored"
   fi
 
   # Restore ticket markdown files if backup exists
   if [ -d .sage/checkpoint-tickets ]; then
     echo "Restoring ticket files..."
-    cp -r .sage/checkpoint-tickets/* tickets/ 2>/dev/null
+    cp -r .sage/checkpoint-.sage/tickets/* .sage/tickets/ 2>/dev/null
     echo "✓ Ticket files restored"
   fi
 fi
@@ -392,10 +392,10 @@ create_checkpoint() {
   CHECKPOINT_ID=$(git stash create 2>/dev/null || echo "")
 
   # Backup ticket system
-  if [ -f tickets/index.json ]; then
-    cp tickets/index.json .sage/checkpoint-tickets-index.json
+  if [ -f .sage/.sage/tickets/index.json ]; then
+    cp .sage/.sage/tickets/index.json .sage/checkpoint-tickets-index.json
     mkdir -p .sage/checkpoint-tickets
-    cp tickets/*.md .sage/checkpoint-tickets/ 2>/dev/null
+    cp .sage/tickets/*.md .sage/checkpoint-.sage/tickets/ 2>/dev/null
   fi
 
   # Backup task files
@@ -483,9 +483,9 @@ create_component_checkpoint() {
         .
       end
     )
-  ' tickets/index.json > /tmp/tickets-checkpoint.json
+  ' .sage/.sage/tickets/index.json > /tmp/tickets-checkpoint.json
 
-  mv /tmp/tickets-checkpoint.json tickets/index.json
+  mv /tmp/tickets-checkpoint.json .sage/.sage/tickets/index.json
 
   # Update global checkpoint metadata with component info
   if [ -f .sage/checkpoint.json ]; then
@@ -503,7 +503,7 @@ create_component_checkpoint() {
   fi
 
   echo "✓ Component checkpoint created: $CHECKPOINT_COMMIT"
-  echo "✓ Checkpoint ID stored in tickets/index.json"
+  echo "✓ Checkpoint ID stored in .sage/.sage/tickets/index.json"
 }
 
 # Usage in /stream:
@@ -530,7 +530,7 @@ list_component_checkpoints() {
     else
       "No components found"
     end
-  ' tickets/index.json
+  ' .sage/.sage/tickets/index.json
 }
 
 # Usage:
@@ -623,7 +623,7 @@ auto_rollback_on_failure "/stream"
 
 /rollback --git-only
 # Only restore git state
-# Skip tickets/tasks
+# Skip .sage/tickets/tasks
 ```
 
 ## Rollback History

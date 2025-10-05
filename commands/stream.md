@@ -82,7 +82,7 @@ echo ""
 
 ```bash
 # Verify ticket system exists
-test -f tickets/index.json || {
+test -f .sage/tickets/index.json || {
   echo "ERROR: Ticket system not found"
   echo ""
   echo "Next steps:"
@@ -92,7 +92,7 @@ test -f tickets/index.json || {
 }
 
 # Load ticket index
-TICKET_INDEX=$(cat tickets/index.json)
+TICKET_INDEX=$(cat .sage/tickets/index.json)
 TOTAL_TICKETS=$(echo "$TICKET_INDEX" | jq '.tickets | length')
 UNPROCESSED=$(echo "$TICKET_INDEX" | jq '[.tickets[] | select(.state == "UNPROCESSED")] | length')
 
@@ -158,7 +158,7 @@ fi
 
 **Key Actions:**
 
-- Verify `tickets/index.json` exists
+- Verify `.sage/tickets/index.json` exists
 - Count UNPROCESSED tickets
 - Check git status and warn if uncommitted changes
 - Create safety checkpoint (Issue 2.1)
@@ -169,7 +169,7 @@ fi
 
 ```bash
 # Query for UNPROCESSED tickets with satisfied dependencies
-cat tickets/index.json | jq -r '
+cat .sage/tickets/index.json | jq -r '
   .tickets[] |
   select(.state == "UNPROCESSED") |
   select(
@@ -202,7 +202,7 @@ cat tickets/index.json | jq -r '
 ```bash
 # Display ticket information with progress context (Issue 3.2)
 TICKET_ID="$SELECTED_TICKET_ID"
-TICKET_DATA=$(cat tickets/index.json | jq ".tickets[] | select(.id == \"$TICKET_ID\")")
+TICKET_DATA=$(cat .sage/tickets/index.json | jq ".tickets[] | select(.id == \"$TICKET_ID\")")
 TICKET_TITLE=$(echo $TICKET_DATA | jq -r '.title')
 TICKET_PRIORITY=$(echo $TICKET_DATA | jq -r '.priority')
 TICKET_TYPE=$(echo $TICKET_DATA | jq -r '.type')
@@ -299,9 +299,9 @@ jq --arg ticket_id "$TICKET_ID" \
       .
     end
   )
-' tickets/index.json > /tmp/tickets-updated.json
+' .sage/tickets/index.json > /tmp/tickets-updated.json
 
-mv /tmp/tickets-updated.json tickets/index.json
+mv /tmp/tickets-updated.json .sage/tickets/index.json
 
 echo "✓ Ticket marked IN_PROGRESS with timestamp"
 echo ""
@@ -506,9 +506,9 @@ EOF
               )
             else . end
           )
-        ' tickets/index.json > /tmp/tickets-updated.json
+        ' .sage/tickets/index.json > /tmp/tickets-updated.json
 
-        mv /tmp/tickets-updated.json tickets/index.json
+        mv /tmp/tickets-updated.json .sage/tickets/index.json
 
         echo "✓ Task $TASK_ID COMPLETED"
         echo ""
@@ -538,9 +538,9 @@ EOF
               )
             else . end
           )
-        ' tickets/index.json > /tmp/tickets-updated.json
+        ' .sage/tickets/index.json > /tmp/tickets-updated.json
 
-        mv /tmp/tickets-updated.json tickets/index.json
+        mv /tmp/tickets-updated.json .sage/tickets/index.json
 
         echo "⚠️  Task $TASK_ID DEFERRED"
         echo "   Reason: $DEFER_MESSAGE"
@@ -569,9 +569,9 @@ EOF
             )
           else . end
         )
-      ' tickets/index.json > /tmp/tickets-updated.json
+      ' .sage/tickets/index.json > /tmp/tickets-updated.json
 
-      mv /tmp/tickets-updated.json tickets/index.json
+      mv /tmp/tickets-updated.json .sage/tickets/index.json
 
       echo "✓ Task $TASK_ID COMPLETED"
       echo ""
@@ -582,12 +582,12 @@ EOF
   COMPLETED_TASKS=$(jq --arg ticket_id "$TICKET_ID" '
     .tickets[] | select(.id == $ticket_id) |
     .tasks | map(select(.status == "COMPLETED")) | length
-  ' tickets/index.json)
+  ' .sage/tickets/index.json)
 
   DEFERRED_TASKS=$(jq --arg ticket_id "$TICKET_ID" '
     .tickets[] | select(.id == $ticket_id) |
     .tasks | map(select(.status == "DEFERRED")) | length
-  ' tickets/index.json)
+  ' .sage/tickets/index.json)
 
   echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
   echo "Sub-Task Summary for $TICKET_ID:"
@@ -624,7 +624,7 @@ fi
 ```bash
 # Prepare ticket context for sub-agent
 TICKET_ID="$SELECTED_TICKET_ID"
-TICKET_DATA=$(cat tickets/index.json | jq ".tickets[] | select(.id == \"$TICKET_ID\")")
+TICKET_DATA=$(cat .sage/tickets/index.json | jq ".tickets[] | select(.id == \"$TICKET_ID\")")
 
 # Extract relevant documentation (already done above, for reference)
 SPEC_PATH=$(echo $TICKET_DATA | jq -r '.docs.spec')
@@ -655,7 +655,7 @@ Execute implementation for ticket: {TICKET_ID}
 {acceptance_criteria}
 
 **Instructions:**
-1. Mark ticket IN_PROGRESS in tickets/index.json
+1. Mark ticket IN_PROGRESS in .sage/tickets/index.json
 2. Read all context documents
 3. Follow Ticket Clearance Methodology:
    - ANALYZE_REQUIREMENTS
@@ -670,7 +670,7 @@ Execute implementation for ticket: {TICKET_ID}
 
 **Important:**
 - Only work on this ticket
-- Update tickets/index.json with progress
+- Update .sage/tickets/index.json with progress
 - Create atomic commits during implementation
 - Do not modify other tickets
 ```
@@ -720,7 +720,7 @@ RETURN_OUTCOME
 
 - Sub-agent operates in isolated context
 - Only ticket-relevant docs loaded
-- Updates `tickets/index.json` during execution
+- Updates `.sage/tickets/index.json` during execution
 - Creates commits with ticket ID references
 - Returns completion status to orchestrator
 
@@ -830,9 +830,9 @@ jq --arg ticket_id "$TICKET_ID" \
       .
     end
   )
-' tickets/index.json > /tmp/tickets-final.json
+' .sage/tickets/index.json > /tmp/tickets-final.json
 
-mv /tmp/tickets-final.json tickets/index.json
+mv /tmp/tickets-final.json .sage/tickets/index.json
 
 echo "✓ Ticket state updated: $OUTCOME"
 echo ""
@@ -945,11 +945,11 @@ Co-Authored-By: Claude <noreply@anthropic.com>
 
 ```bash
 # Check for more UNPROCESSED tickets
-REMAINING=$(cat tickets/index.json | jq '[.tickets[] | select(.state == "UNPROCESSED")] | length')
+REMAINING=$(cat .sage/tickets/index.json | jq '[.tickets[] | select(.state == "UNPROCESSED")] | length')
 
 if [ $REMAINING -gt 0 ]; then
   # Recalculate completion stats (Issue 3.2)
-  COMPLETED=$(cat tickets/index.json | jq '[.tickets[] | select(.state == "COMPLETED")] | length')
+  COMPLETED=$(cat .sage/tickets/index.json | jq '[.tickets[] | select(.state == "COMPLETED")] | length')
   COMPLETION_PCT=$((COMPLETED * 100 / TOTAL_TICKETS))
 
   # Update ETA based on latest velocity
@@ -1033,7 +1033,7 @@ CYCLE_HOURS=$((CYCLE_DURATION / 3600))
 CYCLE_MINUTES=$(((CYCLE_DURATION % 3600) / 60))
 
 # Generate final statistics
-FINAL_STATS=$(cat tickets/index.json | jq '{
+FINAL_STATS=$(cat .sage/tickets/index.json | jq '{
   total: .tickets | length,
   completed: [.tickets[] | select(.state == "COMPLETED")] | length,
   in_progress: [.tickets[] | select(.state == "IN_PROGRESS")] | length,
@@ -1088,7 +1088,7 @@ fi
 # List completed tickets this cycle
 echo "Completed This Cycle:"
 grep "$(date -u +%Y-%m-%d)" .sage/stream-velocity.log 2>/dev/null | while IFS=' ' read timestamp duration ticket_id; do
-  TITLE=$(cat tickets/index.json | jq -r ".tickets[] | select(.id == \"$ticket_id\") | .title")
+  TITLE=$(cat .sage/tickets/index.json | jq -r ".tickets[] | select(.id == \"$ticket_id\") | .title")
   echo "  ✅ $ticket_id: $TITLE (${duration}m)"
 done
 echo ""
@@ -1096,7 +1096,7 @@ echo ""
 # List deferred tickets if any
 if [ $DEFERRED -gt 0 ]; then
   echo "Deferred Tickets (Need Review):"
-  cat tickets/index.json | jq -r '
+  cat .sage/tickets/index.json | jq -r '
     .tickets[] |
     select(.state == "DEFERRED") |
     "  ⚠️  \(.id): \(.title)"
@@ -1151,14 +1151,14 @@ echo "════════════════════════�
 
 **Inputs:**
 
-- `tickets/index.json` - Ticket queue and states
-- `tickets/*.md` - Per-ticket details
+- `.sage/tickets/index.json` - Ticket queue and states
+- `.sage/tickets/*.md` - Per-ticket details
 - Documentation (`docs/specs/`, `docs/breakdown/`)
 - Git repository (for commits and sync)
 
 **Outputs:**
 
-- Updated `tickets/index.json` with new states
+- Updated `.sage/tickets/index.json` with new states
 - Implemented code committed to git
 - `.docs/PROGRESS_REPORT.md` updated
 - `.docs/DEVSTREAM_SUMMARY.md` created
@@ -1203,7 +1203,7 @@ echo "════════════════════════�
 ### No Tickets Available
 
 ```bash
-test -f tickets/index.json || echo "Run /migrate first"
+test -f .sage/tickets/index.json || echo "Run /migrate first"
 ```
 
 **Action**: Guide user to initialize ticket system
@@ -1212,7 +1212,7 @@ test -f tickets/index.json || echo "Run /migrate first"
 
 ```bash
 # All UNPROCESSED tickets have unmet dependencies
-jq '.tickets[] | select(.state == "UNPROCESSED")' tickets/index.json
+jq '.tickets[] | select(.state == "UNPROCESSED")' .sage/tickets/index.json
 ```
 
 **Action**: Report deadlock, list blocking tickets, suggest manual resolution
@@ -1236,7 +1236,7 @@ git status | grep "both modified"
 ## Resumption Support
 
 ```bash
-# Cycle interrupted, state preserved in tickets/index.json
+# Cycle interrupted, state preserved in .sage/tickets/index.json
 
 # Resume by running /stream again
 # Automatically picks up from where it left off
@@ -1260,7 +1260,7 @@ git status | grep "both modified"
 
 ```bash
 # User can temporarily boost priority
-# Edit tickets/AUTH-005.md: Priority P1 → P0
+# Edit .sage/tickets/AUTH-005.md: Priority P1 → P0
 # Next /stream will process AUTH-005 first
 ```
 
@@ -1268,7 +1268,7 @@ git status | grep "both modified"
 
 ```bash
 # User can manually mark dependency satisfied
-# Edit tickets/index.json or tickets/[ID].md
+# Edit .sage/tickets/index.json or tickets/[ID].md
 # Remove blocking dependency or mark it resolved
 ```
 

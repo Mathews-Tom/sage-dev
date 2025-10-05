@@ -1,6 +1,6 @@
 # Sage-DEV
 
-**Wisdom-guided software development with language-specific enforcement**
+**Version 2.1** - Wisdom-guided software development with language-specific enforcement
 
 Development workflows enriched with collective wisdom. Claude commands that incorporate best practices from thousands of projects, research-backed recommendations, and battle-tested patterns. Build on the shoulders of giants.
 
@@ -13,12 +13,19 @@ Development workflows enriched with collective wisdom. Claude commands that inco
 - 🔒 **Security-First** - Built-in secret scanning and validation
 - 🎯 **Configurable Enforcement** - STRICT, BALANCED, or PROTOTYPE modes
 
+## What's New in v2.1
+
+- 📁 **Improved Organization** - Ticket system now located in `.sage/tickets/` for cleaner project structure
+- 🔄 **Better Separation** - Tooling state kept separate from project code
+- 📝 **Updated Commands** - All slash commands updated to use new ticket location
+- 🎯 **Same Great Features** - All existing functionality preserved with better organization
+
 ## Quick Start
 
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/your-org/sage-dev.git
+git clone https://github.com/Mathews-Tom/sage-dev.git
 cd sage-dev
 ```
 
@@ -29,6 +36,7 @@ cd sage-dev
 ```
 
 The setup wizard will:
+
 1. Detect your AI coding agent (Claude Code, Opencode, DROID, etc.)
 2. Let you choose your programming language
 3. Install commands, agents, and rules
@@ -38,7 +46,7 @@ The setup wizard will:
 
 Choose your primary programming language:
 
-```
+```text
 🌐 Select your programming language:
 
    1) Python (default) - Type safety, test coverage, docstring validation
@@ -202,18 +210,21 @@ Stored in `.sage/config.json`:
 ### Enforcement Levels
 
 **STRICT:**
+
 - All agents enabled
 - Zero tolerance for violations
 - Auto-fix enabled
 - Best for: Production code
 
 **BALANCED (Default):**
+
 - Core agents enabled
 - Warnings for non-critical issues
 - Auto-fix enabled
 - Best for: Most projects
 
 **PROTOTYPE:**
+
 - Security agents only
 - Violations logged, not blocked
 - Auto-fix disabled
@@ -281,7 +292,7 @@ See [.sage/README.md](.sage/README.md) for configuration details.
 
 ## Project Structure
 
-```
+```text
 sage-dev/
 ├── commands/              # Slash commands
 │   ├── workflow.md
@@ -317,9 +328,12 @@ sage-dev/
 │   ├── commit-standards.md
 │   └── enforcement-guide.md
 │
-├── .sage/               # Configuration
+├── .sage/               # Configuration & tooling state
 │   ├── config.json      # Language & enforcement config
 │   ├── enforcement.json # Agent configuration
+│   ├── tickets/         # Ticket system (v2.1+)
+│   │   ├── index.json   # Ticket registry
+│   │   └── *.md         # Individual ticket files
 │   └── README.md        # Config documentation
 │
 ├── sage-setup.sh        # Installation script
@@ -364,6 +378,7 @@ See [agents/LANGUAGES.md](agents/LANGUAGES.md) for detailed contribution guide.
 
 1. Create agent file: `agents/[language]/custom-agent.md`
 2. Follow frontmatter format:
+
    ```markdown
    ---
    name: custom-agent
@@ -375,6 +390,7 @@ See [agents/LANGUAGES.md](agents/LANGUAGES.md) for detailed contribution guide.
    Algorithm:
      # Implementation
    ```
+
 3. Add to `agents/index.json` registry
 4. Test with `/enforce`
 
@@ -406,7 +422,7 @@ A: Yes! Edit files in `rules/` and `.sage/enforcement.json` to customize standar
 
 ## Support
 
-- **Issues:** [GitHub Issues](https://github.com/your-org/sage-dev/issues)
+- **Issues:** [GitHub Issues](https://github.com/Mathews-Tom/sage-dev/issues)
 - **Documentation:** See `commands/`, `agents/`, and `rules/` directories
 - **Ask your AI agent:** "How do I use /workflow?" or "Explain the ticket system"
 
@@ -416,4 +432,4 @@ A: Yes! Edit files in `rules/` and `.sage/enforcement.json` to customize standar
 
 ---
 
-**Build with wisdom. Develop with Sage-Dev.** 🚀
+**Build with wisdom. Enforce with intelligence. Develop with Sage-Dev.** 🚀

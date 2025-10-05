@@ -24,17 +24,17 @@ Provide high-level visibility into project status by analyzing:
 
 ```bash
 # Verify ticket system exists
-test -f tickets/index.json || echo "ERROR: No ticket system found"
+test -f .sage/tickets/index.json || echo "ERROR: No ticket system found"
 
 # Load ticket index
-cat tickets/index.json
+cat .sage/tickets/index.json
 
 # Count ticket markdown files
-ls tickets/*.md | wc -l
+ls .sage/tickets/*.md | wc -l
 ```
 
 **Key Actions:**
-- Verify `tickets/index.json` exists
+- Verify `.sage/tickets/index.json` exists
 - Load full ticket graph
 - Validate ticket structure
 - Prepare for analysis
@@ -43,7 +43,7 @@ ls tickets/*.md | wc -l
 
 ```bash
 # Count tickets by state
-cat tickets/index.json | jq -r '
+cat .sage/tickets/index.json | jq -r '
   .tickets |
   group_by(.state) |
   map({state: .[0].state, count: length}) |
@@ -51,11 +51,11 @@ cat tickets/index.json | jq -r '
 '
 
 # Calculate percentages
-TOTAL=$(cat tickets/index.json | jq '.tickets | length')
-COMPLETED=$(cat tickets/index.json | jq '[.tickets[] | select(.state == "COMPLETED")] | length')
-IN_PROGRESS=$(cat tickets/index.json | jq '[.tickets[] | select(.state == "IN_PROGRESS")] | length')
-DEFERRED=$(cat tickets/index.json | jq '[.tickets[] | select(.state == "DEFERRED")] | length')
-UNPROCESSED=$(cat tickets/index.json | jq '[.tickets[] | select(.state == "UNPROCESSED")] | length')
+TOTAL=$(cat .sage/tickets/index.json | jq '.tickets | length')
+COMPLETED=$(cat .sage/tickets/index.json | jq '[.tickets[] | select(.state == "COMPLETED")] | length')
+IN_PROGRESS=$(cat .sage/tickets/index.json | jq '[.tickets[] | select(.state == "IN_PROGRESS")] | length')
+DEFERRED=$(cat .sage/tickets/index.json | jq '[.tickets[] | select(.state == "DEFERRED")] | length')
+UNPROCESSED=$(cat .sage/tickets/index.json | jq '[.tickets[] | select(.state == "UNPROCESSED")] | length')
 ```
 
 **Key Actions:**
@@ -68,7 +68,7 @@ UNPROCESSED=$(cat tickets/index.json | jq '[.tickets[] | select(.state == "UNPRO
 
 ```bash
 # Group tickets by component (first part of ID)
-cat tickets/index.json | jq -r '
+cat .sage/tickets/index.json | jq -r '
   .tickets |
   group_by(.id | split("-")[0]) |
   map({
@@ -91,7 +91,7 @@ cat tickets/index.json | jq -r '
 
 ```bash
 # Find UNPROCESSED tickets with unmet dependencies
-cat tickets/index.json | jq -r '
+cat .sage/tickets/index.json | jq -r '
   .tickets[] |
   select(.state == "UNPROCESSED") |
   select(.dependencies | length > 0) |
@@ -104,7 +104,7 @@ cat tickets/index.json | jq -r '
 '
 
 # List DEFERRED tickets with reasons
-cat tickets/index.json | jq -r '
+cat .sage/tickets/index.json | jq -r '
   .tickets[] |
   select(.state == "DEFERRED") |
   "\(.id): \(.title) - \(.notes // "No reason provided")"
@@ -121,7 +121,7 @@ cat tickets/index.json | jq -r '
 
 ```bash
 # Tickets completed in last 7 days
-cat tickets/index.json | jq -r '
+cat .sage/tickets/index.json | jq -r '
   .tickets[] |
   select(.state == "COMPLETED") |
   select(.updated >= (now - 604800 | strftime("%Y-%m-%dT%H:%M:%SZ"))) |
@@ -481,8 +481,8 @@ UI-003 (DEFERRED - missing design assets)
 ## Integration Points
 
 **Inputs:**
-- `tickets/index.json` - Ticket states and metadata
-- `tickets/*.md` - Per-ticket details
+- `.sage/tickets/index.json` - Ticket states and metadata
+- `.sage/tickets/*.md` - Per-ticket details
 - Git repository state - Branches, commits for tickets
 
 **Outputs:**

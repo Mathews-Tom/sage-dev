@@ -48,7 +48,7 @@ fi
 
 ```bash
 # Verify ticket system exists
-test -f tickets/index.json || {
+test -f .sage/tickets/index.json || {
   echo "ERROR: Ticket system not found"
   echo ""
   echo "Next steps:"
@@ -63,7 +63,7 @@ TICKET_ID="${1}"  # From argument
 
 # If no ticket specified, select next UNPROCESSED with satisfied dependencies
 if [ -z "$TICKET_ID" ]; then
-  TICKET_ID=$(cat tickets/index.json | jq -r '
+  TICKET_ID=$(cat .sage/tickets/index.json | jq -r '
     .tickets[] |
     select(.state == "UNPROCESSED") |
     select(
@@ -78,13 +78,13 @@ if [ -z "$TICKET_ID" ]; then
 fi
 
 # Load ticket data
-TICKET_DATA=$(cat tickets/index.json | jq ".tickets[] | select(.id == \"$TICKET_ID\")")
+TICKET_DATA=$(cat .sage/tickets/index.json | jq ".tickets[] | select(.id == \"$TICKET_ID\")")
 ```
 
 **Key Actions:**
 
 - Accept optional ticket ID argument or auto-select
-- Query `tickets/index.json` for UNPROCESSED tickets
+- Query `.sage/tickets/index.json` for UNPROCESSED tickets
 - Filter by satisfied dependencies (all dependencies COMPLETED)
 - Sort by priority (P0 > P1 > P2)
 - Validate ticket exists and is actionable
@@ -96,7 +96,7 @@ TICKET_DATA=$(cat tickets/index.json | jq ".tickets[] | select(.id == \"$TICKET_
 # State: UNPROCESSED → IN_PROGRESS
 
 # Update ticket markdown
-cat >> tickets/${TICKET_ID}.md <<EOF
+cat >> .sage/tickets/${TICKET_ID}.md <<EOF
 
 ## Implementation Started
 **Started:** $(date -u +%Y-%m-%dT%H:%M:%SZ)
@@ -108,8 +108,8 @@ EOF
 
 **Key Actions:**
 
-- Update `tickets/index.json`: state = "IN_PROGRESS"
-- Append status to `tickets/[ID].md`
+- Update `.sage/tickets/index.json`: state = "IN_PROGRESS"
+- Append status to `.sage/tickets/[ID].md`
 - Record start timestamp
 - This ensures resumption safety if interrupted
 
@@ -147,12 +147,12 @@ echo $TICKET_DATA | jq -r '.acceptanceCriteria[]'
 DEPENDENCIES=$(echo $TICKET_DATA | jq -r '.dependencies[]?')
 
 for DEP in $DEPENDENCIES; do
-  DEP_STATE=$(cat tickets/index.json | jq -r ".tickets[] | select(.id == \"$DEP\") | .state")
+  DEP_STATE=$(cat .sage/tickets/index.json | jq -r ".tickets[] | select(.id == \"$DEP\") | .state")
 
   if [ "$DEP_STATE" != "COMPLETED" ]; then
     echo "ERROR: Dependency $DEP not satisfied (state: $DEP_STATE)"
     # Mark ticket DEFERRED
-    # Update tickets/index.json and tickets/[ID].md
+    # Update .sage/tickets/index.json and .sage/tickets/[ID].md
     exit 1
   fi
 done
@@ -181,7 +181,7 @@ if [ "$CURRENT_BRANCH" != "$BRANCH_NAME" ]; then
 fi
 
 # Update ticket with branch info
-cat >> tickets/${TICKET_ID}.md <<EOF
+cat >> .sage/tickets/${TICKET_ID}.md <<EOF
 **Branch:** $BRANCH_NAME
 EOF
 ```
@@ -225,7 +225,7 @@ git commit -m "feat(component): #${TICKET_ID} implement [feature]"
 
 # Record commits in ticket
 COMMIT_SHA=$(git rev-parse HEAD)
-cat >> tickets/${TICKET_ID}.md <<EOF
+cat >> .sage/tickets/${TICKET_ID}.md <<EOF
 - [$COMMIT_SHA]: [commit message]
 EOF
 ```
@@ -290,8 +290,8 @@ Confirm completion? [Y/n]
 
 ```bash
 # Mark ticket COMPLETED
-# Update tickets/index.json: state = "COMPLETED"
-# Update tickets/[ID].md with completion details
+# Update .sage/tickets/index.json: state = "COMPLETED"
+# Update .sage/tickets/[ID].md with completion details
 # Proceed to finalization
 ```
 
@@ -321,18 +321,18 @@ git reset --hard [pre-implementation-commit]
 # Update ticket state
 # State: IN_PROGRESS → COMPLETED
 
-# Update tickets/index.json
-cat tickets/index.json | jq '
+# Update .sage/tickets/index.json
+cat .sage/tickets/index.json | jq '
   .tickets |= map(
     if .id == "'$TICKET_ID'" then
       .state = "COMPLETED" |
       .updated = "'$(date -u +%Y-%m-%dT%H:%M:%SZ)'"
     else . end
   )
-' > tickets/index.json.tmp && mv tickets/index.json.tmp tickets/index.json
+' > .sage/tickets/index.json.tmp && mv .sage/tickets/index.json.tmp .sage/tickets/index.json
 
 # Update ticket markdown
-cat >> tickets/${TICKET_ID}.md <<EOF
+cat >> .sage/tickets/${TICKET_ID}.md <<EOF
 
 ## Implementation Complete
 **Completed:** $(date -u +%Y-%m-%dT%H:%M:%SZ)
@@ -413,8 +413,8 @@ CLOSE_TICKET (ready for /commit and /sync)
 
 **Inputs:**
 
-- `tickets/index.json` - Ticket queue and states
-- `tickets/[ID].md` - Per-ticket details and acceptance criteria
+- `.sage/tickets/index.json` - Ticket queue and states
+- `.sage/tickets/[ID].md` - Per-ticket details and acceptance criteria
 - `docs/specs/*/spec.md` - Component specifications
 - `docs/specs/*/plan.md` - Architecture and dependencies
 - `docs/breakdown/*/breakdown.md` - Implementation details
@@ -423,8 +423,8 @@ CLOSE_TICKET (ready for /commit and /sync)
 **Outputs:**
 
 - Implemented code files following specifications
-- Updated `tickets/index.json` with new state (COMPLETED/DEFERRED)
-- Updated `tickets/[ID].md` with implementation details
+- Updated `.sage/tickets/index.json` with new state (COMPLETED/DEFERRED)
+- Updated `.sage/tickets/[ID].md` with implementation details
 - Feature branch with atomic commits
 - Comprehensive test suite
 - Ready for `/commit` and `/sync`

@@ -10,7 +10,7 @@ Quality assurance engineer validating ticket system integrity.
 ## Purpose
 
 Ensure ticket system is valid and consistent before destructive operations by:
-- Validating schema of tickets/index.json
+- Validating schema of .sage/tickets/index.json
 - Checking for duplicate ticket IDs
 - Verifying dependency graph is acyclic
 - Validating parent/child relationships
@@ -24,9 +24,9 @@ Ensure ticket system is valid and consistent before destructive operations by:
 
 ```bash
 # Verify ticket system present
-if [ ! -f tickets/index.json ]; then
+if [ ! -f .sage/tickets/index.json ]; then
   echo "ERROR: No ticket system found"
-  echo "Expected: tickets/index.json"
+  echo "Expected: .sage/tickets/index.json"
   echo ""
   echo "To create ticket system:"
   echo "  1. Ensure tasks exist: /specify → /plan → /tasks"
@@ -40,12 +40,12 @@ echo "✓ Ticket system found"
 ### 1. Validate JSON Schema
 
 ```bash
-# Check tickets/index.json is valid JSON
-if ! jq empty tickets/index.json 2>/dev/null; then
-  echo "❌ CRITICAL: tickets/index.json is not valid JSON"
+# Check .sage/tickets/index.json is valid JSON
+if ! jq empty .sage/tickets/index.json 2>/dev/null; then
+  echo "❌ CRITICAL: .sage/tickets/index.json is not valid JSON"
   echo ""
   echo "Parse error:"
-  jq empty tickets/index.json 2>&1
+  jq empty .sage/tickets/index.json 2>&1
   echo ""
   echo "Repair options:"
   echo "  1. Restore from backup: /rollback"
@@ -71,7 +71,7 @@ MISSING_FIELDS=$(jq -r '
     .validation_type == null
   ) |
   .id // "UNKNOWN"
-' tickets/index.json)
+' .sage/tickets/index.json)
 
 if [ -n "$MISSING_FIELDS" ]; then
   echo "❌ CRITICAL: Tickets missing required fields:"
@@ -96,7 +96,7 @@ DUPLICATES=$(jq -r '
   map(select(length > 1)) |
   .[] |
   .[0].id
-' tickets/index.json)
+' .sage/tickets/index.json)
 
 if [ -n "$DUPLICATES" ]; then
   echo "❌ CRITICAL: Duplicate ticket IDs found:"
@@ -119,7 +119,7 @@ INVALID_IDS=$(jq -r '
   .tickets[] |
   select(.id | test("^[A-Z0-9]+-[0-9]+$") | not) |
   .id
-' tickets/index.json)
+' .sage/tickets/index.json)
 
 if [ -n "$INVALID_IDS" ]; then
   echo "⚠️  WARNING: Tickets with invalid ID format:"
@@ -141,7 +141,7 @@ INVALID_STATES=$(jq -r --arg valid "$VALID_STATES" '
   .tickets[] |
   select([.state] | inside($valid | split(" ")) | not) |
   "\(.id): \(.state)"
-' tickets/index.json)
+' .sage/tickets/index.json)
 
 if [ -n "$INVALID_STATES" ]; then
   echo "❌ ERROR: Tickets with invalid state:"
@@ -160,7 +160,7 @@ echo "✓ All states valid"
 
 ```bash
 # Verify all dependencies reference existing tickets
-ALL_IDS=$(jq -r '.tickets[].id' tickets/index.json)
+ALL_IDS=$(jq -r '.tickets[].id' .sage/tickets/index.json)
 
 INVALID_DEPS=$(jq -r --arg all_ids "$ALL_IDS" '
   .tickets[] |
@@ -168,7 +168,7 @@ INVALID_DEPS=$(jq -r --arg all_ids "$ALL_IDS" '
   .dependencies[] as $dep |
   select([$dep] | inside($all_ids | split("\n")) | not) |
   "\(.id) depends on \($dep) (NOT FOUND)"
-' tickets/index.json)
+' .sage/tickets/index.json)
 
 if [ -n "$INVALID_DEPS" ]; then
   echo "❌ ERROR: Invalid dependency references:"
@@ -210,7 +210,7 @@ CIRCULAR_DEPS=$(jq -r '
     )
   ) |
   .id
-' tickets/index.json 2>/dev/null || echo "")
+' .sage/tickets/index.json 2>/dev/null || echo "")
 
 if [ -n "$CIRCULAR_DEPS" ]; then
   echo "❌ ERROR: Circular dependencies detected:"
@@ -239,7 +239,7 @@ ORPHANED_TICKETS=$(jq -r '
     not
   ) |
   "\(.id) has missing parent: \(.parent)"
-' tickets/index.json)
+' .sage/tickets/index.json)
 
 if [ -n "$ORPHANED_TICKETS" ]; then
   echo "❌ ERROR: Orphaned tickets (parent not found):"
@@ -258,8 +258,8 @@ echo "✓ All parent relationships valid"
 # Verify ticket markdown files exist for all tickets
 MISSING_FILES=$(jq -r '
   .tickets[] |
-  "tickets/\(.id).md"
-' tickets/index.json | while read ticket_file; do
+  ".sage/tickets/\(.id).md"
+' .sage/tickets/index.json | while read ticket_file; do
   if [ ! -f "$ticket_file" ]; then
     echo "$ticket_file"
   fi
@@ -284,7 +284,7 @@ INVALID_PRIORITIES=$(jq -r --arg valid "$VALID_PRIORITIES" '
   .tickets[] |
   select([.priority] | inside($valid | split(" ")) | not) |
   "\(.id): \(.priority)"
-' tickets/index.json)
+' .sage/tickets/index.json)
 
 if [ -n "$INVALID_PRIORITIES" ]; then
   echo "⚠️  WARNING: Tickets with non-standard priority:"
@@ -306,7 +306,7 @@ INVALID_TICKET_TYPES=$(jq -r --arg valid "$VALID_TICKET_TYPES" '
   .tickets[] |
   select([.type] | inside($valid | split(" ")) | not) |
   "\(.id): \(.type)"
-' tickets/index.json)
+' .sage/tickets/index.json)
 
 if [ -n "$INVALID_TICKET_TYPES" ]; then
   echo "❌ ERROR: Tickets with invalid type:"
@@ -330,7 +330,7 @@ INVALID_VALIDATION_TYPES=$(jq -r --arg valid "$VALID_VALIDATION_TYPES" '
   .tickets[] |
   select([.validation_type] | inside($valid | split(" ")) | not) |
   "\(.id): \(.validation_type)"
-' tickets/index.json)
+' .sage/tickets/index.json)
 
 if [ -n "$INVALID_VALIDATION_TYPES" ]; then
   echo "❌ ERROR: Tickets with invalid validation_type:"
@@ -362,7 +362,7 @@ INVALID_TASKS=$(jq -r '
     )
   ) |
   .id
-' tickets/index.json)
+' .sage/tickets/index.json)
 
 if [ -n "$INVALID_TASKS" ]; then
   echo "❌ ERROR: Tickets with invalid sub-task schema:"
@@ -389,7 +389,7 @@ INVALID_SCRIPTS=$(jq -r '
   select(.validation_script != null) |
   select(.validation_script | length == 0) |
   "\($ticket_id) / \(.id): empty validation_script"
-' tickets/index.json)
+' .sage/tickets/index.json)
 
 if [ -n "$INVALID_SCRIPTS" ]; then
   echo "⚠️  WARNING: Tasks with empty validation scripts:"
@@ -413,7 +413,7 @@ INVALID_CHECKPOINTS=$(jq -r '
   .components[] |
   select(.checkpoint_id != null and .checkpoint_id != "") |
   "\($ticket_id) / \(.name): \(.checkpoint_id)"
-' tickets/index.json)
+' .sage/tickets/index.json)
 
 if [ -n "$INVALID_CHECKPOINTS" ]; then
   echo "Checking component checkpoints..."
@@ -437,16 +437,16 @@ echo "✓ Component checkpoints valid"
 
 ```bash
 # Summary statistics
-TOTAL_TICKETS=$(jq '.tickets | length' tickets/index.json)
-UNPROCESSED=$(jq '[.tickets[] | select(.state == "UNPROCESSED")] | length' tickets/index.json)
-IN_PROGRESS=$(jq '[.tickets[] | select(.state == "IN_PROGRESS")] | length' tickets/index.json)
-COMPLETED=$(jq '[.tickets[] | select(.state == "COMPLETED")] | length' tickets/index.json)
-DEFERRED=$(jq '[.tickets[] | select(.state == "DEFERRED")] | length' tickets/index.json)
+TOTAL_TICKETS=$(jq '.tickets | length' .sage/tickets/index.json)
+UNPROCESSED=$(jq '[.tickets[] | select(.state == "UNPROCESSED")] | length' .sage/tickets/index.json)
+IN_PROGRESS=$(jq '[.tickets[] | select(.state == "IN_PROGRESS")] | length' .sage/tickets/index.json)
+COMPLETED=$(jq '[.tickets[] | select(.state == "COMPLETED")] | length' .sage/tickets/index.json)
+DEFERRED=$(jq '[.tickets[] | select(.state == "DEFERRED")] | length' .sage/tickets/index.json)
 
 # New statistics
-WITH_SUBTASKS=$(jq '[.tickets[] | select(.tasks != null and (.tasks | length > 0))] | length' tickets/index.json)
-WITH_VALIDATION=$(jq '[.tickets[] | select(.validation_config != null)] | length' tickets/index.json)
-WITH_COMPONENTS=$(jq '[.tickets[] | select(.components != null and (.components | length > 0))] | length' tickets/index.json)
+WITH_SUBTASKS=$(jq '[.tickets[] | select(.tasks != null and (.tasks | length > 0))] | length' .sage/tickets/index.json)
+WITH_VALIDATION=$(jq '[.tickets[] | select(.validation_config != null)] | length' .sage/tickets/index.json)
+WITH_COMPONENTS=$(jq '[.tickets[] | select(.components != null and (.components | length > 0))] | length' .sage/tickets/index.json)
 
 echo ""
 echo "================================================"
@@ -626,7 +626,7 @@ Solution: /repair --fix-parents
 
 ## Success Criteria
 
-- [ ] tickets/index.json is valid JSON
+- [ ] .sage/tickets/index.json is valid JSON
 - [ ] All required fields present
 - [ ] No duplicate ticket IDs
 - [ ] Ticket IDs follow convention

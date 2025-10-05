@@ -423,18 +423,18 @@ validate_tasks() {
 ### 3a. Validate Ticket System Quality
 
 ```bash
-# Check tickets/index.json for quality (new)
+# Check .sage/tickets/index.json for quality (new)
 validate_tickets() {
   echo "Validating Ticket System Quality..."
   echo ""
 
-  if [ ! -f tickets/index.json ]; then
+  if [ ! -f .sage/tickets/index.json ]; then
     echo "⚠️  INFO: No ticket system found (run /migrate first)"
     echo ""
     return 0
   fi
 
-  TOTAL_TICKETS=$(jq '.tickets | length' tickets/index.json)
+  TOTAL_TICKETS=$(jq '.tickets | length' .sage/tickets/index.json)
 
   if [ "$TOTAL_TICKETS" -eq 0 ]; then
     echo "⚠️  INFO: No tickets in system"
@@ -449,12 +449,12 @@ validate_tickets() {
   echo ""
 
   # Check 1: Sub-tasks have descriptions (10 points)
-  TICKETS_WITH_TASKS=$(jq '[.tickets[] | select(.tasks != null and (.tasks | length > 0))] | length' tickets/index.json)
+  TICKETS_WITH_TASKS=$(jq '[.tickets[] | select(.tasks != null and (.tasks | length > 0))] | length' .sage/tickets/index.json)
   TASKS_WITH_DESCRIPTIONS=$(jq '
     [.tickets[] | select(.tasks != null) | .tasks[] | select(.description != null and (.description | length > 10))] | length
-  ' tickets/index.json)
+  ' .sage/tickets/index.json)
 
-  TOTAL_TASKS=$(jq '[.tickets[] | select(.tasks != null) | .tasks[] ] | length' tickets/index.json)
+  TOTAL_TASKS=$(jq '[.tickets[] | select(.tasks != null) | .tasks[] ] | length' .sage/tickets/index.json)
 
   if [ "$TOTAL_TASKS" -gt 0 ]; then
     DESC_PCT=$((TASKS_WITH_DESCRIPTIONS * 100 / TOTAL_TASKS))
@@ -469,11 +469,11 @@ validate_tickets() {
   # Check 2: Validation scripts exist for validation types (10 points)
   TICKETS_WITH_VALIDATION=$(jq '
     [.tickets[] | select(.validation_type != "generic" and .validation_config != null)] | length
-  ' tickets/index.json)
+  ' .sage/tickets/index.json)
 
   TICKETS_NEED_VALIDATION=$(jq '
     [.tickets[] | select(.validation_type != "generic")] | length
-  ' tickets/index.json)
+  ' .sage/tickets/index.json)
 
   if [ "$TICKETS_NEED_VALIDATION" -gt 0 ]; then
     VALIDATION_PCT=$((TICKETS_WITH_VALIDATION * 100 / TICKETS_NEED_VALIDATION))
@@ -492,14 +492,14 @@ validate_tickets() {
       select(.validation_type == "stateflow" or .validation_type == "content" or .validation_type == "interactive") |
       select(.validation_config.auto_fix == true)
     ] | length
-  ' tickets/index.json)
+  ' .sage/tickets/index.json)
 
   SHOULD_HAVE_AUTOFIX=$(jq '
     [
       .tickets[] |
       select(.validation_type == "stateflow" or .validation_type == "content" or .validation_type == "interactive")
     ] | length
-  ' tickets/index.json)
+  ' .sage/tickets/index.json)
 
   if [ "$SHOULD_HAVE_AUTOFIX" -gt 0 ]; then
     AUTOFIX_PCT=$((APPROPRIATE_AUTOFIX * 100 / SHOULD_HAVE_AUTOFIX))
@@ -514,7 +514,7 @@ validate_tickets() {
   # Check 4: Component groupings are logical (5 points)
   TICKETS_WITH_COMPONENTS=$(jq '
     [.tickets[] | select(.components != null and (.components | length > 0))] | length
-  ' tickets/index.json)
+  ' .sage/tickets/index.json)
 
   WELL_GROUPED=$(jq '
     [
@@ -522,7 +522,7 @@ validate_tickets() {
       select(.components != null) |
       select(.components | length >= 2 and length <= 5)
     ] | length
-  ' tickets/index.json)
+  ' .sage/tickets/index.json)
 
   if [ "$TICKETS_WITH_COMPONENTS" -gt 0 ]; then
     GROUPING_PCT=$((WELL_GROUPED * 100 / TICKETS_WITH_COMPONENTS))
@@ -546,7 +546,7 @@ validate_tickets() {
         (.validation_type == "generic")
       )
     ] | length
-  ' tickets/index.json)
+  ' .sage/tickets/index.json)
 
   if [ "$TOTAL_TICKETS" -gt 0 ]; then
     TYPE_MATCH_PCT=$((APPROPRIATE_VALIDATION_TYPES * 100 / TOTAL_TICKETS))
@@ -612,7 +612,7 @@ if [ "$COMMAND_TO_VALIDATE" = "auto" ] || [ "$COMMAND_TO_VALIDATE" = "tasks" ]; 
 fi
 
 if [ "$COMMAND_TO_VALIDATE" = "auto" ] || [ "$COMMAND_TO_VALIDATE" = "tickets" ]; then
-  if [ -f tickets/index.json ]; then
+  if [ -f .sage/tickets/index.json ]; then
     validate_tickets || VALIDATION_PASSED=false
     echo ""
   fi

@@ -66,7 +66,7 @@
 /migrate
 ```
 
-**Result:** `tickets/AUTH-001.md` and `tickets/index.json`
+**Result:** `tickets/AUTH-001.md` and `.sage/tickets/index.json`
 
 **Generated Ticket (Enhanced Schema):**
 
@@ -729,7 +729,7 @@ Recommendation: Retry when external service is available
 /stream  # Completes AuthModule, AuthUI has issues
 
 # List component checkpoints
-jq '.tickets[] | select(.id == "AUTH-001") | .components' tickets/index.json
+jq '.tickets[] | select(.id == "AUTH-001") | .components' .sage/tickets/index.json
 
 # Output:
 # [
@@ -814,7 +814,7 @@ git log --oneline -1 src/auth/module.ts
 
 ```bash
 # Create test ticket
-cat > tickets/TEST-STATEFLOW.json <<EOF
+cat > .sage/tickets/TEST-STATEFLOW.json <<EOF
 {
   "id": "TEST-001",
   "validation_type": "stateflow",
@@ -851,7 +851,7 @@ EOF
 
 ```bash
 # Create ticket with division by zero edge case
-cat > tickets/TEST-CONTENT.json <<EOF
+cat > .sage/tickets/TEST-CONTENT.json <<EOF
 {
   "id": "TEST-002",
   "validation_type": "content",
@@ -899,7 +899,7 @@ const percentage = total === 0 ? 0 : (completed / total) * 100;
 
 ```bash
 # Create ticket that will fail validation persistently
-cat > tickets/TEST-DEFER.json <<EOF
+cat > .sage/tickets/TEST-DEFER.json <<EOF
 {
   "id": "TEST-003",
   "tasks": [
