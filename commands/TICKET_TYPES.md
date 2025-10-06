@@ -88,6 +88,93 @@ type: refactor
 title: "Migrate auth module to TypeScript"
 ```
 
+#### 5. `lightweight` (Migration-Generated)
+
+**Purpose:** Minimal placeholder for completed work (token optimization)
+
+**When to use:**
+
+- **Auto-generated** during `/migrate --mode=optimized`
+- COMPLETED tickets that don't need validation configs
+- Historical record of completed work
+- Token-efficient representation (~90% reduction)
+
+**Characteristics:**
+
+- State: Always COMPLETED
+- No validation configs
+- No sub-tasks or acceptance criteria
+- Git commit references only
+- Brief summary
+
+**Example:**
+
+```yaml
+id: AUTH-001
+type: lightweight
+state: COMPLETED
+completed_at: "2025-09-15T10:23:00Z"
+summary: "Implemented JWT validation with tests"
+git:
+  commits: ["abc123", "def456"]
+```
+
+**Token Savings:** ~500 tokens (vs ~5000 for full detail)
+
+**Usage Notes:**
+
+- ✅ Created automatically by migration in optimized mode
+- ✅ Serves as historical record
+- ❌ Not execution-ready (no implementation guidance)
+- ❌ Cannot be used with `/implement` or `/stream`
+
+#### 6. `legacy` (Git-History Inferred)
+
+**Purpose:** Historical ticket inferred from existing codebase without documentation
+
+**When to use:**
+
+- **Auto-generated** during `/migrate --mode=legacy`
+- Codebases without documentation
+- Git-history-only migration
+- Reverse-engineering existing projects
+
+**Characteristics:**
+
+- State: Always COMPLETED
+- Inferred from commit patterns or file changes
+- No documentation links
+- No validation configs
+- Minimal metadata
+- May have limited context
+
+**Example:**
+
+```yaml
+id: COMP-001
+type: legacy
+state: COMPLETED
+inferred_from: "git-history"
+completed_at: "2025-09-15T10:23:00Z"
+summary: "Inferred from git history - no documentation"
+git:
+  commits: ["abc123", "def456"]
+notes: "Auto-generated from existing codebase"
+```
+
+**Inference Strategy:**
+
+1. Extract from conventional commits: `feat(component):`, `fix(component):`
+2. Fallback: Group by directory structure
+3. All marked COMPLETED (code exists)
+
+**Limitations:**
+
+- Cannot infer dependencies
+- No subtask breakdown
+- Historical record only
+- Not execution-ready
+
 ---
 
 ## Validation Type System
@@ -751,7 +838,7 @@ validation_config:
 
 ## Summary
 
-**Ticket Types:** implementation, enhancement, bugfix, refactor
+**Ticket Types:** implementation, enhancement, bugfix, refactor, lightweight, legacy
 
 **Validation Types:** stateflow, content, interactive, integration, generic
 
@@ -765,9 +852,102 @@ validation_config:
 
 ---
 
+## Migration Modes
+
+The `/migrate` command supports three modes that determine ticket generation strategy:
+
+### 1. Optimized Mode (Default) - `--mode=optimized`
+
+**Best for:** Production use, token efficiency, existing codebases with documentation
+
+**Behavior:**
+- **COMPLETED tickets:** Lightweight placeholders (~500 tokens)
+  - Git commits + summary only
+  - No validation configs or sub-tasks
+  - Historical record
+- **UNPROCESSED/IN_PROGRESS tickets:** Full detail (~5000 tokens)
+  - Complete validation configs
+  - Sub-task breakdowns
+  - Acceptance criteria
+  - Ready for `/implement` and `/stream`
+
+**Token Savings:** 80-90% for completed work
+
+**Example Output:**
+```
+110 tickets generated:
+- 23 COMPLETED (lightweight): 11,500 tokens
+- 87 UNPROCESSED (full): 435,000 tokens
+Total: 446,500 tokens (vs 550,000 in full mode = 19% savings)
+```
+
+### 2. Full Mode - `--mode=full`
+
+**Best for:** Maximum historical context, archival purposes
+
+**Behavior:**
+- All tickets (COMPLETED + UNPROCESSED) get full detail
+- Complete validation configs for all states
+- Maximum context preservation
+- Highest token usage
+
+**Use When:**
+- Need detailed historical record
+- Archiving project documentation
+- Deep analysis of completed work
+
+### 3. Legacy Mode - `--mode=legacy`
+
+**Best for:** Undocumented codebases, reverse engineering, git-history-only migration
+
+**Behavior:**
+- **Auto-activated** when no documentation found
+- Infers tickets from git commit patterns
+- All tickets marked COMPLETED (historical)
+- Minimal metadata (git only)
+
+**Inference Strategy:**
+1. Extract components from conventional commits: `feat(auth):`, `fix(db):`
+2. Fallback: Group by directory structure
+3. Create one ticket per component
+
+**Limitations:**
+- Cannot infer dependencies
+- No subtask breakdown
+- Historical record only (not execution-ready)
+
+**Example:**
+```bash
+# Auto-detect legacy codebase
+/migrate
+
+# Output:
+⚠️  Legacy codebase detected - no documentation found
+Switching to LEGACY mode for git-history-only migration
+
+Generated 15 legacy tickets from git history:
+- AUTH-001: auth Implementation (COMPLETED)
+- DB-001: database Implementation (COMPLETED)
+- UI-001: ui Implementation (COMPLETED)
+...
+```
+
+### Mode Comparison
+
+| Aspect | Full | Optimized | Legacy |
+|--------|------|-----------|--------|
+| **COMPLETED tickets** | Full detail | Lightweight | Minimal |
+| **UNPROCESSED tickets** | Full detail | Full detail | N/A |
+| **Token usage** | Highest | Medium | Lowest |
+| **Requires docs** | Yes | Yes | No |
+| **Execution-ready** | Yes | Partial | No |
+| **Best for** | Archival | Production | Legacy codebases |
+
+---
+
 For detailed command usage, see:
 
-- `/migrate` - Generate tickets with validation types
+- `/migrate` - Generate tickets with validation types (supports --mode flag)
 - `/stream` - Execute tickets with sub-task processing
 - `/validate` - Validate ticket system integrity
 - `/quality` - Check ticket quality scores
