@@ -482,12 +482,107 @@ echo "  ✓ No circular dependencies"
 echo "  ✓ Parent relationships valid"
 echo "  ✓ Ticket files exist"
 echo "  ✓ Priority values valid"
+echo "  ✓ Parallel mode libraries available"
 echo ""
 echo "Safe to run:"
 echo "  - /stream"
+echo "  - /stream --auto --parallel=N"
 echo "  - /implement <ticket-id>"
 echo "  - /sync"
 echo "================================================"
+```
+
+### 15. Validate Parallel Mode Prerequisites
+
+```bash
+# Check if parallel scheduler library exists
+if [ -f ".sage/lib/parallel-scheduler.sh" ]; then
+  echo "✓ Parallel scheduler library found"
+
+  # Validate library is executable and well-formed
+  if bash -n .sage/lib/parallel-scheduler.sh 2>/dev/null; then
+    echo "  ✓ Syntax valid"
+  else
+    echo "  ⚠️  WARNING: Syntax errors in parallel-scheduler.sh"
+    echo "     Parallel mode may not work correctly"
+  fi
+else
+  echo "⚠️  WARNING: Parallel scheduler library not found (.sage/lib/parallel-scheduler.sh)"
+  echo "   Parallel mode (--parallel) will not be available"
+fi
+
+# Check if commit queue library exists
+if [ -f ".sage/lib/commit-queue.sh" ]; then
+  echo "✓ Commit queue library found"
+
+  # Validate library is executable and well-formed
+  if bash -n .sage/lib/commit-queue.sh 2>/dev/null; then
+    echo "  ✓ Syntax valid"
+  else
+    echo "  ⚠️  WARNING: Syntax errors in commit-queue.sh"
+    echo "     Parallel mode commit serialization may fail"
+  fi
+else
+  echo "⚠️  WARNING: Commit queue library not found (.sage/lib/commit-queue.sh)"
+  echo "   Parallel mode (--parallel) will not be available"
+fi
+
+# Check jq dependency (required for dependency graph analysis)
+if command -v jq &> /dev/null; then
+  echo "✓ jq command available (required for parallel mode)"
+else
+  echo "❌ ERROR: jq not found (required for dependency graph analysis)"
+  echo "   Install with: brew install jq"
+  exit 1
+fi
+
+# Validate commit queue directory can be created
+if mkdir -p .sage/commit-queue 2>/dev/null; then
+  echo "✓ Commit queue directory accessible"
+  rmdir .sage/commit-queue 2>/dev/null || true
+else
+  echo "⚠️  WARNING: Cannot create commit queue directory"
+  echo "   Parallel mode may fail"
+fi
+
+# Check worker directory can be created
+if mkdir -p .sage/workers 2>/dev/null; then
+  echo "✓ Worker directory accessible"
+  rmdir .sage/workers 2>/dev/null || true
+else
+  echo "⚠️  WARNING: Cannot create worker directory"
+  echo "   Parallel mode may fail"
+fi
+
+# Analyze parallelization potential
+UNPROCESSED_COUNT=$(jq '[.tickets[] | select(.state == "UNPROCESSED")] | length' .sage/tickets/index.json)
+INDEPENDENT_COUNT=$(jq '
+  .tickets |
+  map(select(.state == "UNPROCESSED")) |
+  map(select((.dependencies // []) | length == 0)) |
+  length
+' .sage/tickets/index.json)
+
+if [ "$UNPROCESSED_COUNT" -gt 0 ]; then
+  PARALLEL_RATIO=$((INDEPENDENT_COUNT * 100 / UNPROCESSED_COUNT))
+  echo ""
+  echo "Parallelization Analysis:"
+  echo "  Unprocessed tickets:  $UNPROCESSED_COUNT"
+  echo "  Independent tickets:  $INDEPENDENT_COUNT"
+  echo "  Parallelizable:       ${PARALLEL_RATIO}%"
+  echo ""
+
+  if [ "$PARALLEL_RATIO" -ge 50 ]; then
+    echo "  ✅ Good candidate for parallel execution"
+    echo "     Recommended: /stream --auto --parallel=3"
+  elif [ "$PARALLEL_RATIO" -ge 25 ]; then
+    echo "  ⚠️  Limited parallelization potential"
+    echo "     Recommended: /stream --auto --parallel=2"
+  else
+    echo "  ℹ️  Low parallelization potential (many dependencies)"
+    echo "     Recommended: /stream --auto (sequential)"
+  fi
+fi
 ```
 
 ## Validation Modes

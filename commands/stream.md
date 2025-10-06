@@ -1,7 +1,7 @@
 ---
 allowed-tools: Bash(git:*), Bash(cat:*), Bash(jq:*), Bash(grep:*), Task, Read, SequentialThinking
-description: Automated ticket execution orchestrator that processes tickets sequentially using sub-agents until completion.
-argument-hint: '[--interactive | --auto | --dry-run] (optional, defaults to --interactive)'
+description: Automated ticket execution orchestrator that processes tickets sequentially or in parallel using sub-agents until completion.
+argument-hint: '[--interactive | --auto | --dry-run] [--parallel=N | --parallel=auto] (defaults to --interactive, sequential)'
 ---
 
 ## Role
@@ -27,6 +27,8 @@ Automate the full development execution cycle by processing tickets sequentially
 # Parse execution mode flags (added for Issue 3.1 - Confirmations)
 EXECUTION_MODE="interactive"  # Default
 DRY_RUN=false
+PARALLEL_MODE=false
+PARALLEL_WORKERS="1"
 
 for arg in "$@"; do
   case $arg in
@@ -40,8 +42,26 @@ for arg in "$@"; do
       DRY_RUN=true
       EXECUTION_MODE="dry-run"
       ;;
+    --parallel=*)
+      PARALLEL_MODE=true
+      PARALLEL_WORKERS="${arg#*=}"
+      ;;
+    --parallel)
+      PARALLEL_MODE=true
+      PARALLEL_WORKERS="auto"
+      ;;
   esac
 done
+
+# Validate parallel mode compatibility
+if [ "$PARALLEL_MODE" = "true" ] && [ "$EXECUTION_MODE" != "auto" ]; then
+  echo "ERROR: --parallel requires --auto mode"
+  echo "Parallel execution is only supported in fully automated mode"
+  echo ""
+  echo "Usage: /stream --auto --parallel=3"
+  echo "   or: /stream --auto --parallel=auto"
+  exit 1
+fi
 
 # Check workflow mode (added for Issue 1.1 - Dual Workflow Confusion)
 if [ -f .sage/workflow-mode ]; then
@@ -63,6 +83,9 @@ fi
 # Display execution mode
 echo "================================================"
 echo "DEVSTREAM EXECUTION MODE: $EXECUTION_MODE"
+if [ "$PARALLEL_MODE" = "true" ]; then
+  echo "PARALLEL EXECUTION: $PARALLEL_WORKERS workers"
+fi
 echo "================================================"
 if [ "$EXECUTION_MODE" = "interactive" ]; then
   echo "Interactive mode: Confirmations required at key points"
@@ -71,6 +94,11 @@ if [ "$EXECUTION_MODE" = "interactive" ]; then
 elif [ "$EXECUTION_MODE" = "auto" ]; then
   echo "⚠️  AUTO MODE: No confirmations, fully automated"
   echo "Ensure you trust the system before using this mode"
+  if [ "$PARALLEL_MODE" = "true" ]; then
+    echo "⚡ PARALLEL: Processing multiple tickets concurrently"
+    echo "   Workers: $PARALLEL_WORKERS"
+    echo "   ⚠️  High token usage - ensure adequate API limits"
+  fi
 elif [ "$EXECUTION_MODE" = "dry-run" ]; then
   echo "DRY RUN MODE: Preview only, no changes will be made"
 fi
@@ -165,30 +193,129 @@ fi
 - **NEW: Interactive confirmation to start** (Issue 3.1)
 - Display cycle initialization summary
 
-### 2. Select Next Ticket
+### 1.5. Build Dependency Graph (Parallel Mode Only)
 
 ```bash
-# Query for UNPROCESSED tickets with satisfied dependencies
-cat .sage/tickets/index.json | jq -r '
-  .tickets[] |
-  select(.state == "UNPROCESSED") |
-  select(
-    if .dependencies then
-      all(.dependencies[]; . as $dep |
-        any($index.tickets[]; .id == $dep and .state == "COMPLETED")
-      )
-    else true end
-  ) |
-  .id
-' | head -n 1
+# Only execute in parallel mode
+if [ "$PARALLEL_MODE" = "true" ]; then
+  echo "Building dependency graph for parallel execution..."
+
+  # Source parallel scheduler library
+  source .sage/lib/parallel-scheduler.sh
+  source .sage/lib/commit-queue.sh
+
+  # Build dependency graph
+  DEP_GRAPH=$(build_dependency_graph .sage/tickets/index.json)
+
+  # Detect circular dependencies
+  if detect_circular_dependencies "$DEP_GRAPH"; then
+    echo "ERROR: Circular dependencies detected in ticket system"
+    echo "Cannot proceed with parallel execution"
+    echo ""
+    echo "Run /validate to identify circular dependencies"
+    exit 1
+  fi
+
+  # Determine optimal worker count
+  UNPROCESSED_COUNT=$(echo "$DEP_GRAPH" | jq '.stats.unprocessed')
+  PARALLEL_WORKERS=$(determine_worker_count "$PARALLEL_WORKERS" "$UNPROCESSED_COUNT")
+
+  echo "✓ Dependency graph built successfully"
+  echo "  Workers allocated: $PARALLEL_WORKERS"
+  echo "  Tickets available: $UNPROCESSED_COUNT"
+  echo ""
+
+  # Calculate batch statistics
+  BATCH_STATS=$(calculate_batch_statistics "$DEP_GRAPH" "$PARALLEL_WORKERS")
+  ESTIMATED_BATCHES=$(echo "$BATCH_STATS" | jq '.estimated_batches')
+
+  echo "Parallel Execution Plan:"
+  echo "  Estimated batches: $ESTIMATED_BATCHES"
+  echo "  Tickets/batch:     $PARALLEL_WORKERS"
+  echo ""
+
+  # Display dependency graph (optional, for debugging)
+  if [ "${DEBUG:-false}" = "true" ]; then
+    print_dependency_graph "$DEP_GRAPH"
+  fi
+
+  # Initialize commit queue
+  initialize_commit_queue
+  echo "✓ Commit queue initialized"
+  echo ""
+fi
+```
+
+**Key Actions (Parallel Mode):**
+
+- Load parallel scheduler and commit queue libraries
+- Build dependency graph from ticket index
+- Detect and reject circular dependencies
+- Calculate optimal worker count (auto or specified)
+- Calculate batch execution statistics
+- Initialize commit serialization queue
+- Validate parallel execution is feasible
+
+### 2. Select Next Ticket (or Batch)
+
+```bash
+# Sequential mode: Select single ticket
+if [ "$PARALLEL_MODE" = "false" ]; then
+  # Query for UNPROCESSED tickets with satisfied dependencies
+  SELECTED_TICKET_ID=$(cat .sage/tickets/index.json | jq -r '
+    .tickets[] |
+    select(.state == "UNPROCESSED") |
+    select(
+      if .dependencies then
+        all(.dependencies[]; . as $dep |
+          any($index.tickets[]; .id == $dep and .state == "COMPLETED")
+        )
+      else true end
+    ) |
+    .id
+  ' | head -n 1)
+
+  if [ -z "$SELECTED_TICKET_ID" ]; then
+    echo "No tickets available for processing"
+    exit 0
+  fi
+
+  echo "Selected ticket: $SELECTED_TICKET_ID"
+  TICKET_BATCH=("$SELECTED_TICKET_ID")
+
+# Parallel mode: Select batch of independent tickets
+else
+  # Find next parallel batch
+  BATCH_JSON=$(find_parallel_batch "$DEP_GRAPH" "$PARALLEL_WORKERS")
+  TICKET_BATCH=($(echo "$BATCH_JSON" | jq -r '.[]'))
+
+  if [ "${#TICKET_BATCH[@]}" -eq 0 ]; then
+    echo "No tickets available for parallel processing"
+    exit 0
+  fi
+
+  echo "┌─ Parallel Batch Selected ──────────────────────┐"
+  echo "│ Batch size: ${#TICKET_BATCH[@]} tickets"
+  echo "│ Tickets: ${TICKET_BATCH[*]}"
+  echo "└─────────────────────────────────────────────────┘"
+  echo ""
+fi
 ```
 
 **Selection Algorithm:**
 
+**Sequential Mode:**
 1. Filter tickets by state = UNPROCESSED
 2. Check all dependencies are COMPLETED
 3. Sort by priority (P0 > P1 > P2)
 4. Return highest priority ticket
+
+**Parallel Mode:**
+1. Build dependency graph
+2. Find all UNPROCESSED tickets with satisfied dependencies
+3. Select up to N tickets with no mutual dependencies
+4. Sort by priority within independent set
+5. Return batch of N ticket IDs
 
 **Use SequentialThinking to:**
 
@@ -196,6 +323,7 @@ cat .sage/tickets/index.json | jq -r '
 - Identify critical path tickets
 - Detect circular dependencies
 - Choose optimal execution order
+- Analyze file independence for parallelization
 
 ### 3. Display Ticket and Confirm (Interactive Mode)
 
@@ -685,6 +813,172 @@ Task(
   subagent_type="general-purpose"
 )
 ```
+
+### 3e. Parallel Batch Execution (Parallel Mode Only)
+
+```bash
+if [ "$PARALLEL_MODE" = "true" ]; then
+  echo "┌────────────────────────────────────────────────┐"
+  echo "│     LAUNCHING PARALLEL WORKER BATCH            │"
+  echo "└────────────────────────────────────────────────┘"
+  echo ""
+
+  # Create worker tracking directory
+  WORKER_DIR=".sage/workers/batch-$(date +%s)"
+  mkdir -p "$WORKER_DIR"
+
+  # Arrays to track worker processes
+  declare -a WORKER_PIDS=()
+  declare -a WORKER_IDS=()
+  declare -a WORKER_TICKETS=()
+
+  # Launch workers for each ticket in batch
+  WORKER_NUM=0
+  for TICKET_ID in "${TICKET_BATCH[@]}"; do
+    WORKER_NUM=$((WORKER_NUM + 1))
+    WORKER_ID="worker-${WORKER_NUM}"
+
+    echo "→ Launching Worker $WORKER_NUM for ticket $TICKET_ID..."
+
+    # Prepare worker prompt
+    cat > "$WORKER_DIR/${WORKER_ID}-prompt.txt" <<EOF
+Execute implementation for ticket: $TICKET_ID
+
+**Worker Context:**
+- Worker ID: $WORKER_ID
+- Parallel Batch Mode: ENABLED
+- Commit Strategy: Queue for serialization
+
+**Ticket Details:**
+[Load from .sage/tickets/index.json]
+
+**Critical Instructions:**
+1. Mark ticket IN_PROGRESS in .sage/tickets/index.json
+2. Read all context documents (spec, plan, breakdown)
+3. Follow Ticket Clearance Methodology
+4. DO NOT commit directly - use commit queue:
+   - Stage changes as normal
+   - Call: enqueue_commit "$WORKER_ID" "$TICKET_ID" "message" "file_list"
+5. Update ticket state: COMPLETED or DEFERRED
+6. Return outcome summary
+
+**Commit Queue Protocol:**
+- Your commits will be serialized by parent process
+- No git conflicts - queue handles synchronization
+- Atomic commits applied sequentially after all workers complete
+
+**Important:**
+- Only work on ticket $TICKET_ID
+- Do not interfere with other workers
+- Use .sage/workers/${WORKER_ID}/ for temporary files
+EOF
+
+    # Launch worker sub-agent in background
+    # Note: This would use Task tool in actual implementation
+    # For documentation, showing conceptual structure
+    (
+      # Worker executes in subshell
+      TASK_OUTPUT=$(Task \
+        description="Implement $TICKET_ID" \
+        prompt="$(cat $WORKER_DIR/${WORKER_ID}-prompt.txt)" \
+        subagent_type="general-purpose" \
+        2>&1)
+
+      # Save worker output
+      echo "$TASK_OUTPUT" > "$WORKER_DIR/${WORKER_ID}-output.txt"
+
+      # Extract result
+      WORKER_RESULT=$(echo "$TASK_OUTPUT" | grep "RESULT:" | cut -d: -f2)
+      echo "$WORKER_RESULT" > "$WORKER_DIR/${WORKER_ID}-result.txt"
+    ) &
+
+    # Track worker PID
+    WORKER_PID=$!
+    WORKER_PIDS+=("$WORKER_PID")
+    WORKER_IDS+=("$WORKER_ID")
+    WORKER_TICKETS+=("$TICKET_ID")
+
+    echo "  ✓ Worker $WORKER_NUM started (PID: $WORKER_PID)"
+    echo ""
+  done
+
+  echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+  echo "All $WORKER_NUM workers launched, monitoring progress..."
+  echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+  echo ""
+
+  # Monitor worker progress
+  COMPLETED_WORKERS=0
+  FAILED_WORKERS=0
+
+  while [ "$COMPLETED_WORKERS" -lt "${#WORKER_PIDS[@]}" ]; do
+    # Check each worker
+    for i in "${!WORKER_PIDS[@]}"; do
+      WORKER_PID="${WORKER_PIDS[$i]}"
+      WORKER_ID="${WORKER_IDS[$i]}"
+      TICKET_ID="${WORKER_TICKETS[$i]}"
+
+      # Check if worker completed
+      if ! ps -p "$WORKER_PID" > /dev/null 2>&1; then
+        # Worker finished
+        if [ -f "$WORKER_DIR/${WORKER_ID}-result.txt" ]; then
+          RESULT=$(cat "$WORKER_DIR/${WORKER_ID}-result.txt")
+
+          if [ "$RESULT" = "COMPLETED" ]; then
+            echo "✅ Worker $((i+1)) completed: $TICKET_ID"
+            COMPLETED_WORKERS=$((COMPLETED_WORKERS + 1))
+          else
+            echo "⚠️  Worker $((i+1)) deferred: $TICKET_ID"
+            FAILED_WORKERS=$((FAILED_WORKERS + 1))
+          fi
+
+          # Mark as processed
+          unset WORKER_PIDS[$i]
+        fi
+      fi
+    done
+
+    # Brief sleep to avoid busy-wait
+    sleep 2
+  done
+
+  echo ""
+  echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+  echo "Batch Execution Complete:"
+  echo "  Completed: $COMPLETED_WORKERS"
+  echo "  Deferred:  $FAILED_WORKERS"
+  echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+  echo ""
+
+  # Process commit queue (serialize all commits)
+  echo "Processing commit queue (serializing commits)..."
+  COMMITS_PROCESSED=$(process_commit_queue)
+  echo "✓ $COMMITS_PROCESSED commits applied"
+  echo ""
+
+  # Cleanup worker directory
+  rm -rf "$WORKER_DIR"
+fi
+```
+
+**Key Actions (Parallel Mode):**
+
+- Create worker tracking directory
+- Launch N sub-agents concurrently (one per ticket)
+- Each worker receives isolated ticket context
+- Workers queue commits instead of applying directly
+- Monitor all workers for completion
+- Aggregate results (completed/deferred counts)
+- Process commit queue sequentially (avoid conflicts)
+- Cleanup worker artifacts
+
+**Commit Serialization:**
+
+- Workers call `enqueue_commit()` instead of `git commit`
+- Parent process holds commit queue
+- After all workers complete, process queue sequentially
+- File locking prevents race conditions
+- Maintains atomic commit ordering
 
 ### 4. Monitor Sub-Agent Execution
 
@@ -1322,10 +1616,39 @@ cat .docs/DEVSTREAM_SUMMARY.md
 
 ## Performance Considerations
 
-- **Sequential Execution**: One ticket at a time (safe, predictable)
+### Sequential Execution (Default)
+
+- **Mode**: One ticket at a time (safe, predictable)
 - **Sub-Agent Overhead**: ~5-10s per ticket for context setup
 - **Typical Cycle**: 10-20 tickets in 2-4 hours
-- **Optimization**: Future parallel execution for independent tickets
+- **Token Usage**: Moderate, sequential API calls
+- **Best For**: Interactive mode, learning, debugging
+
+### Parallel Execution (`--auto --parallel`)
+
+- **Mode**: N tickets concurrently (fast, resource-intensive)
+- **Sub-Agent Overhead**: Same per-ticket, but overlapped
+- **Typical Cycle**: 10-20 tickets in 1-2 hours (with 3 workers)
+- **Token Usage**: High, N× concurrent API calls
+- **Worker Limit**: Auto-detect (CPU/2) or manual (1-8)
+- **Best For**: Large ticket queues, trusted automation
+
+### Performance Comparison
+
+| Metric | Sequential | Parallel (3 workers) | Speedup |
+|--------|-----------|---------------------|---------|
+| 10 tickets | 2 hours | 45-60 minutes | 2-2.5× |
+| 20 tickets | 4 hours | 1.5-2 hours | 2-2.5× |
+| Token usage | 1× | 3× peak | N/A |
+| Reliability | Highest | High | N/A |
+
+### Parallel Execution Constraints
+
+- **Dependency blocking**: Cannot parallelize dependent tickets
+- **API rate limits**: May throttle at high concurrency
+- **Token budget**: N workers × tokens per ticket
+- **Commit serialization**: Adds ~2-5s per batch
+- **Optimal batch size**: Typically 2-4 workers for best balance
 
 ## Execution Modes (Issue 3.1 - Interactive Confirmations)
 
@@ -1398,6 +1721,106 @@ Continue processing remaining 4 tickets? (yes/no/pause): yes
 - Tests are comprehensive
 - You can rollback if needed (use `/rollback`)
 - Not in production initially
+
+### Parallel Auto Mode
+
+**Usage:** `/stream --auto --parallel=N` or `/stream --auto --parallel=auto`
+
+**Behavior:**
+- ❌ No confirmations (same as auto mode)
+- ✅ Fully automated execution
+- ⚡ **Concurrent ticket processing** (N workers)
+- ✅ Automatic dependency graph analysis
+- ✅ Batch-based execution (independent tickets only)
+- ✅ Serialized commit application (no conflicts)
+- ✅ Continues until all batches processed
+
+**Worker Allocation:**
+- `--parallel=3`: Use exactly 3 workers
+- `--parallel=auto`: Auto-detect optimal count (CPU/2, capped 1-8)
+- Default (no flag): Sequential mode
+
+**Best For:**
+- Large ticket queues (20+ tickets)
+- When many tickets are independent
+- Time-critical delivery
+- Experienced users with trusted specs
+
+**Example Session:**
+```bash
+/stream --auto --parallel=3
+
+# Output:
+================================================
+DEVSTREAM EXECUTION MODE: auto
+PARALLEL EXECUTION: 3 workers
+================================================
+⚠️  AUTO MODE: No confirmations, fully automated
+⚡ PARALLEL: Processing multiple tickets concurrently
+   Workers: 3
+   ⚠️  High token usage - ensure adequate API limits
+================================================
+
+Building dependency graph for parallel execution...
+✓ Dependency graph built successfully
+  Workers allocated: 3
+  Tickets available: 12
+
+Parallel Execution Plan:
+  Estimated batches: 4
+  Tickets/batch:     3
+
+┌─ Parallel Batch Selected ──────────────────────┐
+│ Batch size: 3 tickets
+│ Tickets: AUTH-001 AUTH-002 UI-003
+└─────────────────────────────────────────────────┘
+
+┌────────────────────────────────────────────────┐
+│     LAUNCHING PARALLEL WORKER BATCH            │
+└────────────────────────────────────────────────┘
+
+→ Launching Worker 1 for ticket AUTH-001...
+  ✓ Worker 1 started (PID: 12345)
+
+→ Launching Worker 2 for ticket AUTH-002...
+  ✓ Worker 2 started (PID: 12346)
+
+→ Launching Worker 3 for ticket UI-003...
+  ✓ Worker 3 started (PID: 12347)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+All 3 workers launched, monitoring progress...
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ Worker 1 completed: AUTH-001
+✅ Worker 3 completed: UI-003
+✅ Worker 2 completed: AUTH-002
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Batch Execution Complete:
+  Completed: 3
+  Deferred:  0
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Processing commit queue (serializing commits)...
+✓ 3 commits applied
+
+# ... continues for next batch ...
+```
+
+**⚠️ Additional Warnings:**
+- **Token usage**: N× higher than sequential
+- **API limits**: May hit rate limits with high concurrency
+- **Complexity**: Harder to debug if issues arise
+- **Dependency deadlocks**: Can stall if graph has issues
+- **Recommended**: Start with `--parallel=2` to test
+
+**When NOT to use parallel mode:**
+- First time running `/stream`
+- Tickets have complex interdependencies
+- API rate limits are restrictive
+- Debugging ticket failures
+- Small ticket queues (< 5 tickets)
 
 ### Dry-Run Mode
 

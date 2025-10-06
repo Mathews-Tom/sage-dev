@@ -987,6 +987,253 @@ Ticket Status: IN_PROGRESS
 
 ---
 
+## Parallel Execution Examples
+
+### Example 1: Parallel Auto Mode with 3 Workers
+
+**Scenario:** Process 9 independent tickets concurrently using 3 workers
+
+**Setup:**
+
+```bash
+# Tickets available (all independent, no dependencies):
+# - AUTH-001: Implement login form
+# - AUTH-002: Implement logout button
+# - UI-001: Add dashboard layout
+# - UI-002: Add settings page
+# - UI-003: Add profile widget
+# - API-001: Create user endpoint
+# - API-002: Create project endpoint
+# - API-003: Create task endpoint
+# - DB-001: Add user migrations
+```
+
+**Execute with Parallel Mode:**
+
+```bash
+/stream --auto --parallel=3
+```
+
+**Execution Flow:**
+
+```
+================================================
+DEVSTREAM EXECUTION MODE: auto
+PARALLEL EXECUTION: 3 workers
+================================================
+⚠️  AUTO MODE: No confirmations, fully automated
+⚡ PARALLEL: Processing multiple tickets concurrently
+   Workers: 3
+   ⚠️  High token usage - ensure adequate API limits
+================================================
+
+Building dependency graph for parallel execution...
+✓ Dependency graph built successfully
+  Workers allocated: 3
+  Tickets available: 9
+
+Parallel Execution Plan:
+  Estimated batches: 3
+  Tickets/batch:     3
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+BATCH 1/3
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+┌─ Parallel Batch Selected ──────────────────────┐
+│ Batch size: 3 tickets
+│ Tickets: AUTH-001 AUTH-002 UI-001
+└─────────────────────────────────────────────────┘
+
+┌────────────────────────────────────────────────┐
+│     LAUNCHING PARALLEL WORKER BATCH            │
+└────────────────────────────────────────────────┘
+
+→ Launching Worker 1 for ticket AUTH-001...
+  ✓ Worker 1 started (PID: 45231)
+
+→ Launching Worker 2 for ticket AUTH-002...
+  ✓ Worker 2 started (PID: 45232)
+
+→ Launching Worker 3 for ticket UI-001...
+  ✓ Worker 3 started (PID: 45233)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+All 3 workers launched, monitoring progress...
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ Worker 1 completed: AUTH-001 (Duration: 4m 32s)
+✅ Worker 3 completed: UI-001 (Duration: 5m 12s)
+✅ Worker 2 completed: AUTH-002 (Duration: 5m 45s)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Batch Execution Complete:
+  Completed: 3
+  Deferred:  0
+  Duration:  5m 45s (wall time)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Processing commit queue (serializing commits)...
+┌─ Processing Commit Queue ──────────────────────┐
+│ Processed: 3 commits
+│ Failed:    0 commits
+└────────────────────────────────────────────────┘
+✓ 3 commits applied
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+BATCH 2/3
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+[... similar output for UI-002, UI-003, API-001 ...]
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+BATCH 3/3
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+[... similar output for API-002, API-003, DB-001 ...]
+
+╔════════════════════════════════════════════════╗
+║      DEVELOPMENT CYCLE COMPLETE ✅             ║
+╚════════════════════════════════════════════════╝
+
+Cycle Duration: 18m 32s (wall time)
+
+┌─ Ticket Summary ───────────────────────────────┐
+│                                                │
+│  Total Tickets:    9
+│  Completed:        9 (100%)
+│  In Progress:      0
+│  Deferred:         0
+│  Unprocessed:      0
+│                                                │
+└────────────────────────────────────────────────┘
+
+┌─ Parallel Execution Metrics ───────────────────┐
+│                                                │
+│  Workers:          3
+│  Total Batches:    3
+│  Avg Batch Time:   6m 11s
+│  Commits Applied:  9
+│                                                │
+│  Time Saved:       ~37 minutes
+│  Efficiency:       2.5× faster than sequential
+│                                                │
+└────────────────────────────────────────────────┘
+
+Completed This Cycle:
+  ✅ AUTH-001: Implement login form (4m 32s)
+  ✅ AUTH-002: Implement logout button (5m 45s)
+  ✅ UI-001: Add dashboard layout (5m 12s)
+  ✅ UI-002: Add settings page (6m 03s)
+  ✅ UI-003: Add profile widget (5m 54s)
+  ✅ API-001: Create user endpoint (6m 22s)
+  ✅ API-002: Create project endpoint (6m 45s)
+  ✅ API-003: Create task endpoint (5m 58s)
+  ✅ DB-001: Add user migrations (4m 21s)
+```
+
+**Performance Comparison:**
+
+| Metric | Sequential | Parallel (3 workers) | Improvement |
+|--------|-----------|---------------------|-------------|
+| Total time | ~55 minutes | ~18.5 minutes | 2.97× faster |
+| Tickets/hour | 9.8 | 29.2 | 2.97× |
+| Token usage | 1× | 3× peak | N/A |
+
+### Example 2: Auto-Detect Worker Count
+
+**Scenario:** Let system auto-detect optimal worker count based on CPU
+
+**Execute:**
+
+```bash
+/stream --auto --parallel=auto
+```
+
+**Output:**
+
+```
+Building dependency graph for parallel execution...
+✓ Dependency graph built successfully
+  Workers allocated: 4 (auto-detected from 8 CPU cores)
+  Tickets available: 15
+
+Parallel Execution Plan:
+  Estimated batches: 4
+  Tickets/batch:     4 (last batch: 3)
+```
+
+### Example 3: Handling Dependencies in Parallel Mode
+
+**Scenario:** Mixed dependent and independent tickets
+
+**Ticket Structure:**
+
+```
+AUTH-001 (no dependencies)
+AUTH-002 (no dependencies)
+UI-001 (depends on AUTH-001)
+UI-002 (no dependencies)
+API-001 (depends on AUTH-001, AUTH-002)
+```
+
+**Execute:**
+
+```bash
+/stream --auto --parallel=3
+```
+
+**Dependency Resolution:**
+
+```
+BATCH 1: AUTH-001, AUTH-002, UI-002  (3 independent tickets)
+  → AUTH-001 and AUTH-002 must complete before UI-001 and API-001
+
+BATCH 2: UI-001, API-001  (2 tickets, dependencies now satisfied)
+  → Runs with 2 workers (no 3rd independent ticket available)
+```
+
+**Key Insight:** Parallel mode automatically handles dependencies by batching only independent tickets.
+
+### Example 4: Partial Batch with Deferrals
+
+**Scenario:** One worker fails, others succeed
+
+**Execute:**
+
+```bash
+/stream --auto --parallel=3
+```
+
+**Output:**
+
+```
+┌─ Parallel Batch Selected ──────────────────────┐
+│ Batch size: 3 tickets
+│ Tickets: TEST-001 TEST-002 TEST-003
+└─────────────────────────────────────────────────┘
+
+✅ Worker 1 completed: TEST-001
+⚠️  Worker 2 deferred: TEST-002 (persistent_test_failure)
+✅ Worker 3 completed: TEST-003
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Batch Execution Complete:
+  Completed: 2
+  Deferred:  1
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Processing commit queue (serializing commits)...
+✓ 2 commits applied
+
+Deferred Tickets (Need Review):
+  ⚠️  TEST-002: Validation failed after 3 retries
+```
+
+**Outcome:** Successful tickets committed, deferred ticket logged for manual review.
+
+---
+
 ## Summary
 
 This examples document demonstrates:
@@ -1004,6 +1251,8 @@ This examples document demonstrates:
 ✅ **Testing Scenarios**: Reproducible test cases for validation
 
 ✅ **Error Handling**: Defer mechanism with categorized reasons
+
+✅ **Parallel Execution**: Concurrent ticket processing with auto/manual worker allocation
 
 For detailed reference documentation, see:
 - `TICKET_TYPES.md` - Ticket type system reference

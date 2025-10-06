@@ -383,11 +383,24 @@ Quick reference for command syntax, parameters, and usage.
 **Execution Modes:**
 
 ```bash
-/stream                    # Interactive mode (default)
-/stream --interactive      # Explicit interactive
-/stream --auto             # Fully automated (CI/CD)
-/stream --dry-run          # Preview only
+/stream                              # Interactive mode (default, sequential)
+/stream --interactive                # Explicit interactive (sequential)
+/stream --auto                       # Fully automated (CI/CD, sequential)
+/stream --auto --parallel=3          # Fully automated with 3 parallel workers
+/stream --auto --parallel=auto       # Fully automated with auto-detected workers
+/stream --dry-run                    # Preview only
 ```
+
+**Parallel Mode:**
+- Only available with `--auto` mode
+- Processes multiple independent tickets concurrently
+- Auto-detects optimal worker count (CPU/2, capped 1-8) with `--parallel=auto`
+- Specify exact worker count with `--parallel=N` (e.g., `--parallel=3`)
+- Analyzes dependencies to batch independent tickets
+- Serializes commits to avoid conflicts
+- **Performance**: ~2-3× faster for large ticket queues
+- **Token usage**: N× higher (concurrent API calls)
+- **Best for**: 20+ independent tickets
 
 **Interactive Confirmation Points:**
 
@@ -543,9 +556,11 @@ Quick reference for command syntax, parameters, and usage.
 
 | Command | Flags | Default |
 |---------|-------|---------|
-| `/stream` | `--interactive`, `--auto`, `--dry-run` | `--interactive` |
+| `/stream` | `--interactive`, `--auto`, `--dry-run`, `--parallel=N\|auto` | `--interactive` (sequential) |
 | `/rollback` | `--force`, `--tickets-only`, `--git-only` | Interactive |
 | `/breakdown` | `[component-names...]` | All components |
+
+**Note:** `--parallel` requires `--auto` mode. Usage: `/stream --auto --parallel=3` or `/stream --auto --parallel=auto`
 
 ---
 

@@ -17,3 +17,11 @@ uv.lock
 
 # Sage-Dev local configuration
 .docs/
+
+# Sage-dev project state (not infrastructure)
+.sage/workflow-mode
+.sage/tickets/
+.sage/workers/
+.sage/commit-queue/
+.sage/commit.lock
+.sage/*.log
