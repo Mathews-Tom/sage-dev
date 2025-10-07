@@ -1157,46 +1157,405 @@ echo ""
 - Velocity metrics
 - Estimated completion time
 
-### 7. Commit and Sync with Confirmation
+### 7. Commit Task Changes with Full /commit Integration
 
 ```bash
-# Show changes to be committed
-echo "Changes made for ticket $TICKET_ID:"
-git diff --stat
-echo ""
+# Branch Safety Check (from /commit logic)
+CURRENT_BRANCH=$(git branch --show-current)
 
-# Interactive confirmation for commit (Issue 3.1)
-if [ "$EXECUTION_MODE" = "interactive" ]; then
-  echo "Ready to commit changes for ticket $TICKET_ID"
-  read -p "Review diff before committing? (yes/no/skip): " REVIEW_DIFF
+# Never commit to main/master
+if [[ "$CURRENT_BRANCH" == "main" || "$CURRENT_BRANCH" == "master" ]]; then
+  echo "ERROR: Cannot commit to $CURRENT_BRANCH"
+  echo "Creating feature branch for ticket $TICKET_ID..."
 
-  if [ "$REVIEW_DIFF" = "yes" ]; then
-    git diff --color
-    echo ""
-    read -p "Proceed with commit? (yes/no): " COMMIT_CONFIRM
-    if [ "$COMMIT_CONFIRM" != "yes" ]; then
-      echo "Commit skipped. Changes staged but not committed."
-      echo "You can commit manually later."
-      # Continue without committing
-    else
-      # Run /commit command
-      echo "Creating commit with ticket ID..."
+  # Propose branch name
+  BRANCH_NAME="feature/${TICKET_ID,,}"  # lowercase
+
+  if [ "$EXECUTION_MODE" = "interactive" ]; then
+    read -p "Create and switch to branch '$BRANCH_NAME'? (yes/custom): " BRANCH_CONFIRM
+    if [ "$BRANCH_CONFIRM" = "custom" ]; then
+      read -p "Enter branch name: " BRANCH_NAME
     fi
-  elif [ "$REVIEW_DIFF" = "skip" ]; then
-    echo "Commit skipped. Changes remain uncommitted."
-  else
-    # Run /commit command directly
-    echo "Creating commit with ticket ID..."
   fi
+
+  # Create and checkout branch
+  git checkout -b "$BRANCH_NAME"
+
+  # Update ticket with branch info
+  jq --arg ticket_id "$TICKET_ID" \
+     --arg branch "$BRANCH_NAME" '
+    .tickets |= map(
+      if .id == $ticket_id then
+        .git.branch = $branch
+      else . end
+    )
+  ' .sage/tickets/index.json > /tmp/tickets-branch.json
+
+  mv /tmp/tickets-branch.json .sage/tickets/index.json
+
+  echo "✓ Switched to branch: $BRANCH_NAME"
   echo ""
 fi
 
-# Auto mode - commit automatically
-if [ "$EXECUTION_MODE" = "auto" ]; then
-  echo "Auto-committing changes for ticket $TICKET_ID..."
-  # Run /commit command
+# Check for changes to commit
+GIT_STATUS=$(git status --porcelain)
+
+if [ -z "$GIT_STATUS" ]; then
+  echo "No changes to commit for ticket $TICKET_ID"
+else
+  # Show changes summary
+  echo "Changes made for ticket $TICKET_ID:"
+  git diff --stat
+  echo ""
+
+  # Interactive confirmation for commit (Issue 3.1)
+  if [ "$EXECUTION_MODE" = "interactive" ]; then
+    echo "Ready to commit changes for ticket $TICKET_ID"
+    read -p "Review diff before committing? (yes/no/skip): " REVIEW_DIFF
+
+    if [ "$REVIEW_DIFF" = "yes" ]; then
+      git diff --color
+      echo ""
+      read -p "Proceed with commit? (yes/no): " COMMIT_CONFIRM
+      if [ "$COMMIT_CONFIRM" != "yes" ]; then
+        echo "Commit skipped. Changes remain uncommitted."
+        echo "You can commit manually later."
+        # Skip to next section
+      else
+        # Proceed to commit creation
+        SHOULD_COMMIT=true
+      fi
+    elif [ "$REVIEW_DIFF" = "skip" ]; then
+      echo "Commit skipped. Changes remain uncommitted."
+      SHOULD_COMMIT=false
+    else
+      # Commit directly without review
+      SHOULD_COMMIT=true
+    fi
+    echo ""
+  fi
+
+  # Auto mode - commit automatically
+  if [ "$EXECUTION_MODE" = "auto" ]; then
+    echo "Auto-committing changes for ticket $TICKET_ID..."
+    SHOULD_COMMIT=true
+  fi
+
+  # Create commit if approved
+  if [ "$SHOULD_COMMIT" = "true" ]; then
+    # Load ticket data for commit message
+    TICKET_DATA=$(cat .sage/tickets/index.json | jq ".tickets[] | select(.id == \"$TICKET_ID\")")
+    TICKET_TITLE=$(echo $TICKET_DATA | jq -r '.title')
+    TICKET_TYPE=$(echo $TICKET_DATA | jq -r '.type')
+    SPEC_PATH=$(echo $TICKET_DATA | jq -r '.docs.spec')
+    PLAN_PATH=$(echo $TICKET_DATA | jq -r '.docs.plan')
+    BREAKDOWN_PATH=$(echo $TICKET_DATA | jq -r '.docs.breakdown // "N/A"')
+
+    # Use SequentialThinking to determine commit type and scope
+    # Analyze changed files to determine semantic commit type
+    CHANGED_FILES=$(git diff --name-only)
+
+    # Determine commit type based on ticket type and changes
+    case $TICKET_TYPE in
+      feature) COMMIT_TYPE="feat" ;;
+      bugfix) COMMIT_TYPE="fix" ;;
+      documentation) COMMIT_TYPE="docs" ;;
+      refactor) COMMIT_TYPE="refactor" ;;
+      test) COMMIT_TYPE="test" ;;
+      *) COMMIT_TYPE="feat" ;;
+    esac
+
+    # Extract scope from ticket ID or use component name
+    COMPONENT=$(echo $TICKET_ID | cut -d'-' -f1 | tr '[:upper:]' '[:lower:]')
+
+    # Create commit message following /commit standards
+    # CRITICAL: No AI attribution
+    COMMIT_MSG=$(cat <<EOF
+$COMMIT_TYPE($COMPONENT): #$TICKET_ID ${TICKET_TITLE,,}
+
+Implement ticket $TICKET_ID following specifications.
+
+Addresses acceptance criteria from:
+- Spec: $SPEC_PATH
+- Plan: $PLAN_PATH
+- Breakdown: $BREAKDOWN_PATH
+
+Closes: #$TICKET_ID
+EOF
+)
+
+    # Stage all changes
+    git add -A
+
+    # Create commit
+    git commit -m "$COMMIT_MSG"
+
+    # Capture commit SHA
+    COMMIT_SHA=$(git rev-parse HEAD)
+    COMMIT_SHORT=$(git rev-parse --short HEAD)
+
+    echo "✓ Commit created: $COMMIT_SHORT"
+    echo ""
+
+    # Update ticket with commit info
+    jq --arg ticket_id "$TICKET_ID" \
+       --arg commit_sha "$COMMIT_SHA" \
+       --arg commit_msg "$COMMIT_MSG" '
+      .tickets |= map(
+        if .id == $ticket_id then
+          .git.commits = (.git.commits // []) + [$commit_sha] |
+          .git.last_commit = {
+            "sha": $commit_sha,
+            "message": $commit_msg,
+            "timestamp": "'$(date -u +%Y-%m-%dT%H:%M:%SZ)'"
+          }
+        else . end
+      )
+    ' .sage/tickets/index.json > /tmp/tickets-commit.json
+
+    mv /tmp/tickets-commit.json .sage/tickets/index.json
+
+    # Append commit to ticket markdown
+    cat >> .sage/tickets/${TICKET_ID}.md <<EOF
+
+## Commits
+- [\`$COMMIT_SHORT\`]: $COMMIT_TYPE($COMPONENT): #$TICKET_ID ${TICKET_TITLE,,}
+EOF
+
+    echo "✓ Ticket updated with commit info"
+    echo ""
+  fi
+fi
+```
+
+### 8. Update or Create PR Description
+
+```bash
+# Determine if this is a new branch or existing branch with PR
+CURRENT_BRANCH=$(git branch --show-current)
+PR_FILE=".docs/PR_DESCRIPTION.md"
+
+# Create .docs directory if it doesn't exist
+mkdir -p .docs
+
+# Check if PR description already exists
+if [ -f "$PR_FILE" ]; then
+  echo "Updating existing PR description..."
+  PR_EXISTS=true
+else
+  echo "Creating new PR description..."
+  PR_EXISTS=false
 fi
 
+# Get all commits on this branch (not on main)
+BRANCH_COMMITS=$(git log --format="%h %s" origin/main..HEAD 2>/dev/null || git log --format="%h %s" -10)
+
+# Extract all ticket IDs from commits
+TICKET_IDS=$(echo "$BRANCH_COMMITS" | grep -oE '#[A-Z]+-[0-9]+' | sort -u | tr '\n' ' ')
+
+# Load ticket data for all tickets on this branch
+TICKETS_JSON=$(cat .sage/tickets/index.json | jq "[.tickets[] | select(.git.branch == \"$CURRENT_BRANCH\")]")
+TICKET_COUNT=$(echo "$TICKETS_JSON" | jq 'length')
+
+if [ "$PR_EXISTS" = "false" ]; then
+  # Generate PR description from scratch
+
+  # Determine PR title from primary ticket
+  PRIMARY_TICKET=$(echo "$TICKETS_JSON" | jq -r '.[0]')
+  PRIMARY_ID=$(echo "$PRIMARY_TICKET" | jq -r '.id')
+  PRIMARY_TITLE=$(echo "$PRIMARY_TICKET" | jq -r '.title')
+  PRIMARY_TYPE=$(echo "$PRIMARY_TICKET" | jq -r '.type')
+
+  # Map ticket type to PR type
+  case $PRIMARY_TYPE in
+    feature) PR_TYPE="feat" ;;
+    bugfix) PR_TYPE="fix" ;;
+    documentation) PR_TYPE="docs" ;;
+    refactor) PR_TYPE="refactor" ;;
+    test) PR_TYPE="test" ;;
+    *) PR_TYPE="feat" ;;
+  esac
+
+  # Generate full PR description from template
+  cat > "$PR_FILE" <<EOF
+# $PR_TYPE: $PRIMARY_TITLE
+
+## 🎫 Tickets
+EOF
+
+  # Add ticket references
+  echo "$TICKETS_JSON" | jq -r '.[] | "- Closes #\(.id)"' >> "$PR_FILE"
+
+  cat >> "$PR_FILE" <<EOF
+
+## 🎯 Purpose
+Implement ticket-based changes for $PRIMARY_ID and related work.
+
+**Ticket Context:**
+EOF
+
+  # Add ticket summaries
+  echo "$TICKETS_JSON" | jq -r '.[] | "- **\(.id)**: \(.title)"' >> "$PR_FILE"
+
+  cat >> "$PR_FILE" <<EOF
+
+## 📝 Changes
+### Added
+EOF
+
+  # Extract changes from ticket data
+  echo "$TICKETS_JSON" | jq -r '.[] | "- \(.title) (per \(.id) acceptance criteria)"' >> "$PR_FILE"
+
+  cat >> "$PR_FILE" <<EOF
+
+### Changed
+- Implementation updates per specifications
+
+### Fixed
+- Bug fixes and corrections
+
+### Removed
+- N/A
+
+## 🔧 Technical Details
+**Approach:**
+Ticket-based implementation following Ticket Clearance Methodology.
+
+**Key Files:**
+EOF
+
+  # List changed files
+  git diff --name-only origin/main..HEAD 2>/dev/null | head -10 | while read file; do
+    echo "- \`$file\` - changes for ticket implementation" >> "$PR_FILE"
+  done
+
+  cat >> "$PR_FILE" <<EOF
+
+**Ticket Implementation:**
+EOF
+
+  # Add ticket documentation references
+  echo "$TICKETS_JSON" | jq -r '.[] | "- \(.id): Spec: \(.docs.spec), Plan: \(.docs.plan)"' >> "$PR_FILE"
+
+  cat >> "$PR_FILE" <<EOF
+
+## 🧪 Testing
+**Test Coverage:**
+- [ ] Unit tests added/updated
+- [ ] Integration tests added/updated
+- [ ] Manual testing completed
+
+**Acceptance Criteria Met:**
+EOF
+
+  # Extract acceptance criteria from tickets
+  echo "$TICKETS_JSON" | jq -r '.[] | .acceptanceCriteria[]? | "- [x] \(.)"' >> "$PR_FILE"
+
+  cat >> "$PR_FILE" <<EOF
+
+## 📊 Impact
+**Performance:**
+- Standard implementation, no performance implications
+
+**Breaking Changes:**
+- [ ] No breaking changes
+
+**Migration Required:**
+- [ ] No migration needed
+
+## 🔗 References
+EOF
+
+  # Add ticket references
+  echo "$TICKETS_JSON" | jq -r '.[] | "- Ticket: #\(.id)"' >> "$PR_FILE"
+  echo "$TICKETS_JSON" | jq -r '.[] | "- Spec: \(.docs.spec)"' >> "$PR_FILE"
+  echo "$TICKETS_JSON" | jq -r '.[] | "- Plan: \(.docs.plan)"' >> "$PR_FILE"
+
+  cat >> "$PR_FILE" <<EOF
+
+## ✅ Checklist
+- [ ] Code follows project style guidelines
+- [ ] Tests pass locally
+- [ ] Documentation updated
+- [ ] No console errors/warnings
+- [ ] Reviewed own code
+- [ ] All ticket acceptance criteria met
+EOF
+
+  # Add ticket completion checklist
+  echo "$TICKETS_JSON" | jq -r '.[] | "- [ ] Ticket \(.id) marked COMPLETED"' >> "$PR_FILE"
+
+  cat >> "$PR_FILE" <<EOF
+- [ ] Ready for review
+
+## 📋 Review Notes
+Focus on ticket implementation and acceptance criteria validation.
+
+---
+
+### Commits in this PR
+EOF
+
+  # List all commits with ticket references
+  echo "$BRANCH_COMMITS" >> "$PR_FILE"
+
+  cat >> "$PR_FILE" <<EOF
+
+### Ticket Status
+EOF
+
+  # Add ticket state transitions
+  echo "$TICKETS_JSON" | jq -r '.[] | "- **\(.id)**: UNPROCESSED → \(.state)"' >> "$PR_FILE"
+  echo "- Branch: $CURRENT_BRANCH" >> "$PR_FILE"
+
+  echo "✓ PR description created: $PR_FILE"
+
+else
+  # Append to existing PR description
+
+  echo "## Recent Updates ($(date -u +%Y-%m-%d))" >> "$PR_FILE"
+  echo "" >> "$PR_FILE"
+  echo "- Updated #$TICKET_ID: $TICKET_TITLE" >> "$PR_FILE"
+  echo "" >> "$PR_FILE"
+
+  # Update tickets section - find and replace
+  # Extract current tickets section
+  CURRENT_TICKETS=$(grep "^- Closes #" "$PR_FILE" | sort -u)
+
+  # Add new ticket if not present
+  if ! echo "$CURRENT_TICKETS" | grep -q "#$TICKET_ID"; then
+    # Insert after first "- Closes #" line
+    sed -i '' "/^- Closes #/a\\
+- Closes #$TICKET_ID
+" "$PR_FILE"
+  fi
+
+  # Update commits section at end
+  # Remove old commits section and rebuild
+  sed -i '' '/^### Commits in this PR/,$d' "$PR_FILE"
+
+  cat >> "$PR_FILE" <<EOF
+
+### Commits in this PR
+$BRANCH_COMMITS
+
+### Ticket Status
+EOF
+
+  # Add updated ticket states
+  echo "$TICKETS_JSON" | jq -r '.[] | "- **\(.id)**: \(.state)"' >> "$PR_FILE"
+  echo "- Branch: $CURRENT_BRANCH" >> "$PR_FILE"
+  echo "- Last updated: $(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$PR_FILE"
+
+  echo "✓ PR description updated: $PR_FILE"
+fi
+
+echo ""
+```
+
+### 9. Push Changes to GitHub
+
+```bash
 # Sync to GitHub with confirmation
 if [ "$EXECUTION_MODE" = "interactive" ]; then
   read -p "Push changes to GitHub? (yes/no/later): " PUSH_CONFIRM
@@ -1204,7 +1563,8 @@ if [ "$EXECUTION_MODE" = "interactive" ]; then
   case $PUSH_CONFIRM in
     yes)
       echo "Pushing to GitHub..."
-      # Run /sync command
+      git push origin "$CURRENT_BRANCH" -u
+      echo "✓ Changes pushed to GitHub"
       ;;
     later)
       echo "Push deferred. Run /sync manually when ready."
@@ -1219,9 +1579,22 @@ fi
 # Auto mode - push automatically
 if [ "$EXECUTION_MODE" = "auto" ]; then
   echo "Auto-pushing to GitHub..."
-  # Run /sync command
+  git push origin "$CURRENT_BRANCH" -u
+  echo "✓ Changes pushed to GitHub"
+  echo ""
 fi
 ```
+
+**Key Changes:**
+
+- Full /commit logic integrated (branch safety, semantic commits, no AI attribution)
+- PR description generation and update logic
+- Handles new branches vs existing branches
+- Appends updates for existing PRs
+- Tracks all commits with ticket references
+- Updates ticket JSON with commit SHAs
+- Manages .docs/PR_DESCRIPTION.md file
+- Respects interactive vs auto modes
 
 **Commit Message Format:**
 
@@ -1233,7 +1606,7 @@ Detailed description of changes...
 Closes: #TICKET-ID
 ```
 
-### 8. Loop Control with Continuation Prompt
+### 10. Loop Control with Continuation Prompt
 
 ```bash
 # Check for more UNPROCESSED tickets
@@ -1315,7 +1688,7 @@ fi
 - User chooses to pause/stop (interactive mode)
 - Critical error encountered
 
-### 9. Finalize Cycle with Comprehensive Summary (Issue 3.2)
+### 11. Finalize Cycle with Comprehensive Summary (Issue 3.2)
 
 ```bash
 # Calculate cycle end time
