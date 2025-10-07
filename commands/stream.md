@@ -1728,25 +1728,25 @@ echo "╚═══════════════════════�
 echo ""
 echo "Cycle Duration: ${CYCLE_HOURS}h ${CYCLE_MINUTES}m"
 echo ""
-echo "┌─ Ticket Summary ───────────────────────────────┐"
-echo "│                                                │"
-echo "│  Total Tickets:    $TOTAL"
-echo "│  Completed:        $COMPLETED ($COMPLETED_PCT%)"
-echo "│  In Progress:      $IN_PROGRESS"
-echo "│  Deferred:         $DEFERRED"
-echo "│  Unprocessed:      $UNPROCESSED"
-echo "│                                                │"
-echo "└────────────────────────────────────────────────┘"
+echo "┌─ Ticket Summary ────────────────────────────────┐"
+echo "│                                                 │"
+echo "│  Total Tickets:    $TOTAL                       │"
+echo "│  Completed:        $COMPLETED ($COMPLETED_PCT%) │"
+echo "│  In Progress:      $IN_PROGRESS                 │"
+echo "│  Deferred:         $DEFERRED                    │"
+echo "│  Unprocessed:      $UNPROCESSED                 │"
+echo "│                                                 │"
+echo "└─────────────────────────────────────────────────┘"
 echo ""
 
 if [ -n "$VELOCITY" ]; then
-  echo "┌─ Velocity Metrics ─────────────────────────────┐"
-  echo "│                                                │"
-  echo "│  Tickets This Cycle:  $TOTAL_TICKETS_THIS_CYCLE"
-  echo "│  Avg Duration:        ${AVG_DURATION} minutes"
-  echo "│  Velocity:            $VELOCITY tickets/hour"
-  echo "│                                                │"
-  echo "└────────────────────────────────────────────────┘"
+  echo "┌─ Velocity Metrics ──────────────────────────────┐"
+  echo "│                                                 │"
+  echo "│  Tickets This Cycle:  $TOTAL_TICKETS_THIS_CYCLE │"
+  echo "│  Avg Duration:        ${AVG_DURATION} minutes   │" 
+  echo "│  Velocity:            $VELOCITY tickets/hour.   │"
+  echo "│                                                 │"
+  echo "└─────────────────────────────────────────────────┘"
   echo ""
 fi
 
@@ -2151,9 +2151,9 @@ Parallel Execution Plan:
   Estimated batches: 4
   Tickets/batch:     3
 
-┌─ Parallel Batch Selected ──────────────────────┐
-│ Batch size: 3 tickets
-│ Tickets: AUTH-001 AUTH-002 UI-003
+┌─ Parallel Batch Selected ────────────-──────────┐
+│ Batch size: 3 tickets                           │
+│ Tickets: AUTH-001 AUTH-002 UI-003               │
 └─────────────────────────────────────────────────┘
 
 ┌────────────────────────────────────────────────┐
