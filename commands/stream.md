@@ -305,12 +305,14 @@ fi
 **Selection Algorithm:**
 
 **Sequential Mode:**
+
 1. Filter tickets by state = UNPROCESSED
 2. Check all dependencies are COMPLETED
 3. Sort by priority (P0 > P1 > P2)
 4. Return highest priority ticket
 
 **Parallel Mode:**
+
 1. Build dependency graph
 2. Find all UNPROCESSED tickets with satisfied dependencies
 3. Select up to N tickets with no mutual dependencies
@@ -984,7 +986,7 @@ fi
 
 **Sub-Agent Workflow (Ticket Clearance Methodology):**
 
-```
+```text
 START
   ↓
 MARK_TICKET_IN_PROGRESS
@@ -1223,16 +1225,12 @@ fi
 
 **Commit Message Format:**
 
-```
+```text
 feat(component): #TICKET-ID implement feature
 
 Detailed description of changes...
 
 Closes: #TICKET-ID
-
-🤖 Generated with [Claude Code](https://claude.com/claude-code)
-
-Co-Authored-By: Claude <noreply@anthropic.com>
 ```
 
 ### 8. Loop Control with Continuation Prompt
@@ -1439,7 +1437,6 @@ echo "════════════════════════�
    - API-007 needs architecture decision
 3. Run `/stream` again to process remaining tickets
 4. Or manually work on deferred tickets with `/implement [ticket-id]`
-```
 
 ## Integration Points
 
@@ -1657,6 +1654,7 @@ cat .docs/DEVSTREAM_SUMMARY.md
 **Usage:** `/stream` or `/stream --interactive`
 
 **Behavior:**
+
 - ✅ Confirmation before starting cycle
 - ✅ Confirmation before each ticket implementation
 - ✅ Confirmation after implementation (mark COMPLETED/DEFERRED/skip)
@@ -1665,12 +1663,14 @@ cat .docs/DEVSTREAM_SUMMARY.md
 - ✅ Confirmation to continue cycle after each ticket
 
 **Best For:**
+
 - Production environments
 - First-time users
 - Learning the system
 - When you want control over each step
 
 **Example Session:**
+
 ```bash
 /stream
 
@@ -1691,6 +1691,7 @@ Continue processing remaining 4 tickets? (yes/no/pause): yes
 **Usage:** `/stream --auto`
 
 **Behavior:**
+
 - ❌ No confirmations
 - ✅ Fully automated execution
 - ✅ Auto-confirms ticket completion
@@ -1699,12 +1700,14 @@ Continue processing remaining 4 tickets? (yes/no/pause): yes
 - ✅ Continues until all tickets processed or error
 
 **Best For:**
+
 - CI/CD pipelines
 - Trusted automation
 - Experienced users
 - When you fully trust the system
 
 **Example Session:**
+
 ```bash
 /stream --auto
 
@@ -1717,6 +1720,7 @@ Continue processing remaining 4 tickets? (yes/no/pause): yes
 ```
 
 **⚠️ Warning:** Auto mode is powerful but risky. Use only when:
+
 - You trust the ticket specifications completely
 - Tests are comprehensive
 - You can rollback if needed (use `/rollback`)
@@ -1727,6 +1731,7 @@ Continue processing remaining 4 tickets? (yes/no/pause): yes
 **Usage:** `/stream --auto --parallel=N` or `/stream --auto --parallel=auto`
 
 **Behavior:**
+
 - ❌ No confirmations (same as auto mode)
 - ✅ Fully automated execution
 - ⚡ **Concurrent ticket processing** (N workers)
@@ -1736,17 +1741,20 @@ Continue processing remaining 4 tickets? (yes/no/pause): yes
 - ✅ Continues until all batches processed
 
 **Worker Allocation:**
+
 - `--parallel=3`: Use exactly 3 workers
 - `--parallel=auto`: Auto-detect optimal count (CPU/2, capped 1-8)
 - Default (no flag): Sequential mode
 
 **Best For:**
+
 - Large ticket queues (20+ tickets)
 - When many tickets are independent
 - Time-critical delivery
 - Experienced users with trusted specs
 
 **Example Session:**
+
 ```bash
 /stream --auto --parallel=3
 
@@ -1809,6 +1817,7 @@ Processing commit queue (serializing commits)...
 ```
 
 **⚠️ Additional Warnings:**
+
 - **Token usage**: N× higher than sequential
 - **API limits**: May hit rate limits with high concurrency
 - **Complexity**: Harder to debug if issues arise
@@ -1816,6 +1825,7 @@ Processing commit queue (serializing commits)...
 - **Recommended**: Start with `--parallel=2` to test
 
 **When NOT to use parallel mode:**
+
 - First time running `/stream`
 - Tickets have complex interdependencies
 - API rate limits are restrictive
@@ -1827,6 +1837,7 @@ Processing commit queue (serializing commits)...
 **Usage:** `/stream --dry-run`
 
 **Behavior:**
+
 - ✅ Shows what WOULD happen
 - ❌ No actual changes made
 - ❌ No commits or pushes
@@ -1834,12 +1845,14 @@ Processing commit queue (serializing commits)...
 - ✅ Displays planned actions for each ticket
 
 **Best For:**
+
 - Testing the system
 - Understanding workflow
 - Validating ticket order
 - Previewing changes before execution
 
 **Example Session:**
+
 ```bash
 /stream --dry-run
 
@@ -1928,12 +1941,14 @@ graph TD
 ## Safety Features (Issue 2.1 Integration)
 
 **Checkpoint Creation:**
+
 - Automatic checkpoint created at cycle start
 - Rollback available with `/rollback` if issues occur
 - Checkpoint cleared on successful completion
 - Preserved on failure for manual recovery
 
 **Safe Exit Points:**
+
 - Any confirmation can stop the cycle
 - Progress saved at each ticket completion
 - Resume from last state with `/stream` again

@@ -166,10 +166,6 @@ Updated tickets:
 Conflicts resolved: 2
 - AUTH-001: precedence given to user state override
 - DB-002: preserved JSON-managed dependencies
-
-🤖 Generated with [Claude Code](https://claude.com/claude-code)
-
-Co-Authored-By: Claude <noreply@anthropic.com>
 EOF
 )"
 
@@ -188,10 +184,6 @@ Updated tickets:
 
 Conflicts resolved: [N]
 - [ID]: [resolution description]
-
-🤖 Generated with [Claude Code](https://claude.com/claude-code)
-
-Co-Authored-By: Claude <noreply@anthropic.com>
 ```
 
 ### 7. Generate Sync Report
