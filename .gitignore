@@ -25,3 +25,4 @@ uv.lock
 .sage/commit-queue/
 .sage/commit.lock
 .sage/*.log
+.sage/config.json
