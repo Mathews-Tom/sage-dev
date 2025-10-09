@@ -286,7 +286,9 @@ if [ "$EXECUTION_MODE" = "semi-auto" ]; then
       ")
 
       if [ -n "$COMP_TICKETS" ]; then
-        echo "$COMP_TICKETS" > ".sage/batches/$COMPONENT.batch"
+        # Atomic write: temp file + mv to prevent corruption on interruption
+        echo "$COMP_TICKETS" > "/tmp/$COMPONENT.batch.tmp"
+        mv "/tmp/$COMPONENT.batch.tmp" ".sage/batches/$COMPONENT.batch"
         COMP_COUNT=$(echo "$COMP_TICKETS" | wc -l | tr -d ' ')
         COMPONENT_COUNTS["$COMPONENT"]=$COMP_COUNT
       fi
@@ -311,7 +313,9 @@ if [ "$EXECUTION_MODE" = "semi-auto" ]; then
 
   # Create MISC batch if there are non-standard tickets
   if [ ${#MISC_TICKETS[@]} -gt 0 ]; then
-    printf "%s\n" "${MISC_TICKETS[@]}" > ".sage/batches/MISC.batch"
+    # Atomic write: temp file + mv to prevent corruption on interruption
+    printf "%s\n" "${MISC_TICKETS[@]}" > "/tmp/MISC.batch.tmp"
+    mv "/tmp/MISC.batch.tmp" ".sage/batches/MISC.batch"
     COMPONENT_COUNTS["MISC"]=${#MISC_TICKETS[@]}
   fi
 
@@ -377,15 +381,51 @@ if [ "$EXECUTION_MODE" = "semi-auto" ]; then
 fi
 ```
 
+**Batch File Cleanup Function (Semi-Auto Mode):**
+
+```bash
+# Function: cleanup_component_batch
+# Usage: cleanup_component_batch "$COMPONENT_NAME"
+# Called after all tickets in a component are processed (COMPLETED or DEFERRED)
+# Gracefully removes batch file without failing if file doesn't exist
+cleanup_component_batch() {
+  local COMPONENT="$1"
+
+  if [ -z "$COMPONENT" ]; then
+    echo "ERROR: cleanup_component_batch requires component name"
+    return 1
+  fi
+
+  local BATCH_FILE=".sage/batches/${COMPONENT}.batch"
+
+  # Use rm -f to avoid failing if file doesn't exist (graceful cleanup)
+  if [ -f "$BATCH_FILE" ]; then
+    rm -f "$BATCH_FILE"
+    echo "✓ Cleaned up batch file: $BATCH_FILE"
+  else
+    # Silent success - file may have already been cleaned up
+    # No error or warning to avoid noise in logs
+    :
+  fi
+}
+
+# Note: This function will be called from component orchestration logic
+# Implementation location: After all tickets in component batch are processed
+# Typical call: cleanup_component_batch "AUTH"
+# Integration point: Semi-auto mode component completion (STREAM-005 or later)
+```
+
 **Key Actions (Semi-Auto Mode Only):**
 
 - Extract component prefixes from UNPROCESSED story tickets
 - Group tickets by component prefix (e.g., AUTH-*, UI-*, API-*)
 - Non-standard prefixes (MISC-*, HOTFIX-*, etc.) grouped into MISC.batch
 - Create .sage/batches/ directory with one .batch file per component
+- **Write batch files atomically** (temp file + mv to prevent corruption)
 - Display component execution plan with ticket counts and IDs
 - Handle edge cases (empty components, single ticket, no tickets)
 - Validate batch files were created successfully
+- **Cleanup batch files after component completion** (via cleanup_component_batch function)
 
 ### 1.5. Build Dependency Graph (Parallel Mode Only)
 
