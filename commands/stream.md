@@ -227,6 +227,166 @@ fi
 - **NEW: Interactive confirmation to start** (Issue 3.1)
 - Display cycle initialization summary
 
+### 1.5a. Component Grouping (Semi-Auto Mode Only)
+
+```bash
+# Only execute in semi-auto mode
+if [ "$EXECUTION_MODE" = "semi-auto" ]; then
+  echo "┌────────────────────────────────────────────────┐"
+  echo "│         COMPONENT GROUPING (STEP 1.5a)        │"
+  echo "└────────────────────────────────────────────────┘"
+  echo ""
+  echo "Analyzing ticket prefixes and grouping by component..."
+  echo ""
+
+  # Extract unique component prefixes from UNPROCESSED story tickets
+  COMPONENTS=$(cat .sage/tickets/index.json | jq -r '
+    [.tickets[] |
+     select(.state == "UNPROCESSED") |
+     select(.type == "story" or .type == "feature" or .type == "Story" or .type == "Feature") |
+     .id] |
+    map(split("-")[0]) |
+    unique |
+    .[]
+  ' | sort)
+
+  # Check if we have any components
+  if [ -z "$COMPONENTS" ]; then
+    echo "ERROR: No UNPROCESSED story tickets found for component grouping"
+    echo ""
+    echo "Component grouping requires at least one UNPROCESSED story ticket."
+    echo "Current ticket states:"
+    cat .sage/tickets/index.json | jq -r '.tickets[] | "  - \(.id): \(.state) (type: \(.type))"'
+    exit 1
+  fi
+
+  # Create batch directory
+  mkdir -p .sage/batches
+  rm -f .sage/batches/*.batch
+
+  # Standard component prefixes (uppercase alphabetic)
+  STANDARD_PATTERN='^[A-Z]+$'
+
+  # Track component statistics
+  declare -A COMPONENT_COUNTS
+  declare -a MISC_TICKETS
+
+  # Generate batch file per component
+  for COMPONENT in $COMPONENTS; do
+    # Check if component prefix is standard (uppercase alphabetic only)
+    if [[ "$COMPONENT" =~ $STANDARD_PATTERN ]]; then
+      # Standard component - create dedicated batch file
+      COMP_TICKETS=$(cat .sage/tickets/index.json | jq -r "
+        [.tickets[] |
+         select(.state == \"UNPROCESSED\") |
+         select(.type == \"story\" or .type == \"feature\" or .type == \"Story\" or .type == \"Feature\") |
+         select(.id | startswith(\"$COMPONENT-\"))] |
+        map(.id) |
+        .[]
+      ")
+
+      if [ -n "$COMP_TICKETS" ]; then
+        echo "$COMP_TICKETS" > ".sage/batches/$COMPONENT.batch"
+        COMP_COUNT=$(echo "$COMP_TICKETS" | wc -l | tr -d ' ')
+        COMPONENT_COUNTS["$COMPONENT"]=$COMP_COUNT
+      fi
+    else
+      # Non-standard prefix - collect for MISC batch
+      COMP_TICKETS=$(cat .sage/tickets/index.json | jq -r "
+        [.tickets[] |
+         select(.state == \"UNPROCESSED\") |
+         select(.type == \"story\" or .type == \"feature\" or .type == \"Story\" or .type == \"Feature\") |
+         select(.id | startswith(\"$COMPONENT-\"))] |
+        map(.id) |
+        .[]
+      ")
+
+      if [ -n "$COMP_TICKETS" ]; then
+        while IFS= read -r ticket; do
+          MISC_TICKETS+=("$ticket")
+        done <<< "$COMP_TICKETS"
+      fi
+    fi
+  done
+
+  # Create MISC batch if there are non-standard tickets
+  if [ ${#MISC_TICKETS[@]} -gt 0 ]; then
+    printf "%s\n" "${MISC_TICKETS[@]}" > ".sage/batches/MISC.batch"
+    COMPONENT_COUNTS["MISC"]=${#MISC_TICKETS[@]}
+  fi
+
+  # Display component execution plan
+  echo "Component Execution Plan:"
+  echo "─────────────────────────────────────────────────"
+
+  COMPONENT_NUM=0
+  TOTAL_COMPONENT_TICKETS=0
+
+  # Display standard components first (sorted)
+  for COMPONENT in $(echo "${!COMPONENT_COUNTS[@]}" | tr ' ' '\n' | grep -v '^MISC$' | sort); do
+    COMPONENT_NUM=$((COMPONENT_NUM + 1))
+    COUNT=${COMPONENT_COUNTS[$COMPONENT]}
+    TOTAL_COMPONENT_TICKETS=$((TOTAL_COMPONENT_TICKETS + COUNT))
+
+    # Get ticket IDs for this component
+    TICKET_LIST=$(cat ".sage/batches/$COMPONENT.batch" | head -5 | tr '\n' ', ' | sed 's/,$//')
+    REMAINING_COUNT=$(cat ".sage/batches/$COMPONENT.batch" | wc -l | tr -d ' ')
+
+    if [ $REMAINING_COUNT -gt 5 ]; then
+      TICKET_DISPLAY="$TICKET_LIST... (+$((REMAINING_COUNT - 5)) more)"
+    else
+      TICKET_DISPLAY="$TICKET_LIST"
+    fi
+
+    printf "  %d. %-10s %2d tickets (%s)\n" "$COMPONENT_NUM" "$COMPONENT:" "$COUNT" "$TICKET_DISPLAY"
+  done
+
+  # Display MISC component last if present
+  if [ -n "${COMPONENT_COUNTS[MISC]}" ]; then
+    COMPONENT_NUM=$((COMPONENT_NUM + 1))
+    COUNT=${COMPONENT_COUNTS[MISC]}
+    TOTAL_COMPONENT_TICKETS=$((TOTAL_COMPONENT_TICKETS + COUNT))
+
+    TICKET_LIST=$(cat ".sage/batches/MISC.batch" | head -5 | tr '\n' ', ' | sed 's/,$//')
+    REMAINING_COUNT=$(cat ".sage/batches/MISC.batch" | wc -l | tr -d ' ')
+
+    if [ $REMAINING_COUNT -gt 5 ]; then
+      TICKET_DISPLAY="$TICKET_LIST... (+$((REMAINING_COUNT - 5)) more)"
+    else
+      TICKET_DISPLAY="$TICKET_LIST"
+    fi
+
+    printf "  %d. %-10s %2d tickets (%s) [non-standard prefixes]\n" "$COMPONENT_NUM" "MISC:" "$COUNT" "$TICKET_DISPLAY"
+  fi
+
+  echo "─────────────────────────────────────────────────"
+  echo "Total: $COMPONENT_NUM components, $TOTAL_COMPONENT_TICKETS tickets"
+  echo ""
+
+  # Validate that batch files were created
+  BATCH_COUNT=$(ls .sage/batches/*.batch 2>/dev/null | wc -l | tr -d ' ')
+  if [ "$BATCH_COUNT" -eq 0 ]; then
+    echo "ERROR: No batch files created"
+    echo "This indicates a grouping logic error."
+    exit 1
+  fi
+
+  echo "✓ Component grouping complete"
+  echo "✓ Batch files created in .sage/batches/"
+  echo ""
+fi
+```
+
+**Key Actions (Semi-Auto Mode Only):**
+
+- Extract component prefixes from UNPROCESSED story tickets
+- Group tickets by component prefix (e.g., AUTH-*, UI-*, API-*)
+- Non-standard prefixes (MISC-*, HOTFIX-*, etc.) grouped into MISC.batch
+- Create .sage/batches/ directory with one .batch file per component
+- Display component execution plan with ticket counts and IDs
+- Handle edge cases (empty components, single ticket, no tickets)
+- Validate batch files were created successfully
+
 ### 1.5. Build Dependency Graph (Parallel Mode Only)
 
 ```bash
