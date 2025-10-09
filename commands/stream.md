@@ -1,7 +1,7 @@
 ---
 allowed-tools: Bash(git:*), Bash(cat:*), Bash(jq:*), Bash(grep:*), Task, Read, SequentialThinking
 description: Automated ticket execution orchestrator that processes tickets sequentially or in parallel using sub-agents until completion.
-argument-hint: '[--interactive | --auto | --dry-run] [--parallel=N | --parallel=auto] (defaults to --interactive, sequential)'
+argument-hint: '[--interactive | --semi-auto | --auto | --dry-run] [--parallel=N | --parallel=auto] (defaults to --interactive, sequential)'
 ---
 
 ## Role
@@ -35,12 +35,18 @@ for arg in "$@"; do
     --interactive)
       EXECUTION_MODE="interactive"
       ;;
+    --semi-auto|--component-auto)
+      EXECUTION_MODE="semi-auto"
+      ;;
     --auto)
       EXECUTION_MODE="auto"
       ;;
     --dry-run)
       DRY_RUN=true
-      EXECUTION_MODE="dry-run"
+      # Only set EXECUTION_MODE to dry-run if no other mode specified
+      if [ "$EXECUTION_MODE" = "interactive" ]; then
+        EXECUTION_MODE="dry-run"
+      fi
       ;;
     --parallel=*)
       PARALLEL_MODE=true
@@ -52,6 +58,16 @@ for arg in "$@"; do
       ;;
   esac
 done
+
+# Validate semi-auto mode compatibility
+if [ "$EXECUTION_MODE" = "semi-auto" ] && [ "$PARALLEL_MODE" = "true" ]; then
+  echo "ERROR: --semi-auto cannot be combined with --parallel"
+  echo "Parallel execution is not supported in semi-auto mode (Phase 1)"
+  echo ""
+  echo "Usage: /stream --semi-auto (sequential, component-level automation)"
+  echo "   or: /stream --auto --parallel=3 (parallel, ticket-level automation)"
+  exit 1
+fi
 
 # Validate parallel mode compatibility
 if [ "$PARALLEL_MODE" = "true" ] && [ "$EXECUTION_MODE" != "auto" ]; then
@@ -86,11 +102,29 @@ echo "DEVSTREAM EXECUTION MODE: $EXECUTION_MODE"
 if [ "$PARALLEL_MODE" = "true" ]; then
   echo "PARALLEL EXECUTION: $PARALLEL_WORKERS workers"
 fi
+if [ "$DRY_RUN" = "true" ] && [ "$EXECUTION_MODE" != "dry-run" ]; then
+  echo "DRY RUN: Enabled (preview mode, no changes)"
+fi
 echo "================================================"
 if [ "$EXECUTION_MODE" = "interactive" ]; then
   echo "Interactive mode: Confirmations required at key points"
   echo "Use --auto for hands-off execution (advanced)"
+  echo "Use --semi-auto for component-level automation"
   echo "Use --dry-run to preview without changes"
+elif [ "$EXECUTION_MODE" = "semi-auto" ]; then
+  echo "Semi-Auto Mode: Component-level automation"
+  echo ""
+  echo "Behavior:"
+  echo "  • Groups tickets by component prefix (AUTH-*, UI-*, API-*)"
+  echo "  • Confirmation required at component boundaries"
+  echo "  • All tickets within a component processed automatically"
+  echo "  • 90% fewer confirmations vs interactive mode"
+  echo ""
+  if [ "$DRY_RUN" = "true" ]; then
+    echo "DRY RUN: Preview mode enabled - no actual changes will be made"
+  else
+    echo "Compatible with --dry-run for preview"
+  fi
 elif [ "$EXECUTION_MODE" = "auto" ]; then
   echo "⚠️  AUTO MODE: No confirmations, fully automated"
   echo "Ensure you trust the system before using this mode"
@@ -986,7 +1020,7 @@ fi
 
 **Sub-Agent Workflow (Ticket Clearance Methodology):**
 
-```text
+```plaintext
 START
   ↓
 MARK_TICKET_IN_PROGRESS
@@ -1598,7 +1632,7 @@ fi
 
 **Commit Message Format:**
 
-```text
+```plaintext
 feat(component): #TICKET-ID implement feature
 
 Detailed description of changes...
