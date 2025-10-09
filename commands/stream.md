@@ -493,8 +493,80 @@ fi
 ### 2. Select Next Ticket (or Batch)
 
 ```bash
+# Semi-auto mode: Select next component from batches
+if [ "$EXECUTION_MODE" = "semi-auto" ]; then
+  echo "┌────────────────────────────────────────────────┐"
+  echo "│    COMPONENT SELECTION (STEP 2 - SEMI-AUTO)   │"
+  echo "└────────────────────────────────────────────────┘"
+  echo ""
+
+  # Find next batch file
+  NEXT_BATCH_FILE=$(ls .sage/batches/*.batch 2>/dev/null | head -1)
+
+  if [ -z "$NEXT_BATCH_FILE" ]; then
+    echo "✓ All components processed"
+    echo ""
+    exit 0
+  fi
+
+  # Extract component name from filename
+  COMPONENT_NAME=$(basename "$NEXT_BATCH_FILE" .batch)
+
+  # Read ticket IDs from batch file
+  mapfile -t COMPONENT_TICKETS < "$NEXT_BATCH_FILE"
+  TICKET_COUNT=${#COMPONENT_TICKETS[@]}
+
+  # Display component information
+  echo "Component: $COMPONENT_NAME"
+  echo "Tickets:   $TICKET_COUNT"
+  echo ""
+  echo "Ticket List:"
+
+  # Load and display ticket titles
+  for TICKET_ID in "${COMPONENT_TICKETS[@]}"; do
+    TICKET_TITLE=$(cat .sage/tickets/index.json | jq -r ".tickets[] | select(.id == \"$TICKET_ID\") | .title")
+    echo "  - $TICKET_ID: $TICKET_TITLE"
+  done
+
+  echo ""
+  echo "─────────────────────────────────────────────────"
+  echo ""
+
+  # Confirmation prompt
+  read -p "Start processing component $COMPONENT_NAME ($TICKET_COUNT tickets)? (yes/no/skip): " COMPONENT_CONFIRM
+
+  case $COMPONENT_CONFIRM in
+    yes)
+      echo "✓ Starting component $COMPONENT_NAME"
+      echo ""
+      # Set component batch for processing
+      TICKET_BATCH=("${COMPONENT_TICKETS[@]}")
+      ;;
+    no)
+      echo "Cycle stopped by user"
+      exit 0
+      ;;
+    skip)
+      echo "Skipping component $COMPONENT_NAME"
+      # Delete batch file
+      rm -f "$NEXT_BATCH_FILE"
+      echo "✓ Component batch deleted"
+      echo ""
+      # Loop back to select next component
+      # (In actual implementation, this would restart step 2)
+      echo "Moving to next component..."
+      echo ""
+      # For now, exit - full loop will be handled by later tickets
+      exit 0
+      ;;
+    *)
+      echo "Invalid input. Exiting."
+      exit 1
+      ;;
+  esac
+
 # Sequential mode: Select single ticket
-if [ "$PARALLEL_MODE" = "false" ]; then
+elif [ "$PARALLEL_MODE" = "false" ]; then
   # Query for UNPROCESSED tickets with satisfied dependencies
   SELECTED_TICKET_ID=$(cat .sage/tickets/index.json | jq -r '
     .tickets[] |
