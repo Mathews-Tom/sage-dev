@@ -2095,13 +2095,71 @@ if [ "$EXECUTION_MODE" = "semi-auto" ] && [ -n "$COMPONENT_NAME" ]; then
         ;;
     esac
 
-    # Clean up batch file for this component
-    cleanup_component_batch "$COMPONENT_NAME"
+    # Continue/Pause Confirmation (FS7: Continue to next component or pause)
+    # Check for next component
+    NEXT_BATCH=$(ls .sage/batches/*.batch 2>/dev/null | head -1)
 
-    # Clear component tracking variables
-    unset COMPONENT_NAME
-    unset COMPONENT_START_TIME
-    unset TICKET_BATCH
+    if [ -n "$NEXT_BATCH" ]; then
+      NEXT_COMPONENT=$(basename "$NEXT_BATCH" .batch)
+      NEXT_COUNT=$(cat "$NEXT_BATCH" | wc -l | tr -d ' ')
+
+      echo "─────────────────────────────────────────────────"
+      echo ""
+      read -p "Continue to next component $NEXT_COMPONENT ($NEXT_COUNT tickets)? (yes/no/pause): " CONTINUE_CONFIRM
+
+      case $CONTINUE_CONFIRM in
+        yes)
+          echo "Continuing to component $NEXT_COMPONENT..."
+          echo ""
+          # Cleanup current batch and continue loop
+          cleanup_component_batch "$COMPONENT_NAME"
+          # Clear component tracking variables
+          unset COMPONENT_NAME
+          unset COMPONENT_START_TIME
+          unset TICKET_BATCH
+          # Loop will continue to next component
+          ;;
+        pause)
+          echo "Cycle paused. Progress saved."
+          echo "Batch files preserved in .sage/batches/"
+          echo ""
+          echo "To resume: Run /stream --semi-auto"
+          echo ""
+          # Cleanup current batch but preserve others
+          cleanup_component_batch "$COMPONENT_NAME"
+          exit 0
+          ;;
+        no)
+          echo "Cycle stopped by user."
+          echo "Progress saved. Remaining components:"
+          ls .sage/batches/*.batch 2>/dev/null | while read batch_file; do
+            comp_name=$(basename "$batch_file" .batch)
+            comp_count=$(cat "$batch_file" | wc -l | tr -d ' ')
+            echo "  - $comp_name: $comp_count tickets"
+          done
+          echo ""
+          # Cleanup current batch
+          cleanup_component_batch "$COMPONENT_NAME"
+          exit 0
+          ;;
+        *)
+          echo "Invalid response. Treating as 'pause'."
+          echo "Cycle paused. Run /stream --semi-auto to resume."
+          echo ""
+          cleanup_component_batch "$COMPONENT_NAME"
+          exit 0
+          ;;
+      esac
+    else
+      # No more components - cleanup and continue to finalize
+      echo "All components processed."
+      echo ""
+      cleanup_component_batch "$COMPONENT_NAME"
+      # Clear component tracking variables
+      unset COMPONENT_NAME
+      unset COMPONENT_START_TIME
+      unset TICKET_BATCH
+    fi
   fi
 fi
 ```
