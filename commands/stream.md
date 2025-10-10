@@ -2704,6 +2704,80 @@ Continue processing remaining 4 tickets? (yes/no/pause): yes
 # ... repeats for each ticket ...
 ```
 
+### Semi-Auto Mode
+
+**Usage:** `/stream --semi-auto` or `/stream --component-auto`
+
+**Behavior:**
+
+- ✅ Confirmation before starting each component
+- ❌ No confirmations during component processing
+- ✅ Confirmation to push changes after component
+- ✅ Confirmation to continue to next component
+- ✅ Pause/resume support at component boundaries
+- ✅ Component-level progress summaries
+
+**Best For:**
+
+- Medium to large ticket queues (10-50 tickets)
+- When tickets are grouped by component (AUTH-*, UI-*, API-*)
+- Balancing automation with control
+- Testing at natural integration points (components)
+- Reducing confirmation fatigue (90% fewer prompts)
+
+**Example Session:**
+
+```bash
+/stream --semi-auto
+
+# Component grouping
+Component Execution Plan:
+  1. AUTH:  5 tickets (AUTH-001 to AUTH-005)
+  2. UI:    3 tickets (UI-001 to UI-003)
+  3. API:   4 tickets (API-001 to API-004)
+
+Start processing component AUTH (5 tickets)? (yes/no/skip): yes
+
+# Auto-processes all AUTH tickets without prompts
+→ Processing AUTH-001...
+  ✅ AUTH-001 completed (3m 12s)
+→ Processing AUTH-002...
+  ✅ AUTH-002 completed (4m 45s)
+# ... continues for all AUTH tickets ...
+
+┌────────────────────────────────────────────────┐
+│    COMPONENT COMPLETION: AUTH                  │
+└────────────────────────────────────────────────┘
+
+Statistics:
+  Total Tickets:  5
+  Completed:      5 (100%)
+  Deferred:       0
+  Duration:       18m 32s
+  Commits:        5
+
+Push component AUTH changes to GitHub? (yes/no/later): yes
+✓ 5 commits pushed to branch main
+
+Continue to next component UI (3 tickets)? (yes/no/pause): yes
+
+# ... continues to next component ...
+```
+
+**⚠️ Note:** Semi-auto mode:
+
+- Requires ticket naming convention: `<COMPONENT>-<NUMBER>`
+- Not compatible with `--parallel` (Phase 1)
+- Preserves batch files on pause for resume
+- 3-5× faster than interactive mode
+
+**When to Pause:**
+
+- After completing a logical component
+- Before starting risky components
+- To review deferred tickets
+- When time-limited or interrupted
+
 ### Auto Mode
 
 **Usage:** `/stream --auto`
@@ -2888,14 +2962,16 @@ DRY RUN: Would implement ticket AUTH-002
 
 ## Confirmation Points Summary
 
-| Checkpoint | Interactive | Auto | Dry-Run |
-|------------|-------------|------|---------|
-| Start cycle | ✅ Required | ❌ Skip | ✅ Show only |
-| Before ticket | ✅ Required | ❌ Skip | ✅ Show only |
-| After implementation | ✅ Required | ❌ Skip | ✅ Show only |
-| Before commit | ✅ Optional | ❌ Skip | ❌ Skip |
-| Before push | ✅ Required | ❌ Skip | ❌ Skip |
-| Continue cycle | ✅ Required | ❌ Skip | ✅ Show only |
+| Checkpoint | Interactive | Semi-Auto | Auto | Dry-Run |
+|------------|-------------|-----------|------|---------|
+| Start cycle | ✅ Required | ✅ Component grouping | ❌ Skip | ✅ Show only |
+| Before component | N/A | ✅ Required | N/A | N/A |
+| Before ticket | ✅ Required | ❌ Skip | ❌ Skip | ✅ Show only |
+| After implementation | ✅ Required | ❌ Auto-accept | ❌ Skip | ✅ Show only |
+| Before commit | ✅ Optional | ❌ Auto-commit | ❌ Skip | ❌ Skip |
+| After component | N/A | ✅ Summary + push | N/A | N/A |
+| Before push | ✅ Required | ✅ Per component | ❌ Skip | ❌ Skip |
+| Continue cycle | ✅ Per ticket | ✅ Per component | ❌ Skip | ✅ Show only |
 
 ## Interactive Mode Flow
 
