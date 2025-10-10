@@ -678,7 +678,7 @@ echo "  - Plan: $PLAN_PATH"
 echo "  - Breakdown: $BREAKDOWN_PATH"
 echo ""
 
-# Interactive confirmation (Issue 3.1)
+# Mode-specific confirmation (Issue 3.1)
 if [ "$EXECUTION_MODE" = "interactive" ]; then
   echo "Actions to perform:"
   echo "  1. Mark ticket IN_PROGRESS"
@@ -695,6 +695,10 @@ if [ "$EXECUTION_MODE" = "interactive" ]; then
     echo "Skipping ticket $TICKET_ID"
     continue  # Skip to next ticket in loop
   fi
+  echo ""
+elif [ "$EXECUTION_MODE" = "semi-auto" ]; then
+  # Semi-auto mode: skip confirmation, display progress indicator
+  echo "→ Processing $TICKET_ID..."
   echo ""
 fi
 
@@ -1360,7 +1364,7 @@ echo ""
 echo "─────────────────────────────────────────────────"
 echo ""
 
-# Interactive confirmation for completion (Issue 3.1)
+# Mode-specific confirmation for completion (Issue 3.1)
 if [ "$EXECUTION_MODE" = "interactive" ]; then
   if [ "$OUTCOME" = "COMPLETED" ] && [ "$TESTS_PASSED" = true ]; then
     echo "Tests passed. Ready to mark ticket COMPLETED."
@@ -1390,10 +1394,15 @@ if [ "$EXECUTION_MODE" = "interactive" ]; then
     fi
   fi
   echo ""
-fi
-
-# Auto mode - accept outcome automatically
-if [ "$EXECUTION_MODE" = "auto" ]; then
+elif [ "$EXECUTION_MODE" = "semi-auto" ]; then
+  # Semi-auto mode: auto-accept completion if tests passed
+  if [ "$OUTCOME" = "COMPLETED" ] && [ "$TESTS_PASSED" = true ]; then
+    echo "✓ Ticket $TICKET_ID completed (auto-confirmed)"
+  elif [ "$OUTCOME" = "DEFERRED" ]; then
+    echo "⚠ Ticket $TICKET_ID deferred (auto-continuing)"
+  fi
+elif [ "$EXECUTION_MODE" = "auto" ]; then
+  # Auto mode - accept outcome automatically
   case $OUTCOME in
     COMPLETED)
       echo "✓ Ticket $TICKET_ID completed successfully (auto-confirmed)"
@@ -1482,6 +1491,9 @@ if [[ "$CURRENT_BRANCH" == "main" || "$CURRENT_BRANCH" == "master" ]]; then
     if [ "$BRANCH_CONFIRM" = "custom" ]; then
       read -p "Enter branch name: " BRANCH_NAME
     fi
+  elif [ "$EXECUTION_MODE" = "semi-auto" ] || [ "$EXECUTION_MODE" = "auto" ]; then
+    # Semi-auto and auto modes: use default branch name
+    echo "Creating branch: $BRANCH_NAME"
   fi
 
   # Create and checkout branch
@@ -1514,7 +1526,7 @@ else
   git diff --stat
   echo ""
 
-  # Interactive confirmation for commit (Issue 3.1)
+  # Mode-specific confirmation for commit (Issue 3.1)
   if [ "$EXECUTION_MODE" = "interactive" ]; then
     echo "Ready to commit changes for ticket $TICKET_ID"
     read -p "Review diff before committing? (yes/no/skip): " REVIEW_DIFF
@@ -1539,10 +1551,12 @@ else
       SHOULD_COMMIT=true
     fi
     echo ""
-  fi
-
-  # Auto mode - commit automatically
-  if [ "$EXECUTION_MODE" = "auto" ]; then
+  elif [ "$EXECUTION_MODE" = "semi-auto" ]; then
+    # Semi-auto mode: skip prompts, auto-commit
+    echo "Auto-committing changes for ticket $TICKET_ID..."
+    SHOULD_COMMIT=true
+  elif [ "$EXECUTION_MODE" = "auto" ]; then
+    # Auto mode - commit automatically
     echo "Auto-committing changes for ticket $TICKET_ID..."
     SHOULD_COMMIT=true
   fi
