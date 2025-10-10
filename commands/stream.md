@@ -539,6 +539,8 @@ if [ "$EXECUTION_MODE" = "semi-auto" ]; then
     yes)
       echo "✓ Starting component $COMPONENT_NAME"
       echo ""
+      # Track component start time for completion metrics
+      COMPONENT_START_TIME=$(date +%s)
       # Set component batch for processing
       TICKET_BATCH=("${COMPONENT_TICKETS[@]}")
       ;;
@@ -1925,6 +1927,170 @@ Detailed description of changes...
 
 Closes: #TICKET-ID
 ```
+
+### 9a. Component Completion Summary (Semi-Auto Mode Only)
+
+```bash
+# Display component completion summary if in semi-auto mode
+if [ "$EXECUTION_MODE" = "semi-auto" ] && [ -n "$COMPONENT_NAME" ]; then
+  # Check if all tickets in component are no longer UNPROCESSED
+  COMPONENT_TICKETS_REMAINING=$(cat .sage/tickets/index.json | jq -r "[.tickets[] | select(.id | startswith(\"$COMPONENT_NAME-\")) | select(.state == \"UNPROCESSED\")] | length")
+
+  if [ "$COMPONENT_TICKETS_REMAINING" -eq 0 ]; then
+    # Calculate component completion metrics
+    COMPONENT_END_TIME=$(date +%s)
+    COMPONENT_DURATION=$((COMPONENT_END_TIME - COMPONENT_START_TIME))
+    COMPONENT_MINUTES=$((COMPONENT_DURATION / 60))
+    COMPONENT_SECONDS=$((COMPONENT_DURATION % 60))
+
+    # Get ticket counts for this component
+    COMPONENT_TICKET_DATA=$(cat .sage/tickets/index.json | jq -r "
+      [.tickets[] | select(.id | startswith(\"$COMPONENT_NAME-\"))] |
+      {
+        total: length,
+        completed: [.[] | select(.state == \"COMPLETED\")] | length,
+        deferred: [.[] | select(.state == \"DEFERRED\")] | length
+      }
+    ")
+
+    COMP_TOTAL=$(echo "$COMPONENT_TICKET_DATA" | jq -r '.total')
+    COMP_COMPLETED=$(echo "$COMPONENT_TICKET_DATA" | jq -r '.completed')
+    COMP_DEFERRED=$(echo "$COMPONENT_TICKET_DATA" | jq -r '.deferred')
+
+    # Calculate completion percentage
+    if [ "$COMP_TOTAL" -gt 0 ]; then
+      COMP_COMPLETED_PCT=$((COMP_COMPLETED * 100 / COMP_TOTAL))
+    else
+      COMP_COMPLETED_PCT=0
+    fi
+
+    # Count commits for this component (from current cycle)
+    if [ -f .sage/stream-velocity.log ]; then
+      COMPONENT_COMMIT_COUNT=$(grep "$(date -u +%Y-%m-%d)" .sage/stream-velocity.log | grep -c "$COMPONENT_NAME-" || echo "0")
+    else
+      COMPONENT_COMMIT_COUNT=0
+    fi
+
+    echo ""
+    echo "┌────────────────────────────────────────────────┐"
+    echo "│    COMPONENT COMPLETION: $COMPONENT_NAME"
+    echo "└────────────────────────────────────────────────┘"
+    echo ""
+    echo "Statistics:"
+    echo "  Total Tickets:  $COMP_TOTAL"
+    echo "  Completed:      $COMP_COMPLETED ($COMP_COMPLETED_PCT%)"
+    echo "  Deferred:       $COMP_DEFERRED"
+    echo "  Duration:       ${COMPONENT_MINUTES}m ${COMPONENT_SECONDS}s"
+    echo "  Commits:        $COMPONENT_COMMIT_COUNT"
+    echo ""
+
+    # List completed tickets
+    if [ "$COMP_COMPLETED" -gt 0 ]; then
+      echo "Completed Tickets:"
+      cat .sage/tickets/index.json | jq -r "
+        .tickets[] |
+        select(.id | startswith(\"$COMPONENT_NAME-\")) |
+        select(.state == \"COMPLETED\") |
+        .id
+      " | while read TICKET_ID; do
+        TICKET_TITLE=$(cat .sage/tickets/index.json | jq -r ".tickets[] | select(.id == \"$TICKET_ID\") | .title")
+
+        # Get ticket duration from velocity log if available
+        TICKET_DURATION=""
+        if [ -f .sage/stream-velocity.log ]; then
+          TICKET_DURATION=$(grep "$TICKET_ID" .sage/stream-velocity.log | tail -1 | awk '{print $2}')
+          if [ -n "$TICKET_DURATION" ]; then
+            TICKET_DURATION=" (${TICKET_DURATION}m)"
+          fi
+        fi
+
+        echo "  ✅ $TICKET_ID: $TICKET_TITLE$TICKET_DURATION"
+      done
+      echo ""
+    fi
+
+    # List deferred tickets with reasons
+    if [ "$COMP_DEFERRED" -gt 0 ]; then
+      echo "Deferred Tickets:"
+      cat .sage/tickets/index.json | jq -r "
+        .tickets[] |
+        select(.id | startswith(\"$COMPONENT_NAME-\")) |
+        select(.state == \"DEFERRED\") |
+        {id: .id, title: .title, reason: (.deferReason // \"No reason specified\")}
+      " | jq -r '"  ⚠️  \(.id): \(.title)\n     Reason: \(.reason)"'
+      echo ""
+    fi
+
+    echo "─────────────────────────────────────────────────"
+    echo ""
+
+    # Optional retry prompt for deferred tickets
+    if [ "$COMP_DEFERRED" -gt 0 ]; then
+      read -p "Retry deferred tickets? (yes/no): " RETRY_DEFERRED
+
+      if [ "$RETRY_DEFERRED" = "yes" ]; then
+        echo "Marking deferred tickets as UNPROCESSED for retry..."
+
+        # Update deferred tickets back to UNPROCESSED
+        DEFERRED_IDS=$(cat .sage/tickets/index.json | jq -r "
+          [.tickets[] |
+           select(.id | startswith(\"$COMPONENT_NAME-\")) |
+           select(.state == \"DEFERRED\") |
+           .id] | .[]
+        ")
+
+        for DEFERRED_ID in $DEFERRED_IDS; do
+          jq --arg ticket_id "$DEFERRED_ID" --arg timestamp "$(date -u +%Y-%m-%dT%H:%M:%SZ)" '
+            .tickets |= map(
+              if .id == $ticket_id then
+                .state = "UNPROCESSED" |
+                .updated = $timestamp |
+                del(.deferReason)
+              else . end
+            )
+          ' .sage/tickets/index.json > /tmp/tickets-updated.json
+          mv /tmp/tickets-updated.json .sage/tickets/index.json
+        done
+
+        echo "✓ Deferred tickets marked for retry"
+        echo ""
+      else
+        echo "Deferred tickets skipped"
+        echo ""
+      fi
+    fi
+
+    # Log component velocity to .sage/component-velocity.log
+    mkdir -p .sage
+    echo "$(date -u +%Y-%m-%dT%H:%M:%SZ) $COMPONENT_MINUTES $COMPONENT_NAME $COMP_COMPLETED $COMP_DEFERRED" >> .sage/component-velocity.log
+
+    # Clean up batch file for this component
+    cleanup_component_batch "$COMPONENT_NAME"
+
+    # Clear component tracking variables
+    unset COMPONENT_NAME
+    unset COMPONENT_START_TIME
+    unset TICKET_BATCH
+  fi
+fi
+```
+
+**Component Completion Summary Features:**
+
+- **Statistics Display**: Shows total tickets, completed count, deferred count, duration, and commits
+- **Visual Formatting**: Uses box-drawing characters for clear component boundaries
+- **Completed Tickets List**: Lists all completed tickets with titles and optional durations
+- **Deferred Tickets List**: Lists deferred tickets with defer reasons
+- **Retry Option**: Prompts user to retry deferred tickets (marks them UNPROCESSED)
+- **Velocity Logging**: Logs component metrics to `.sage/component-velocity.log`
+- **Automatic Cleanup**: Calls cleanup_component_batch to remove processed batch file
+- **Variable Cleanup**: Clears component tracking variables for next component
+
+**Execution Conditions:**
+
+- Only executes in semi-auto mode (`EXECUTION_MODE="semi-auto"`)
+- Only executes when component name is set (`COMPONENT_NAME` exists)
+- Only executes when all component tickets are no longer UNPROCESSED
 
 ### 10. Loop Control with Continuation Prompt
 
