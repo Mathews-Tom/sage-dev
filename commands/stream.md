@@ -2064,6 +2064,37 @@ if [ "$EXECUTION_MODE" = "semi-auto" ] && [ -n "$COMPONENT_NAME" ]; then
     mkdir -p .sage
     echo "$(date -u +%Y-%m-%dT%H:%M:%SZ) $COMPONENT_MINUTES $COMPONENT_NAME $COMP_COMPLETED $COMP_DEFERRED" >> .sage/component-velocity.log
 
+    # Push Confirmation (FS6: Push component changes to GitHub)
+    read -p "Push component $COMPONENT_NAME changes to GitHub? (yes/no/later): " PUSH_CONFIRM
+
+    case $PUSH_CONFIRM in
+      yes)
+        echo "Pushing changes to GitHub..."
+        CURRENT_BRANCH=$(git branch --show-current)
+
+        # Push to remote
+        if git push origin "$CURRENT_BRANCH" -u 2>&1; then
+          echo "✓ $COMPONENT_COMMIT_COUNT commits pushed to branch $CURRENT_BRANCH"
+        else
+          echo "❌ Push failed. Changes remain local."
+          echo "   Run 'git push origin $CURRENT_BRANCH -u' manually or use /sync"
+        fi
+        echo ""
+        ;;
+      later)
+        echo "Push deferred. Run /sync manually when ready."
+        echo ""
+        ;;
+      no)
+        echo "Push skipped. Changes remain local."
+        echo ""
+        ;;
+      *)
+        echo "Invalid response. Push skipped."
+        echo ""
+        ;;
+    esac
+
     # Clean up batch file for this component
     cleanup_component_batch "$COMPONENT_NAME"
 
