@@ -279,7 +279,7 @@ If you're spending longer, you're over-engineering. Stop and reassess.
 
 ## Minimal Workflow
 
-```text
+```plaintext
 Input: [Hardcoded test case]
   ↓
 [Core Process]: [Single algorithm/transformation]
@@ -372,7 +372,7 @@ print(f"Success: {actual_result == expected_result}")
 
 ## File Structure (Absolute Minimum)
 
-```text
+```plaintext
 docs/poc/
 ├── README.md           # This documentation
 ├── CORE_CONCEPT.md     # What we're proving
@@ -382,7 +382,7 @@ docs/poc/
 
 Optional if absolutely necessary:
 
-```text
+```plaintext
 ├── requirements.txt    # Maximum 3 dependencies
 └── test_data.json      # If hardcoding in code is too messy
 ```
@@ -641,7 +641,7 @@ Next steps:
 
 **Phase-based Approach:**
 
-```text
+```plaintext
 Phase 1 (Days 1-3): Independent POCs in parallel
 ├── POC-1: Core Algorithm ⏳
 ├── POC-2: Data Storage ⏳

@@ -90,7 +90,7 @@ Senior software architect creating actionable technical implementation plans.
 
 ### System Design
 
-```text
+```plaintext
 [ASCII diagram showing key components and data flow]
 ```
 

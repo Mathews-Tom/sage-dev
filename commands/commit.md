@@ -157,7 +157,8 @@ Developer organizing changes into clean, conventional commits with comprehensive
 * Git user.name and user.email reflect only the developer's identity
 
 **PROHIBITED Examples (NEVER use these):**
-```text
+
+```plaintext
 ❌ 🤖 Generated with [Claude Code](https://claude.com/claude-code)
 ❌ Co-Authored-By: Claude <noreply@anthropic.com>
 ❌ AI-assisted commit
@@ -166,7 +167,8 @@ Developer organizing changes into clean, conventional commits with comprehensive
 ```
 
 **Correct Approach:**
-```text
+
+```plaintext
 ✅ feat(auth): add JWT validation
 
 Implement JWT token validation with refresh token support.
@@ -326,7 +328,7 @@ Before pushing:
 
 **Commit Message Format with Tickets:**
 
-```text
+```plaintext
 feat(component): #TICKET-ID implement feature
 
 Detailed description of implementation.
@@ -340,7 +342,7 @@ Closes: #TICKET-ID
 
 **Multiple Tickets in One Commit:**
 
-```text
+```plaintext
 feat(auth): #AUTH-001 #AUTH-002 implement JWT and OAuth
 
 Implements both JWT validation and OAuth integration
@@ -351,7 +353,7 @@ Closes: #AUTH-001, #AUTH-002
 
 **Ticket Reference in Footer:**
 
-```text
+```plaintext
 Closes: #TICKET-ID
 Refs: #RELATED-ID
 Depends-On: #DEPENDENCY-ID

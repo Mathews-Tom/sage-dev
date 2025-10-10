@@ -175,7 +175,7 @@ git push origin tickets-sync
 
 **Commit Message Template:**
 
-```text
+```plaintext
 chore(tickets): sync ticket updates
 
 Updated tickets:

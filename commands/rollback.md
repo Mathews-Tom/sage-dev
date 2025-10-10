@@ -10,6 +10,7 @@ Safety engineer providing checkpoint/restore functionality for destructive opera
 ## Purpose
 
 Enable safe recovery from failed operations by:
+
 - Creating checkpoints before destructive operations
 - Restoring state after failures
 - Preserving work-in-progress during rollback

@@ -447,7 +447,7 @@ Tickets can contain **tasks** arrays for fine-grained execution and validation.
 
 ### Task Processing Flow
 
-```text
+```plaintext
 SELECT_NEXT_TASK (status: UNPROCESSED)
   ↓
 IMPLEMENT_TASK
@@ -511,7 +511,7 @@ Tickets can group related work into **components** for checkpoint-based rollback
 
 ### Component Processing Flow (Interactive Mode)
 
-```text
+```plaintext
 PROCESS_COMPONENT_A
   ↓
   Execute all tasks for component

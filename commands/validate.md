@@ -664,7 +664,7 @@ fi
 
 ### Error: Duplicate Ticket IDs
 
-```text
+```plaintext
 ❌ CRITICAL: Duplicate ticket IDs found:
 AUTH-001
 
@@ -676,7 +676,7 @@ Solution: /repair --deduplicate
 
 ### Error: Circular Dependencies
 
-```text
+```plaintext
 ❌ ERROR: Circular dependencies detected:
 AUTH-001
 AUTH-002
@@ -689,7 +689,7 @@ Solution: /repair --break-cycles
 
 ### Error: Invalid State
 
-```text
+```plaintext
 ❌ ERROR: Tickets with invalid state:
 AUTH-001: DONE
 
@@ -703,7 +703,7 @@ Solution: /repair --fix-states
 
 ### Error: Missing Parent
 
-```text
+```plaintext
 ❌ ERROR: Orphaned tickets (parent not found):
 AUTH-002 has missing parent: AUTH-999
 

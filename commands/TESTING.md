@@ -395,7 +395,7 @@ jobs:
 
 ### Sample Documentation Structure
 
-```text
+```plaintext
 test-fixtures/
 ├── docs/
 │   ├── auth-spec.md           # Sample authentication docs

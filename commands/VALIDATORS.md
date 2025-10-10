@@ -408,7 +408,7 @@ async autoFix_MissingNullCheck(error: ValidationError): Promise<FixResult> {
 
 **Error:**
 
-```text
+```plaintext
 Expected 75% but got 7500%
 ```
 
@@ -650,7 +650,7 @@ const handleSubmit = (e: React.FormEvent) => {
 
 **Error:**
 
-```text
+```plaintext
 Route '/dashbord' not found (typo)
 ```
 
@@ -665,7 +665,7 @@ Route '/dashbord' not found (typo)
 
 **Error:**
 
-```text
+```plaintext
 Expected (e: React.MouseEvent) => void, got (e: MouseEvent) => void
 ```
 

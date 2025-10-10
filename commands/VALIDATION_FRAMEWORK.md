@@ -163,7 +163,7 @@ validation_config:
 
 **Validation Flow:**
 
-```text
+```plaintext
 INITIALIZE_BASE_STATE
   ↓
 EXECUTE_STATE_TRANSITION (programmatically)
@@ -262,7 +262,7 @@ validation_config:
 
 **Validation Flow:**
 
-```text
+```plaintext
 EXTRACT_ALL_DATA_FIELDS
   ↓
 SELECT_NEXT_FIELD
@@ -353,7 +353,7 @@ validation_config:
 
 **Validation Flow:**
 
-```text
+```plaintext
 EXTRACT_ALL_INTERACTIVE_ELEMENTS
   ↓
 SELECT_NEXT_ELEMENT
@@ -428,7 +428,7 @@ validation_config:
 
 **Validation Flow:**
 
-```text
+```plaintext
 CHECK_DEPENDENCIES
   ↓
 dependencies_met? --NO-→ DEFER (missing_dependencies)
@@ -507,7 +507,7 @@ Automatically analyze failures, generate fixes, and retry validation without man
 
 ### Flow
 
-```text
+```plaintext
 IMPLEMENT_TASK
   ↓
 RUN_VALIDATION_SCRIPTS
@@ -568,7 +568,7 @@ const [count, setCount] = useState(0);
 
 **Commit:**
 
-```text
+```plaintext
 fix(TASK-001-1): add missing React import
 
 Auto-fixed: Added useState import from react
@@ -580,7 +580,7 @@ Retry: 1/3
 
 **Error:**
 
-```text
+```plaintext
 TypeError: Cannot read property 'isAuthenticated' of undefined
 ```
 
@@ -596,7 +596,7 @@ TypeError: Cannot read property 'isAuthenticated' of undefined
 
 **Commit:**
 
-```text
+```plaintext
 fix(TASK-001-2): add optional chaining for user object
 
 Auto-fixed: Prevent null reference error
@@ -608,7 +608,7 @@ Retry: 1/3
 
 **Error:**
 
-```text
+```plaintext
 Expected "75.0%" but got "NaN%"
 ```
 
@@ -624,7 +624,7 @@ const percentage = total > 0 ? (completed / total) * 100 : 0;
 
 **Commit:**
 
-```text
+```plaintext
 fix(TASK-042-1): add division by zero check
 
 Auto-fixed: Handle edge case when total is 0

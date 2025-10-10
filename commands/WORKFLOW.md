@@ -41,7 +41,7 @@ Resolve workflow confusion by:
 
    Ask user (unless workflow already detected):
 
-   ```text
+   ```plaintext
    1. Project Type:
       - Is this a NEW project or EXISTING codebase?
 
@@ -66,7 +66,7 @@ Resolve workflow confusion by:
 
 4. **Present Recommendation**:
 
-   ```text
+   ```plaintext
    RECOMMENDED WORKFLOW: [Traditional | Ticket-Based]
 
    RATIONALE:
@@ -244,19 +244,19 @@ Options:
 
 **Traditional Flow:**
 
-```text
+```plaintext
 /specify → /plan → /tasks → /breakdown → /blueprint → /implement → /progress → /commit
 ```
 
 **Ticket-Based Flow:**
 
-```text
+```plaintext
 /specify → /plan → /tasks → /migrate → /stream
 ```
 
 **Hybrid Flow (Advanced):**
 
-```text
+```plaintext
 Traditional flow through /blueprint → /migrate → /stream
 ```
 
@@ -357,7 +357,7 @@ After recommendation, validate:
 
 ### No User Input Available
 
-```text
+```plaintext
 ERROR: /workflow requires interactive input
 
 This command cannot run in automated mode.
@@ -370,7 +370,7 @@ Alternatively, manually create workflow mode:
 
 ### Conflicting State Cannot Resolve
 
-```text
+```plaintext
 ERROR: Cannot determine valid workflow
 
 Found:
