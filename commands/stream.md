@@ -236,10 +236,79 @@ if [ "$EXECUTION_MODE" = "semi-auto" ]; then
   echo "│         COMPONENT GROUPING (STEP 1.5a)        │"
   echo "└────────────────────────────────────────────────┘"
   echo ""
-  echo "Analyzing ticket prefixes and grouping by component..."
-  echo ""
 
-  # Extract unique component prefixes from UNPROCESSED story tickets
+  # Resume Support: Check for existing batch files (EC5)
+  EXISTING_BATCHES=$(ls .sage/batches/*.batch 2>/dev/null)
+
+  if [ -n "$EXISTING_BATCHES" ]; then
+    echo "⚠️  Existing batch files detected - resuming from previous session"
+    echo ""
+
+    # Validate batch files against current ticket states
+    BATCH_FILES=($(ls .sage/batches/*.batch 2>/dev/null))
+    INVALID_BATCHES=0
+    VALID_BATCHES=0
+
+    for BATCH_FILE in "${BATCH_FILES[@]}"; do
+      COMPONENT_NAME=$(basename "$BATCH_FILE" .batch)
+
+      # Check each ticket in batch
+      while IFS= read -r TICKET_ID; do
+        TICKET_STATE=$(cat .sage/tickets/index.json | jq -r ".tickets[] | select(.id == \"$TICKET_ID\") | .state")
+
+        if [ "$TICKET_STATE" != "UNPROCESSED" ]; then
+          echo "  ⚠️  Warning: $TICKET_ID in $COMPONENT_NAME.batch is $TICKET_STATE (not UNPROCESSED)"
+          INVALID_BATCHES=$((INVALID_BATCHES + 1))
+          # Remove invalid ticket from batch
+          grep -v "^${TICKET_ID}$" "$BATCH_FILE" > "${BATCH_FILE}.tmp"
+          mv "${BATCH_FILE}.tmp" "$BATCH_FILE"
+        fi
+      done < "$BATCH_FILE"
+
+      # Check if batch file is now empty
+      if [ ! -s "$BATCH_FILE" ]; then
+        echo "  🗑️  Removing empty batch: $COMPONENT_NAME.batch"
+        rm -f "$BATCH_FILE"
+      else
+        VALID_BATCHES=$((VALID_BATCHES + 1))
+      fi
+    done
+
+    # Display resume summary
+    REMAINING_BATCHES=$(ls .sage/batches/*.batch 2>/dev/null | wc -l | tr -d ' ')
+
+    if [ "$REMAINING_BATCHES" -gt 0 ]; then
+      echo ""
+      echo "Resume Summary:"
+      echo "  Valid batches:   $VALID_BATCHES"
+      if [ "$INVALID_BATCHES" -gt 0 ]; then
+        echo "  Cleaned tickets: $INVALID_BATCHES (no longer UNPROCESSED)"
+      fi
+      echo ""
+      echo "Resuming from:"
+      ls .sage/batches/*.batch 2>/dev/null | while read batch_file; do
+        comp_name=$(basename "$batch_file" .batch)
+        comp_count=$(cat "$batch_file" | wc -l | tr -d ' ')
+        echo "  - $comp_name: $comp_count tickets"
+      done
+      echo ""
+      echo "─────────────────────────────────────────────────"
+      echo ""
+
+      # Skip component grouping - use existing batches
+      # Continue to Step 2 (component selection)
+    else
+      echo "  ℹ️  All batches were empty after validation - creating fresh batches"
+      echo ""
+    fi
+  else
+    echo "Analyzing ticket prefixes and grouping by component..."
+    echo ""
+  fi
+
+  # Only create new batches if no valid existing batches
+  if [ -z "$(ls .sage/batches/*.batch 2>/dev/null)" ]; then
+    # Extract unique component prefixes from UNPROCESSED story tickets
   COMPONENTS=$(cat .sage/tickets/index.json | jq -r '
     [.tickets[] |
      select(.state == "UNPROCESSED") |
@@ -363,22 +432,23 @@ if [ "$EXECUTION_MODE" = "semi-auto" ]; then
     printf "  %d. %-10s %2d tickets (%s) [non-standard prefixes]\n" "$COMPONENT_NUM" "MISC:" "$COUNT" "$TICKET_DISPLAY"
   fi
 
-  echo "─────────────────────────────────────────────────"
-  echo "Total: $COMPONENT_NUM components, $TOTAL_COMPONENT_TICKETS tickets"
-  echo ""
+    echo "─────────────────────────────────────────────────"
+    echo "Total: $COMPONENT_NUM components, $TOTAL_COMPONENT_TICKETS tickets"
+    echo ""
 
-  # Validate that batch files were created
+    echo "✓ Component grouping complete"
+    echo "✓ Batch files created in .sage/batches/"
+    echo ""
+  fi  # End of: if [ -z "$(ls .sage/batches/*.batch 2>/dev/null)" ]
+
+  # Validate that batch files exist (either from resume or fresh grouping)
   BATCH_COUNT=$(ls .sage/batches/*.batch 2>/dev/null | wc -l | tr -d ' ')
   if [ "$BATCH_COUNT" -eq 0 ]; then
-    echo "ERROR: No batch files created"
-    echo "This indicates a grouping logic error."
+    echo "ERROR: No batch files available"
+    echo "This indicates a grouping or resume logic error."
     exit 1
   fi
-
-  echo "✓ Component grouping complete"
-  echo "✓ Batch files created in .sage/batches/"
-  echo ""
-fi
+fi  # End of: if [ "$EXECUTION_MODE" = "semi-auto" ]
 ```
 
 **Batch File Cleanup Function (Semi-Auto Mode):**
