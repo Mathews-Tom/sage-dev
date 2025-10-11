@@ -1,5 +1,7 @@
 # Sage-DEV
 
+![Sage-DEV Cover Image](assets/sage_dev_cover_image.png)
+
 **Version 2.1** - Wisdom-guided software development with language-specific enforcement
 
 Development workflows enriched with collective wisdom. Claude commands that incorporate best practices from thousands of projects, research-backed recommendations, and battle-tested patterns. Build on the shoulders of giants.

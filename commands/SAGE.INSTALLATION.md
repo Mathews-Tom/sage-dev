@@ -73,7 +73,7 @@ ls -1 ~/.claude/commands/ | wc -l  # or your agent's directory
 
 Open your AI coding agent and type `/` - you should see all 20 commands:
 
-```text
+```plaintext
 /workflow      - Choose between Traditional and Ticket-Based workflows
 /intel         - Strategic assessment & market intelligence
 /specify       - Generate structured specifications from docs
@@ -135,7 +135,7 @@ The script will:
 
 **Example Output:**
 
-```text
+```plaintext
 ╔════════════════════════════════════════════════════════════════╗
 ║     Sage-Dev Command Installation for AI Coding Agents         ║
 ╚════════════════════════════════════════════════════════════════╝
@@ -222,14 +222,14 @@ ln -s /path/to/sage-dev/commands ~/.factory/commands
 
 Since `SAGE_DEV_WORKFLOW.md` is now in `~/.claude/commands/`, Claude Code will treat it as a command:
 
-```text
+```plaintext
 /SAGE_DEV_WORKFLOW
 # Shows the full workflow documentation and usage guide
 ```
 
 ### Option 2: Use SAGE_DEV_COMMANDS as a Slash Command
 
-```text
+```plaintext
 /SAGE_DEV_COMMANDS
 # Shows complete command syntax reference and workflow visualizations
 ```
@@ -238,7 +238,7 @@ Since `SAGE_DEV_WORKFLOW.md` is now in `~/.claude/commands/`, Claude Code will t
 
 Within any Claude Code conversation:
 
-```text
+```plaintext
 User: "How do I use the sage-dev workflow selector?"
 Claude: [Reads ~/.claude/commands/workflow.md and explains]
 
@@ -265,7 +265,7 @@ Type `/` in Claude Code to see all commands. Commands appear with:
 
 Example display:
 
-```text
+```plaintext
 /workflow                    Choose between Traditional and Ticket-Based workflows
 /intel                       Strategic assessment & market intelligence
 /migrate [component-name]    Convert documentation to ticket system
@@ -309,7 +309,7 @@ argument-hint: '[ticket-id] (optional, defaults to next UNPROCESSED ticket)'
 
 Displays as:
 
-```text
+```plaintext
 /implement [ticket-id]
 ```
 
@@ -329,7 +329,7 @@ Claude Code enforces these restrictions during command execution.
 
 Claude Code can read command files to provide contextual assistance:
 
-```text
+```plaintext
 User: "I'm getting an error with /validate"
 Claude: [Reads validate.md error scenarios section, provides specific fix]
 
@@ -343,7 +343,7 @@ Claude: [Reads stream.md execution modes section, explains differences]
 
 ### 1. Start with Workflow Selection
 
-```text
+```plaintext
 /workflow
 # Always run this first on new projects
 # Creates .sage/workflow-mode file
@@ -352,7 +352,7 @@ Claude: [Reads stream.md execution modes section, explains differences]
 
 ### 2. Use Command Chaining
 
-```text
+```plaintext
 # Traditional workflow
 /specify → /plan → /tasks → /breakdown → /blueprint → /implement → /commit
 
@@ -364,7 +364,7 @@ Claude: [Reads stream.md execution modes section, explains differences]
 
 Before using complex commands, read the documentation:
 
-```text
+```plaintext
 # Read full guide
 /SAGE_DEV_COMMANDS
 
@@ -377,7 +377,7 @@ Claude: [Reads stream.md and provides comprehensive explanation]
 
 Always validate before proceeding:
 
-```text
+```plaintext
 /specify
 /quality --command=specify --strict
 # Only proceed if quality score ≥ 90/100
@@ -556,7 +556,7 @@ git push
 
 4. **Test in Claude Code:**
 
-```text
+```plaintext
 /my-command
 
 # Should appear and execute according to your instructions

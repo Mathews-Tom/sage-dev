@@ -10,6 +10,7 @@ System repair technician fixing ticket system integrity issues.
 ## Purpose
 
 Automatically fix common ticket system issues by:
+
 - Deduplicating ticket IDs
 - Breaking circular dependencies
 - Fixing invalid states
@@ -727,6 +728,7 @@ fi
 ### Invalid States
 
 **Mapping:**
+
 - `DONE`, `FINISHED` → `COMPLETED`
 - `TODO`, `PENDING` → `UNPROCESSED`
 - `WORKING`, `ACTIVE` → `IN_PROGRESS`

@@ -862,7 +862,7 @@ fi)
 
 ## Dependency Graph
 
-```text
+```plaintext
 DB-001 (COMPLETED)
   ↓
 AUTH-001 (IN_PROGRESS)
@@ -960,6 +960,7 @@ fi
 ```
 
 **Action (Optimized/Full Mode):**
+
 - ❌ ~~Warn user if no specs found, suggest running `/specify` first~~ (OLD BEHAVIOR)
 - ✅ **Auto-detect legacy codebase and switch to LEGACY mode** (NEW BEHAVIOR)
 - Generate tickets from git history only
@@ -967,6 +968,7 @@ fi
 - Continue migration without blocking
 
 **Action (Legacy Mode Explicitly Set):**
+
 - Skip documentation scan entirely
 - Proceed with git-history-only migration
 

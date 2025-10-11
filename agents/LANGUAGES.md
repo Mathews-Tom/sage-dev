@@ -255,7 +255,7 @@ Create agent files in `agents/new-language/`:
 
 ```markdown
 ---
-name: new-lang-agent
+name: sage.new-lang-agent
 description: Agent description
 model: sonnet
 color: purple

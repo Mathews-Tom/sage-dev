@@ -1,5 +1,5 @@
 ---
-name: import-enforcer
+name: sage.import-enforcer
 description: Validates import ordering, absolute imports, and prevents circular dependencies. Enforces PEP 8 import conventions and project import standards.
 model: sonnet
 color: cyan

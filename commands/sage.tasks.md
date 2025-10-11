@@ -139,7 +139,7 @@ Senior project manager creating actionable, estimable task breakdowns.
 
 ## Critical Path
 
-```text
+```plaintext
 COMP-001 → COMP-002 → COMP-008 → COMP-015 → COMP-023
   (3d)      (5d)        (8d)        (5d)        (3d)
                     [24 days total]
@@ -246,7 +246,7 @@ COMP-002,Database Schema,Implement models...,5,P0,Backend,COMP-001,1
 
 **Hierarchy:**
 
-```text
+```plaintext
 Epic (AUTH-001) [from /specify]
   ├─ Story (AUTH-002) [from /tasks - Phase 1, Task 1]
   ├─ Story (AUTH-003) [from /tasks - Phase 1, Task 2]

@@ -1,5 +1,5 @@
 ---
-name: secret-scanner
+name: sage.secret-scanner
 description: Detects hardcoded secrets, API keys, credentials, and blocks commits containing secrets. Prevents credential leaks to version control.
 model: sonnet
 color: red

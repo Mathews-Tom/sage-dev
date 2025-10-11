@@ -689,7 +689,7 @@ Implementation Blueprint: Strategic timeline with success metrics
 
 ## 📁 Generated Folder Structure
 
-```text
+```plaintext
 docs/
 ├── enhancement.md       # System enhancement research (/enhance)
 ├── specs/
@@ -1335,6 +1335,7 @@ DEFER_TASK (with categorized reason)
 ```
 
 **Defer Reasons:**
+
 - `missing_dependencies` - Required files/modules not found
 - `persistent_test_failure` - Tests fail after 3 fix attempts
 - `validation_script_error` - Validation command itself failed
@@ -1411,6 +1412,7 @@ Granular rollback at component level (not just entire tickets):
 ```
 
 **Use Case:**
+
 ```bash
 # Ticket AUTH-001 has two components: AuthModule ✓, AuthUI ✗
 # AuthModule works perfectly, but AuthUI has bugs
@@ -1433,6 +1435,7 @@ Granular rollback at component level (not just entire tickets):
 Generates enhanced ticket schema with validation types, sub-tasks, and components:
 
 **Validation Type Detection (Automatic):**
+
 ```bash
 # Analyzes task descriptions for keywords:
 # "auth|login|state|flow|cascade" → validation_type: stateflow
@@ -1443,6 +1446,7 @@ Generates enhanced ticket schema with validation types, sub-tasks, and component
 ```
 
 **Sub-Task Generation:**
+
 ```bash
 # Reads docs/specs/component/tasks.md
 # Each task becomes a sub-task with:
@@ -1454,6 +1458,7 @@ Generates enhanced ticket schema with validation types, sub-tasks, and component
 ```
 
 **Component Grouping Strategy:**
+
 ```bash
 # Groups tasks by logical components from breakdown or spec structure
 # Example: Auth ticket → AuthModule + AuthUI components
@@ -1507,12 +1512,14 @@ Processes tickets with sub-task execution, validation, and auto-fix:
 **1. Choose Appropriate Validation Type:**
 
 ✅ **Good:**
+
 ```yaml
 # Auth flow with UI cascades
 validation_type: stateflow
 ```
 
 ❌ **Bad:**
+
 ```yaml
 # Auth flow with UI cascades
 validation_type: generic  # Too generic, misses cascade validation
@@ -1521,6 +1528,7 @@ validation_type: generic  # Too generic, misses cascade validation
 **2. Break Down Complex Tickets:**
 
 ✅ **Good:**
+
 ```json
 {
   "tasks": [
@@ -1532,6 +1540,7 @@ validation_type: generic  # Too generic, misses cascade validation
 ```
 
 ❌ **Bad:**
+
 ```json
 {
   "tasks": [
@@ -1543,11 +1552,13 @@ validation_type: generic  # Too generic, misses cascade validation
 **3. Enable Auto-Fix for Appropriate Types:**
 
 ✅ **Enable auto-fix:**
+
 - `stateflow` - UI cascade fixes
 - `content` - Calculation corrections
 - `interactive` - Handler wiring fixes
 
 ❌ **Disable auto-fix:**
+
 - Security-sensitive code
 - Production data migrations
 - External API integrations (manual review)
@@ -1555,6 +1566,7 @@ validation_type: generic  # Too generic, misses cascade validation
 **4. Use Component Grouping Wisely:**
 
 ✅ **Good grouping:**
+
 ```json
 "components": [
   {"name": "AuthLogic", "tasks": ["TASK-1", "TASK-2"]},
@@ -1563,6 +1575,7 @@ validation_type: generic  # Too generic, misses cascade validation
 ```
 
 ❌ **Bad grouping:**
+
 ```json
 "components": [
   {"name": "Everything", "tasks": ["TASK-1", "TASK-2", "TASK-3", "TASK-4"]}

@@ -48,7 +48,7 @@ Senior program manager creating unified development blueprint across all compone
 
 ## System Timeline
 
-```text
+```plaintext
 Week 1-3    Week 4-10      Week 11-16     Week 17-20
    │            │              │              │
    ▼            ▼              ▼              ▼
@@ -129,7 +129,7 @@ Week 1-3    Week 4-10      Week 11-16     Week 17-20
 
 ## System Integration Map
 
-```text
+```plaintext
 [Component A] ──HTTP──→ [Component B]
       │                      │
       │                      ▼

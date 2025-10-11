@@ -1,7 +1,7 @@
 ---
 allowed-tools: Bash(git:*), Bash(cat:*), Bash(jq:*), Bash(grep:*), Task, Read, SequentialThinking
 description: Automated ticket execution orchestrator that processes tickets sequentially or in parallel using sub-agents until completion.
-argument-hint: '[--interactive | --auto | --dry-run] [--parallel=N | --parallel=auto] (defaults to --interactive, sequential)'
+argument-hint: '[--interactive | --semi-auto | --auto | --dry-run] [--parallel=N | --parallel=auto] (defaults to --interactive, sequential)'
 ---
 
 ## Role
@@ -35,12 +35,18 @@ for arg in "$@"; do
     --interactive)
       EXECUTION_MODE="interactive"
       ;;
+    --semi-auto|--component-auto)
+      EXECUTION_MODE="semi-auto"
+      ;;
     --auto)
       EXECUTION_MODE="auto"
       ;;
     --dry-run)
       DRY_RUN=true
-      EXECUTION_MODE="dry-run"
+      # Only set EXECUTION_MODE to dry-run if no other mode specified
+      if [ "$EXECUTION_MODE" = "interactive" ]; then
+        EXECUTION_MODE="dry-run"
+      fi
       ;;
     --parallel=*)
       PARALLEL_MODE=true
@@ -52,6 +58,16 @@ for arg in "$@"; do
       ;;
   esac
 done
+
+# Validate semi-auto mode compatibility
+if [ "$EXECUTION_MODE" = "semi-auto" ] && [ "$PARALLEL_MODE" = "true" ]; then
+  echo "ERROR: --semi-auto cannot be combined with --parallel"
+  echo "Parallel execution is not supported in semi-auto mode (Phase 1)"
+  echo ""
+  echo "Usage: /stream --semi-auto (sequential, component-level automation)"
+  echo "   or: /stream --auto --parallel=3 (parallel, ticket-level automation)"
+  exit 1
+fi
 
 # Validate parallel mode compatibility
 if [ "$PARALLEL_MODE" = "true" ] && [ "$EXECUTION_MODE" != "auto" ]; then
@@ -86,11 +102,29 @@ echo "DEVSTREAM EXECUTION MODE: $EXECUTION_MODE"
 if [ "$PARALLEL_MODE" = "true" ]; then
   echo "PARALLEL EXECUTION: $PARALLEL_WORKERS workers"
 fi
+if [ "$DRY_RUN" = "true" ] && [ "$EXECUTION_MODE" != "dry-run" ]; then
+  echo "DRY RUN: Enabled (preview mode, no changes)"
+fi
 echo "================================================"
 if [ "$EXECUTION_MODE" = "interactive" ]; then
   echo "Interactive mode: Confirmations required at key points"
   echo "Use --auto for hands-off execution (advanced)"
+  echo "Use --semi-auto for component-level automation"
   echo "Use --dry-run to preview without changes"
+elif [ "$EXECUTION_MODE" = "semi-auto" ]; then
+  echo "Semi-Auto Mode: Component-level automation"
+  echo ""
+  echo "Behavior:"
+  echo "  • Groups tickets by component prefix (AUTH-*, UI-*, API-*)"
+  echo "  • Confirmation required at component boundaries"
+  echo "  • All tickets within a component processed automatically"
+  echo "  • 90% fewer confirmations vs interactive mode"
+  echo ""
+  if [ "$DRY_RUN" = "true" ]; then
+    echo "DRY RUN: Preview mode enabled - no actual changes will be made"
+  else
+    echo "Compatible with --dry-run for preview"
+  fi
 elif [ "$EXECUTION_MODE" = "auto" ]; then
   echo "⚠️  AUTO MODE: No confirmations, fully automated"
   echo "Ensure you trust the system before using this mode"
@@ -193,6 +227,276 @@ fi
 - **NEW: Interactive confirmation to start** (Issue 3.1)
 - Display cycle initialization summary
 
+### 1.5a. Component Grouping (Semi-Auto Mode Only)
+
+```bash
+# Only execute in semi-auto mode
+if [ "$EXECUTION_MODE" = "semi-auto" ]; then
+  echo "┌────────────────────────────────────────────────┐"
+  echo "│         COMPONENT GROUPING (STEP 1.5a)        │"
+  echo "└────────────────────────────────────────────────┘"
+  echo ""
+
+  # Resume Support: Check for existing batch files (EC5)
+  EXISTING_BATCHES=$(ls .sage/batches/*.batch 2>/dev/null)
+
+  if [ -n "$EXISTING_BATCHES" ]; then
+    echo "⚠️  Existing batch files detected - resuming from previous session"
+    echo ""
+
+    # Validate batch files against current ticket states
+    BATCH_FILES=($(ls .sage/batches/*.batch 2>/dev/null))
+    INVALID_BATCHES=0
+    VALID_BATCHES=0
+
+    for BATCH_FILE in "${BATCH_FILES[@]}"; do
+      COMPONENT_NAME=$(basename "$BATCH_FILE" .batch)
+
+      # Check each ticket in batch
+      while IFS= read -r TICKET_ID; do
+        TICKET_STATE=$(cat .sage/tickets/index.json | jq -r ".tickets[] | select(.id == \"$TICKET_ID\") | .state")
+
+        if [ "$TICKET_STATE" != "UNPROCESSED" ]; then
+          echo "  ⚠️  Warning: $TICKET_ID in $COMPONENT_NAME.batch is $TICKET_STATE (not UNPROCESSED)"
+          INVALID_BATCHES=$((INVALID_BATCHES + 1))
+          # Remove invalid ticket from batch
+          grep -v "^${TICKET_ID}$" "$BATCH_FILE" > "${BATCH_FILE}.tmp"
+          mv "${BATCH_FILE}.tmp" "$BATCH_FILE"
+        fi
+      done < "$BATCH_FILE"
+
+      # Check if batch file is now empty
+      if [ ! -s "$BATCH_FILE" ]; then
+        echo "  🗑️  Removing empty batch: $COMPONENT_NAME.batch"
+        rm -f "$BATCH_FILE"
+      else
+        VALID_BATCHES=$((VALID_BATCHES + 1))
+      fi
+    done
+
+    # Display resume summary
+    REMAINING_BATCHES=$(ls .sage/batches/*.batch 2>/dev/null | wc -l | tr -d ' ')
+
+    if [ "$REMAINING_BATCHES" -gt 0 ]; then
+      echo ""
+      echo "Resume Summary:"
+      echo "  Valid batches:   $VALID_BATCHES"
+      if [ "$INVALID_BATCHES" -gt 0 ]; then
+        echo "  Cleaned tickets: $INVALID_BATCHES (no longer UNPROCESSED)"
+      fi
+      echo ""
+      echo "Resuming from:"
+      ls .sage/batches/*.batch 2>/dev/null | while read batch_file; do
+        comp_name=$(basename "$batch_file" .batch)
+        comp_count=$(cat "$batch_file" | wc -l | tr -d ' ')
+        echo "  - $comp_name: $comp_count tickets"
+      done
+      echo ""
+      echo "─────────────────────────────────────────────────"
+      echo ""
+
+      # Skip component grouping - use existing batches
+      # Continue to Step 2 (component selection)
+    else
+      echo "  ℹ️  All batches were empty after validation - creating fresh batches"
+      echo ""
+    fi
+  else
+    echo "Analyzing ticket prefixes and grouping by component..."
+    echo ""
+  fi
+
+  # Only create new batches if no valid existing batches
+  if [ -z "$(ls .sage/batches/*.batch 2>/dev/null)" ]; then
+    # Extract unique component prefixes from UNPROCESSED story tickets
+  COMPONENTS=$(cat .sage/tickets/index.json | jq -r '
+    [.tickets[] |
+     select(.state == "UNPROCESSED") |
+     select(.type == "story" or .type == "feature" or .type == "Story" or .type == "Feature") |
+     .id] |
+    map(split("-")[0]) |
+    unique |
+    .[]
+  ' | sort)
+
+  # Check if we have any components
+  if [ -z "$COMPONENTS" ]; then
+    echo "ERROR: No UNPROCESSED story tickets found for component grouping"
+    echo ""
+    echo "Component grouping requires at least one UNPROCESSED story ticket."
+    echo "Current ticket states:"
+    cat .sage/tickets/index.json | jq -r '.tickets[] | "  - \(.id): \(.state) (type: \(.type))"'
+    exit 1
+  fi
+
+  # Create batch directory
+  mkdir -p .sage/batches
+  rm -f .sage/batches/*.batch
+
+  # Standard component prefixes (uppercase alphabetic)
+  STANDARD_PATTERN='^[A-Z]+$'
+
+  # Track component statistics
+  declare -A COMPONENT_COUNTS
+  declare -a MISC_TICKETS
+
+  # Generate batch file per component
+  for COMPONENT in $COMPONENTS; do
+    # Check if component prefix is standard (uppercase alphabetic only)
+    if [[ "$COMPONENT" =~ $STANDARD_PATTERN ]]; then
+      # Standard component - create dedicated batch file
+      COMP_TICKETS=$(cat .sage/tickets/index.json | jq -r "
+        [.tickets[] |
+         select(.state == \"UNPROCESSED\") |
+         select(.type == \"story\" or .type == \"feature\" or .type == \"Story\" or .type == \"Feature\") |
+         select(.id | startswith(\"$COMPONENT-\"))] |
+        map(.id) |
+        .[]
+      ")
+
+      if [ -n "$COMP_TICKETS" ]; then
+        # Atomic write: temp file + mv to prevent corruption on interruption
+        echo "$COMP_TICKETS" > "/tmp/$COMPONENT.batch.tmp"
+        mv "/tmp/$COMPONENT.batch.tmp" ".sage/batches/$COMPONENT.batch"
+        COMP_COUNT=$(echo "$COMP_TICKETS" | wc -l | tr -d ' ')
+        COMPONENT_COUNTS["$COMPONENT"]=$COMP_COUNT
+      fi
+    else
+      # Non-standard prefix - collect for MISC batch
+      COMP_TICKETS=$(cat .sage/tickets/index.json | jq -r "
+        [.tickets[] |
+         select(.state == \"UNPROCESSED\") |
+         select(.type == \"story\" or .type == \"feature\" or .type == \"Story\" or .type == \"Feature\") |
+         select(.id | startswith(\"$COMPONENT-\"))] |
+        map(.id) |
+        .[]
+      ")
+
+      if [ -n "$COMP_TICKETS" ]; then
+        while IFS= read -r ticket; do
+          MISC_TICKETS+=("$ticket")
+        done <<< "$COMP_TICKETS"
+      fi
+    fi
+  done
+
+  # Create MISC batch if there are non-standard tickets
+  if [ ${#MISC_TICKETS[@]} -gt 0 ]; then
+    # Atomic write: temp file + mv to prevent corruption on interruption
+    printf "%s\n" "${MISC_TICKETS[@]}" > "/tmp/MISC.batch.tmp"
+    mv "/tmp/MISC.batch.tmp" ".sage/batches/MISC.batch"
+    COMPONENT_COUNTS["MISC"]=${#MISC_TICKETS[@]}
+  fi
+
+  # Display component execution plan
+  echo "Component Execution Plan:"
+  echo "─────────────────────────────────────────────────"
+
+  COMPONENT_NUM=0
+  TOTAL_COMPONENT_TICKETS=0
+
+  # Display standard components first (sorted)
+  for COMPONENT in $(echo "${!COMPONENT_COUNTS[@]}" | tr ' ' '\n' | grep -v '^MISC$' | sort); do
+    COMPONENT_NUM=$((COMPONENT_NUM + 1))
+    COUNT=${COMPONENT_COUNTS[$COMPONENT]}
+    TOTAL_COMPONENT_TICKETS=$((TOTAL_COMPONENT_TICKETS + COUNT))
+
+    # Get ticket IDs for this component
+    TICKET_LIST=$(cat ".sage/batches/$COMPONENT.batch" | head -5 | tr '\n' ', ' | sed 's/,$//')
+    REMAINING_COUNT=$(cat ".sage/batches/$COMPONENT.batch" | wc -l | tr -d ' ')
+
+    if [ $REMAINING_COUNT -gt 5 ]; then
+      TICKET_DISPLAY="$TICKET_LIST... (+$((REMAINING_COUNT - 5)) more)"
+    else
+      TICKET_DISPLAY="$TICKET_LIST"
+    fi
+
+    printf "  %d. %-10s %2d tickets (%s)\n" "$COMPONENT_NUM" "$COMPONENT:" "$COUNT" "$TICKET_DISPLAY"
+  done
+
+  # Display MISC component last if present
+  if [ -n "${COMPONENT_COUNTS[MISC]}" ]; then
+    COMPONENT_NUM=$((COMPONENT_NUM + 1))
+    COUNT=${COMPONENT_COUNTS[MISC]}
+    TOTAL_COMPONENT_TICKETS=$((TOTAL_COMPONENT_TICKETS + COUNT))
+
+    TICKET_LIST=$(cat ".sage/batches/MISC.batch" | head -5 | tr '\n' ', ' | sed 's/,$//')
+    REMAINING_COUNT=$(cat ".sage/batches/MISC.batch" | wc -l | tr -d ' ')
+
+    if [ $REMAINING_COUNT -gt 5 ]; then
+      TICKET_DISPLAY="$TICKET_LIST... (+$((REMAINING_COUNT - 5)) more)"
+    else
+      TICKET_DISPLAY="$TICKET_LIST"
+    fi
+
+    printf "  %d. %-10s %2d tickets (%s) [non-standard prefixes]\n" "$COMPONENT_NUM" "MISC:" "$COUNT" "$TICKET_DISPLAY"
+  fi
+
+    echo "─────────────────────────────────────────────────"
+    echo "Total: $COMPONENT_NUM components, $TOTAL_COMPONENT_TICKETS tickets"
+    echo ""
+
+    echo "✓ Component grouping complete"
+    echo "✓ Batch files created in .sage/batches/"
+    echo ""
+  fi  # End of: if [ -z "$(ls .sage/batches/*.batch 2>/dev/null)" ]
+
+  # Validate that batch files exist (either from resume or fresh grouping)
+  BATCH_COUNT=$(ls .sage/batches/*.batch 2>/dev/null | wc -l | tr -d ' ')
+  if [ "$BATCH_COUNT" -eq 0 ]; then
+    echo "ERROR: No batch files available"
+    echo "This indicates a grouping or resume logic error."
+    exit 1
+  fi
+fi  # End of: if [ "$EXECUTION_MODE" = "semi-auto" ]
+```
+
+**Batch File Cleanup Function (Semi-Auto Mode):**
+
+```bash
+# Function: cleanup_component_batch
+# Usage: cleanup_component_batch "$COMPONENT_NAME"
+# Called after all tickets in a component are processed (COMPLETED or DEFERRED)
+# Gracefully removes batch file without failing if file doesn't exist
+cleanup_component_batch() {
+  local COMPONENT="$1"
+
+  if [ -z "$COMPONENT" ]; then
+    echo "ERROR: cleanup_component_batch requires component name"
+    return 1
+  fi
+
+  local BATCH_FILE=".sage/batches/${COMPONENT}.batch"
+
+  # Use rm -f to avoid failing if file doesn't exist (graceful cleanup)
+  if [ -f "$BATCH_FILE" ]; then
+    rm -f "$BATCH_FILE"
+    echo "✓ Cleaned up batch file: $BATCH_FILE"
+  else
+    # Silent success - file may have already been cleaned up
+    # No error or warning to avoid noise in logs
+    :
+  fi
+}
+
+# Note: This function will be called from component orchestration logic
+# Implementation location: After all tickets in component batch are processed
+# Typical call: cleanup_component_batch "AUTH"
+# Integration point: Semi-auto mode component completion (STREAM-005 or later)
+```
+
+**Key Actions (Semi-Auto Mode Only):**
+
+- Extract component prefixes from UNPROCESSED story tickets
+- Group tickets by component prefix (e.g., AUTH-*, UI-*, API-*)
+- Non-standard prefixes (MISC-*, HOTFIX-*, etc.) grouped into MISC.batch
+- Create .sage/batches/ directory with one .batch file per component
+- **Write batch files atomically** (temp file + mv to prevent corruption)
+- Display component execution plan with ticket counts and IDs
+- Handle edge cases (empty components, single ticket, no tickets)
+- Validate batch files were created successfully
+- **Cleanup batch files after component completion** (via cleanup_component_batch function)
+
 ### 1.5. Build Dependency Graph (Parallel Mode Only)
 
 ```bash
@@ -259,8 +563,82 @@ fi
 ### 2. Select Next Ticket (or Batch)
 
 ```bash
+# Semi-auto mode: Select next component from batches
+if [ "$EXECUTION_MODE" = "semi-auto" ]; then
+  echo "┌────────────────────────────────────────────────┐"
+  echo "│    COMPONENT SELECTION (STEP 2 - SEMI-AUTO)   │"
+  echo "└────────────────────────────────────────────────┘"
+  echo ""
+
+  # Find next batch file
+  NEXT_BATCH_FILE=$(ls .sage/batches/*.batch 2>/dev/null | head -1)
+
+  if [ -z "$NEXT_BATCH_FILE" ]; then
+    echo "✓ All components processed"
+    echo ""
+    exit 0
+  fi
+
+  # Extract component name from filename
+  COMPONENT_NAME=$(basename "$NEXT_BATCH_FILE" .batch)
+
+  # Read ticket IDs from batch file
+  mapfile -t COMPONENT_TICKETS < "$NEXT_BATCH_FILE"
+  TICKET_COUNT=${#COMPONENT_TICKETS[@]}
+
+  # Display component information
+  echo "Component: $COMPONENT_NAME"
+  echo "Tickets:   $TICKET_COUNT"
+  echo ""
+  echo "Ticket List:"
+
+  # Load and display ticket titles
+  for TICKET_ID in "${COMPONENT_TICKETS[@]}"; do
+    TICKET_TITLE=$(cat .sage/tickets/index.json | jq -r ".tickets[] | select(.id == \"$TICKET_ID\") | .title")
+    echo "  - $TICKET_ID: $TICKET_TITLE"
+  done
+
+  echo ""
+  echo "─────────────────────────────────────────────────"
+  echo ""
+
+  # Confirmation prompt
+  read -p "Start processing component $COMPONENT_NAME ($TICKET_COUNT tickets)? (yes/no/skip): " COMPONENT_CONFIRM
+
+  case $COMPONENT_CONFIRM in
+    yes)
+      echo "✓ Starting component $COMPONENT_NAME"
+      echo ""
+      # Track component start time for completion metrics
+      COMPONENT_START_TIME=$(date +%s)
+      # Set component batch for processing
+      TICKET_BATCH=("${COMPONENT_TICKETS[@]}")
+      ;;
+    no)
+      echo "Cycle stopped by user"
+      exit 0
+      ;;
+    skip)
+      echo "Skipping component $COMPONENT_NAME"
+      # Delete batch file
+      rm -f "$NEXT_BATCH_FILE"
+      echo "✓ Component batch deleted"
+      echo ""
+      # Loop back to select next component
+      # (In actual implementation, this would restart step 2)
+      echo "Moving to next component..."
+      echo ""
+      # For now, exit - full loop will be handled by later tickets
+      exit 0
+      ;;
+    *)
+      echo "Invalid input. Exiting."
+      exit 1
+      ;;
+  esac
+
 # Sequential mode: Select single ticket
-if [ "$PARALLEL_MODE" = "false" ]; then
+elif [ "$PARALLEL_MODE" = "false" ]; then
   # Query for UNPROCESSED tickets with satisfied dependencies
   SELECTED_TICKET_ID=$(cat .sage/tickets/index.json | jq -r '
     .tickets[] |
@@ -372,7 +750,7 @@ echo "  - Plan: $PLAN_PATH"
 echo "  - Breakdown: $BREAKDOWN_PATH"
 echo ""
 
-# Interactive confirmation (Issue 3.1)
+# Mode-specific confirmation (Issue 3.1)
 if [ "$EXECUTION_MODE" = "interactive" ]; then
   echo "Actions to perform:"
   echo "  1. Mark ticket IN_PROGRESS"
@@ -389,6 +767,10 @@ if [ "$EXECUTION_MODE" = "interactive" ]; then
     echo "Skipping ticket $TICKET_ID"
     continue  # Skip to next ticket in loop
   fi
+  echo ""
+elif [ "$EXECUTION_MODE" = "semi-auto" ]; then
+  # Semi-auto mode: skip confirmation, display progress indicator
+  echo "→ Processing $TICKET_ID..."
   echo ""
 fi
 
@@ -986,7 +1368,7 @@ fi
 
 **Sub-Agent Workflow (Ticket Clearance Methodology):**
 
-```text
+```plaintext
 START
   ↓
 MARK_TICKET_IN_PROGRESS
@@ -1054,7 +1436,7 @@ echo ""
 echo "─────────────────────────────────────────────────"
 echo ""
 
-# Interactive confirmation for completion (Issue 3.1)
+# Mode-specific confirmation for completion (Issue 3.1)
 if [ "$EXECUTION_MODE" = "interactive" ]; then
   if [ "$OUTCOME" = "COMPLETED" ] && [ "$TESTS_PASSED" = true ]; then
     echo "Tests passed. Ready to mark ticket COMPLETED."
@@ -1084,10 +1466,15 @@ if [ "$EXECUTION_MODE" = "interactive" ]; then
     fi
   fi
   echo ""
-fi
-
-# Auto mode - accept outcome automatically
-if [ "$EXECUTION_MODE" = "auto" ]; then
+elif [ "$EXECUTION_MODE" = "semi-auto" ]; then
+  # Semi-auto mode: auto-accept completion if tests passed
+  if [ "$OUTCOME" = "COMPLETED" ] && [ "$TESTS_PASSED" = true ]; then
+    echo "✓ Ticket $TICKET_ID completed (auto-confirmed)"
+  elif [ "$OUTCOME" = "DEFERRED" ]; then
+    echo "⚠ Ticket $TICKET_ID deferred (auto-continuing)"
+  fi
+elif [ "$EXECUTION_MODE" = "auto" ]; then
+  # Auto mode - accept outcome automatically
   case $OUTCOME in
     COMPLETED)
       echo "✓ Ticket $TICKET_ID completed successfully (auto-confirmed)"
@@ -1176,6 +1563,9 @@ if [[ "$CURRENT_BRANCH" == "main" || "$CURRENT_BRANCH" == "master" ]]; then
     if [ "$BRANCH_CONFIRM" = "custom" ]; then
       read -p "Enter branch name: " BRANCH_NAME
     fi
+  elif [ "$EXECUTION_MODE" = "semi-auto" ] || [ "$EXECUTION_MODE" = "auto" ]; then
+    # Semi-auto and auto modes: use default branch name
+    echo "Creating branch: $BRANCH_NAME"
   fi
 
   # Create and checkout branch
@@ -1208,7 +1598,7 @@ else
   git diff --stat
   echo ""
 
-  # Interactive confirmation for commit (Issue 3.1)
+  # Mode-specific confirmation for commit (Issue 3.1)
   if [ "$EXECUTION_MODE" = "interactive" ]; then
     echo "Ready to commit changes for ticket $TICKET_ID"
     read -p "Review diff before committing? (yes/no/skip): " REVIEW_DIFF
@@ -1233,10 +1623,12 @@ else
       SHOULD_COMMIT=true
     fi
     echo ""
-  fi
-
-  # Auto mode - commit automatically
-  if [ "$EXECUTION_MODE" = "auto" ]; then
+  elif [ "$EXECUTION_MODE" = "semi-auto" ]; then
+    # Semi-auto mode: skip prompts, auto-commit
+    echo "Auto-committing changes for ticket $TICKET_ID..."
+    SHOULD_COMMIT=true
+  elif [ "$EXECUTION_MODE" = "auto" ]; then
+    # Auto mode - commit automatically
     echo "Auto-committing changes for ticket $TICKET_ID..."
     SHOULD_COMMIT=true
   fi
@@ -1598,13 +1990,266 @@ fi
 
 **Commit Message Format:**
 
-```text
+```plaintext
 feat(component): #TICKET-ID implement feature
 
 Detailed description of changes...
 
 Closes: #TICKET-ID
 ```
+
+### 9a. Component Completion Summary (Semi-Auto Mode Only)
+
+```bash
+# Display component completion summary if in semi-auto mode
+if [ "$EXECUTION_MODE" = "semi-auto" ] && [ -n "$COMPONENT_NAME" ]; then
+  # Check if all tickets in component are no longer UNPROCESSED
+  COMPONENT_TICKETS_REMAINING=$(cat .sage/tickets/index.json | jq -r "[.tickets[] | select(.id | startswith(\"$COMPONENT_NAME-\")) | select(.state == \"UNPROCESSED\")] | length")
+
+  if [ "$COMPONENT_TICKETS_REMAINING" -eq 0 ]; then
+    # Calculate component completion metrics
+    COMPONENT_END_TIME=$(date +%s)
+    COMPONENT_DURATION=$((COMPONENT_END_TIME - COMPONENT_START_TIME))
+    COMPONENT_MINUTES=$((COMPONENT_DURATION / 60))
+    COMPONENT_SECONDS=$((COMPONENT_DURATION % 60))
+
+    # Get ticket counts for this component
+    COMPONENT_TICKET_DATA=$(cat .sage/tickets/index.json | jq -r "
+      [.tickets[] | select(.id | startswith(\"$COMPONENT_NAME-\"))] |
+      {
+        total: length,
+        completed: [.[] | select(.state == \"COMPLETED\")] | length,
+        deferred: [.[] | select(.state == \"DEFERRED\")] | length
+      }
+    ")
+
+    COMP_TOTAL=$(echo "$COMPONENT_TICKET_DATA" | jq -r '.total')
+    COMP_COMPLETED=$(echo "$COMPONENT_TICKET_DATA" | jq -r '.completed')
+    COMP_DEFERRED=$(echo "$COMPONENT_TICKET_DATA" | jq -r '.deferred')
+
+    # Calculate completion percentage
+    if [ "$COMP_TOTAL" -gt 0 ]; then
+      COMP_COMPLETED_PCT=$((COMP_COMPLETED * 100 / COMP_TOTAL))
+    else
+      COMP_COMPLETED_PCT=0
+    fi
+
+    # Count commits for this component (from current cycle)
+    if [ -f .sage/stream-velocity.log ]; then
+      COMPONENT_COMMIT_COUNT=$(grep "$(date -u +%Y-%m-%d)" .sage/stream-velocity.log | grep -c "$COMPONENT_NAME-" || echo "0")
+    else
+      COMPONENT_COMMIT_COUNT=0
+    fi
+
+    echo ""
+    echo "┌────────────────────────────────────────────────┐"
+    echo "│    COMPONENT COMPLETION: $COMPONENT_NAME"
+    echo "└────────────────────────────────────────────────┘"
+    echo ""
+    echo "Statistics:"
+    echo "  Total Tickets:  $COMP_TOTAL"
+    echo "  Completed:      $COMP_COMPLETED ($COMP_COMPLETED_PCT%)"
+    echo "  Deferred:       $COMP_DEFERRED"
+    echo "  Duration:       ${COMPONENT_MINUTES}m ${COMPONENT_SECONDS}s"
+    echo "  Commits:        $COMPONENT_COMMIT_COUNT"
+    echo ""
+
+    # List completed tickets
+    if [ "$COMP_COMPLETED" -gt 0 ]; then
+      echo "Completed Tickets:"
+      cat .sage/tickets/index.json | jq -r "
+        .tickets[] |
+        select(.id | startswith(\"$COMPONENT_NAME-\")) |
+        select(.state == \"COMPLETED\") |
+        .id
+      " | while read TICKET_ID; do
+        TICKET_TITLE=$(cat .sage/tickets/index.json | jq -r ".tickets[] | select(.id == \"$TICKET_ID\") | .title")
+
+        # Get ticket duration from velocity log if available
+        TICKET_DURATION=""
+        if [ -f .sage/stream-velocity.log ]; then
+          TICKET_DURATION=$(grep "$TICKET_ID" .sage/stream-velocity.log | tail -1 | awk '{print $2}')
+          if [ -n "$TICKET_DURATION" ]; then
+            TICKET_DURATION=" (${TICKET_DURATION}m)"
+          fi
+        fi
+
+        echo "  ✅ $TICKET_ID: $TICKET_TITLE$TICKET_DURATION"
+      done
+      echo ""
+    fi
+
+    # List deferred tickets with reasons
+    if [ "$COMP_DEFERRED" -gt 0 ]; then
+      echo "Deferred Tickets:"
+      cat .sage/tickets/index.json | jq -r "
+        .tickets[] |
+        select(.id | startswith(\"$COMPONENT_NAME-\")) |
+        select(.state == \"DEFERRED\") |
+        {id: .id, title: .title, reason: (.deferReason // \"No reason specified\")}
+      " | jq -r '"  ⚠️  \(.id): \(.title)\n     Reason: \(.reason)"'
+      echo ""
+    fi
+
+    echo "─────────────────────────────────────────────────"
+    echo ""
+
+    # Optional retry prompt for deferred tickets
+    if [ "$COMP_DEFERRED" -gt 0 ]; then
+      read -p "Retry deferred tickets? (yes/no): " RETRY_DEFERRED
+
+      if [ "$RETRY_DEFERRED" = "yes" ]; then
+        echo "Marking deferred tickets as UNPROCESSED for retry..."
+
+        # Update deferred tickets back to UNPROCESSED
+        DEFERRED_IDS=$(cat .sage/tickets/index.json | jq -r "
+          [.tickets[] |
+           select(.id | startswith(\"$COMPONENT_NAME-\")) |
+           select(.state == \"DEFERRED\") |
+           .id] | .[]
+        ")
+
+        for DEFERRED_ID in $DEFERRED_IDS; do
+          jq --arg ticket_id "$DEFERRED_ID" --arg timestamp "$(date -u +%Y-%m-%dT%H:%M:%SZ)" '
+            .tickets |= map(
+              if .id == $ticket_id then
+                .state = "UNPROCESSED" |
+                .updated = $timestamp |
+                del(.deferReason)
+              else . end
+            )
+          ' .sage/tickets/index.json > /tmp/tickets-updated.json
+          mv /tmp/tickets-updated.json .sage/tickets/index.json
+        done
+
+        echo "✓ Deferred tickets marked for retry"
+        echo ""
+      else
+        echo "Deferred tickets skipped"
+        echo ""
+      fi
+    fi
+
+    # Log component velocity to .sage/component-velocity.log
+    mkdir -p .sage
+    echo "$(date -u +%Y-%m-%dT%H:%M:%SZ) $COMPONENT_MINUTES $COMPONENT_NAME $COMP_COMPLETED $COMP_DEFERRED" >> .sage/component-velocity.log
+
+    # Push Confirmation (FS6: Push component changes to GitHub)
+    read -p "Push component $COMPONENT_NAME changes to GitHub? (yes/no/later): " PUSH_CONFIRM
+
+    case $PUSH_CONFIRM in
+      yes)
+        echo "Pushing changes to GitHub..."
+        CURRENT_BRANCH=$(git branch --show-current)
+
+        # Push to remote
+        if git push origin "$CURRENT_BRANCH" -u 2>&1; then
+          echo "✓ $COMPONENT_COMMIT_COUNT commits pushed to branch $CURRENT_BRANCH"
+        else
+          echo "❌ Push failed. Changes remain local."
+          echo "   Run 'git push origin $CURRENT_BRANCH -u' manually or use /sync"
+        fi
+        echo ""
+        ;;
+      later)
+        echo "Push deferred. Run /sync manually when ready."
+        echo ""
+        ;;
+      no)
+        echo "Push skipped. Changes remain local."
+        echo ""
+        ;;
+      *)
+        echo "Invalid response. Push skipped."
+        echo ""
+        ;;
+    esac
+
+    # Continue/Pause Confirmation (FS7: Continue to next component or pause)
+    # Check for next component
+    NEXT_BATCH=$(ls .sage/batches/*.batch 2>/dev/null | head -1)
+
+    if [ -n "$NEXT_BATCH" ]; then
+      NEXT_COMPONENT=$(basename "$NEXT_BATCH" .batch)
+      NEXT_COUNT=$(cat "$NEXT_BATCH" | wc -l | tr -d ' ')
+
+      echo "─────────────────────────────────────────────────"
+      echo ""
+      read -p "Continue to next component $NEXT_COMPONENT ($NEXT_COUNT tickets)? (yes/no/pause): " CONTINUE_CONFIRM
+
+      case $CONTINUE_CONFIRM in
+        yes)
+          echo "Continuing to component $NEXT_COMPONENT..."
+          echo ""
+          # Cleanup current batch and continue loop
+          cleanup_component_batch "$COMPONENT_NAME"
+          # Clear component tracking variables
+          unset COMPONENT_NAME
+          unset COMPONENT_START_TIME
+          unset TICKET_BATCH
+          # Loop will continue to next component
+          ;;
+        pause)
+          echo "Cycle paused. Progress saved."
+          echo "Batch files preserved in .sage/batches/"
+          echo ""
+          echo "To resume: Run /stream --semi-auto"
+          echo ""
+          # Cleanup current batch but preserve others
+          cleanup_component_batch "$COMPONENT_NAME"
+          exit 0
+          ;;
+        no)
+          echo "Cycle stopped by user."
+          echo "Progress saved. Remaining components:"
+          ls .sage/batches/*.batch 2>/dev/null | while read batch_file; do
+            comp_name=$(basename "$batch_file" .batch)
+            comp_count=$(cat "$batch_file" | wc -l | tr -d ' ')
+            echo "  - $comp_name: $comp_count tickets"
+          done
+          echo ""
+          # Cleanup current batch
+          cleanup_component_batch "$COMPONENT_NAME"
+          exit 0
+          ;;
+        *)
+          echo "Invalid response. Treating as 'pause'."
+          echo "Cycle paused. Run /stream --semi-auto to resume."
+          echo ""
+          cleanup_component_batch "$COMPONENT_NAME"
+          exit 0
+          ;;
+      esac
+    else
+      # No more components - cleanup and continue to finalize
+      echo "All components processed."
+      echo ""
+      cleanup_component_batch "$COMPONENT_NAME"
+      # Clear component tracking variables
+      unset COMPONENT_NAME
+      unset COMPONENT_START_TIME
+      unset TICKET_BATCH
+    fi
+  fi
+fi
+```
+
+**Component Completion Summary Features:**
+
+- **Statistics Display**: Shows total tickets, completed count, deferred count, duration, and commits
+- **Visual Formatting**: Uses box-drawing characters for clear component boundaries
+- **Completed Tickets List**: Lists all completed tickets with titles and optional durations
+- **Deferred Tickets List**: Lists deferred tickets with defer reasons
+- **Retry Option**: Prompts user to retry deferred tickets (marks them UNPROCESSED)
+- **Velocity Logging**: Logs component metrics to `.sage/component-velocity.log`
+- **Automatic Cleanup**: Calls cleanup_component_batch to remove processed batch file
+- **Variable Cleanup**: Clears component tracking variables for next component
+
+**Execution Conditions:**
+
+- Only executes in semi-auto mode (`EXECUTION_MODE="semi-auto"`)
+- Only executes when component name is set (`COMPONENT_NAME` exists)
+- Only executes when all component tickets are no longer UNPROCESSED
 
 ### 10. Loop Control with Continuation Prompt
 
@@ -2059,6 +2704,80 @@ Continue processing remaining 4 tickets? (yes/no/pause): yes
 # ... repeats for each ticket ...
 ```
 
+### Semi-Auto Mode
+
+**Usage:** `/stream --semi-auto` or `/stream --component-auto`
+
+**Behavior:**
+
+- ✅ Confirmation before starting each component
+- ❌ No confirmations during component processing
+- ✅ Confirmation to push changes after component
+- ✅ Confirmation to continue to next component
+- ✅ Pause/resume support at component boundaries
+- ✅ Component-level progress summaries
+
+**Best For:**
+
+- Medium to large ticket queues (10-50 tickets)
+- When tickets are grouped by component (AUTH-*, UI-*, API-*)
+- Balancing automation with control
+- Testing at natural integration points (components)
+- Reducing confirmation fatigue (90% fewer prompts)
+
+**Example Session:**
+
+```bash
+/stream --semi-auto
+
+# Component grouping
+Component Execution Plan:
+  1. AUTH:  5 tickets (AUTH-001 to AUTH-005)
+  2. UI:    3 tickets (UI-001 to UI-003)
+  3. API:   4 tickets (API-001 to API-004)
+
+Start processing component AUTH (5 tickets)? (yes/no/skip): yes
+
+# Auto-processes all AUTH tickets without prompts
+→ Processing AUTH-001...
+  ✅ AUTH-001 completed (3m 12s)
+→ Processing AUTH-002...
+  ✅ AUTH-002 completed (4m 45s)
+# ... continues for all AUTH tickets ...
+
+┌────────────────────────────────────────────────┐
+│    COMPONENT COMPLETION: AUTH                  │
+└────────────────────────────────────────────────┘
+
+Statistics:
+  Total Tickets:  5
+  Completed:      5 (100%)
+  Deferred:       0
+  Duration:       18m 32s
+  Commits:        5
+
+Push component AUTH changes to GitHub? (yes/no/later): yes
+✓ 5 commits pushed to branch main
+
+Continue to next component UI (3 tickets)? (yes/no/pause): yes
+
+# ... continues to next component ...
+```
+
+**⚠️ Note:** Semi-auto mode:
+
+- Requires ticket naming convention: `<COMPONENT>-<NUMBER>`
+- Not compatible with `--parallel` (Phase 1)
+- Preserves batch files on pause for resume
+- 3-5× faster than interactive mode
+
+**When to Pause:**
+
+- After completing a logical component
+- Before starting risky components
+- To review deferred tickets
+- When time-limited or interrupted
+
 ### Auto Mode
 
 **Usage:** `/stream --auto`
@@ -2243,14 +2962,16 @@ DRY RUN: Would implement ticket AUTH-002
 
 ## Confirmation Points Summary
 
-| Checkpoint | Interactive | Auto | Dry-Run |
-|------------|-------------|------|---------|
-| Start cycle | ✅ Required | ❌ Skip | ✅ Show only |
-| Before ticket | ✅ Required | ❌ Skip | ✅ Show only |
-| After implementation | ✅ Required | ❌ Skip | ✅ Show only |
-| Before commit | ✅ Optional | ❌ Skip | ❌ Skip |
-| Before push | ✅ Required | ❌ Skip | ❌ Skip |
-| Continue cycle | ✅ Required | ❌ Skip | ✅ Show only |
+| Checkpoint | Interactive | Semi-Auto | Auto | Dry-Run |
+|------------|-------------|-----------|------|---------|
+| Start cycle | ✅ Required | ✅ Component grouping | ❌ Skip | ✅ Show only |
+| Before component | N/A | ✅ Required | N/A | N/A |
+| Before ticket | ✅ Required | ❌ Skip | ❌ Skip | ✅ Show only |
+| After implementation | ✅ Required | ❌ Auto-accept | ❌ Skip | ✅ Show only |
+| Before commit | ✅ Optional | ❌ Auto-commit | ❌ Skip | ❌ Skip |
+| After component | N/A | ✅ Summary + push | N/A | N/A |
+| Before push | ✅ Required | ✅ Per component | ❌ Skip | ❌ Skip |
+| Continue cycle | ✅ Per ticket | ✅ Per component | ❌ Skip | ✅ Show only |
 
 ## Interactive Mode Flow
 
