@@ -2,7 +2,7 @@
 
 ![Sage-DEV Cover Image](assets/sage_dev_cover_image.png)
 
-**Version 2.1** - Wisdom-guided software development with language-specific enforcement
+**Version 2.2** - Wisdom-guided software development with language-specific enforcement
 
 Development workflows enriched with collective wisdom. Claude commands that incorporate best practices from thousands of projects, research-backed recommendations, and battle-tested patterns. Build on the shoulders of giants.
 
@@ -15,12 +15,14 @@ Development workflows enriched with collective wisdom. Claude commands that inco
 - 🔒 **Security-First** - Built-in secret scanning and validation
 - 🎯 **Configurable Enforcement** - STRICT, BALANCED, or PROTOTYPE modes
 
-## What's New in v2.1
+## What's New in v2.2
 
-- 📁 **Improved Organization** - Ticket system now located in `.sage/tickets/` for cleaner project structure
-- 🔄 **Better Separation** - Tooling state kept separate from project code
-- 📝 **Updated Commands** - All slash commands updated to use new ticket location
-- 🎯 **Same Great Features** - All existing functionality preserved with better organization
+- 🏷️ **Sage Branding** - All commands now use `sage.*` prefix for clear namespace isolation
+- 📚 **Context Engineering** - Agent-optimized documentation system in `.sage/agent/` directory
+- 🤖 **Documentation Commands** - `/sage.update-doc`, `/sage.gen-sop`, `/sage.docify` for knowledge management
+- ⚡ **Semi-Auto Mode** - Component-level automation for `/sage.stream` (3-5× faster execution)
+- 🔄 **Resume Support** - Pause and resume ticket processing with automatic state management
+- 📖 **Agent Templates** - Reusable documentation templates for tasks, SOPs, and system docs
 
 ## Quick Start
 
@@ -62,14 +64,15 @@ Your selection is saved to `.sage/config.json` and determines which enforcement 
 
 ### 4. Start Developing
 
-Open your AI coding agent and type `/` to see available commands:
+Open your AI coding agent and type `/sage.` to see available commands:
 
 ```bash
-/workflow          # Choose your development workflow
-/specify           # Generate specifications from docs
-/plan              # Create implementation plans
-/tasks             # Break down into SMART tasks
-/enforce           # Run enforcement pipeline
+/sage.workflow     # Choose your development workflow
+/sage.specify      # Generate specifications from docs
+/sage.plan         # Create implementation plans
+/sage.tasks        # Break down into SMART tasks
+/sage.enforce      # Run enforcement pipeline
+/sage.stream       # Automated ticket execution (interactive/semi-auto/auto/parallel)
 ```
 
 ## Supported Languages
@@ -151,35 +154,64 @@ rm .sage/config.json
 
 ## What Gets Installed
 
-### Commands (13 slash commands)
+### Commands (35 slash commands)
 
-Development workflow automation:
+**Workflow & Planning:**
+- `/sage.workflow` - Choose Traditional vs Ticket-Based workflow
+- `/sage.specify` - Generate specifications from docs
+- `/sage.plan` - Create implementation plans
+- `/sage.tasks` - Break down into SMART tasks
+- `/sage.breakdown` - Generate technical breakdowns
 
-- `/workflow` - Choose Traditional vs Ticket-Based workflow
-- `/specify` - Generate specifications from docs
-- `/plan` - Create implementation plans
-- `/tasks` - Break down into SMART tasks
-- `/implement` - Execute phased implementation
-- `/enforce` - Run agent enforcement pipeline
-- `/commit` - Create semantic commits and PRs
-- And more...
+**Execution & Automation:**
+- `/sage.implement` - Execute phased implementation
+- `/sage.stream` - Automated ticket execution (interactive/semi-auto/auto/parallel)
+- `/sage.enforce` - Run agent enforcement pipeline
+- `/sage.commit` - Create semantic commits and PRs
 
-See [SAGE_DEV_COMMANDS.md](commands/SAGE_DEV_COMMANDS.md) for complete command reference.
+**Documentation & Knowledge Management:**
+- `/sage.update-doc` - Create or update agent documentation
+- `/sage.gen-sop` - Generate Standard Operating Procedures
+- `/sage.save-plan` - Save implementation plans from conversation
+- `/sage.docify` - Generate component documentation from code
+- `/sage.update-index` - Regenerate documentation index
+- `/sage.compact-context` - Compress conversation state (30%+ token reduction)
+- `/sage.offload-research` - Delegate research to sub-agents
+
+**Ticket System:**
+- `/sage.validate` - Validate ticket system integrity
+- `/sage.sync` - Synchronize tickets with GitHub
+- `/sage.migrate` - Convert existing documentation to tickets
+- `/sage.estimate` - Add time estimates to tickets
+- `/sage.repair` - Repair ticket system issues
+
+**Analysis & Intelligence:**
+- `/sage.progress` - Analyze project progress
+- `/sage.enhance` - Research-driven enhancement analysis
+- `/sage.intel` - Strategic intelligence gathering
+- `/sage.quality` - Validate quality of command outputs
+- `/sage.blueprint` - Generate unified system blueprint
+
+**Utilities:**
+- `/sage.rollback` - Rollback last operation
+- `/sage.poc` - Generate minimal POC documentation
+
+See [SAGE.COMMANDS.md](commands/SAGE.COMMANDS.md) for complete command reference.
 
 ### Agents (Language-Specific)
 
 #### Shared Agents (All Languages)
 
-- **bs-check** - Remove bullshit code patterns
-- **bs-enforce** - Enforce no-bullshit principles
-- **secret-scanner** - Detect hardcoded secrets
+- **sage.bs-check** - Remove bullshit code patterns
+- **sage.bs-enforce** - Enforce no-bullshit principles
+- **sage.secret-scanner** - Detect hardcoded secrets
 
 #### Python Agents
 
-- **type-enforcer** - Python 3.12 typing validation
-- **doc-validator** - Docstring completeness
-- **test-coverage** - Coverage enforcement (80%+)
-- **import-enforcer** - Import ordering, circular dependency detection
+- **sage.type-enforcer** - Python 3.12 typing validation
+- **sage.doc-validator** - Docstring completeness
+- **sage.test-coverage** - Coverage enforcement (80%+)
+- **sage.import-enforcer** - Import ordering, circular dependency detection
 
 #### JavaScript/TypeScript Agents
 
@@ -240,116 +272,177 @@ See [.sage/README.md](.sage/README.md) for configuration details.
 
 ```bash
 # Run default enforcement
-/enforce
+/sage.enforce
 
 # Run specific pipeline
-/enforce --pipeline=pre-commit
+/sage.enforce --pipeline=pre-commit
 
 # Strict mode with auto-fix
-/enforce --strict --auto-fix
+/sage.enforce --strict --auto-fix
 
 # Dry run (preview only)
-/enforce --dry-run
+/sage.enforce --dry-run
+```
+
+### Automated Ticket Execution
+
+```bash
+# Interactive mode (confirm each ticket)
+/sage.stream --interactive
+
+# Semi-auto mode (confirm per component, 3-5× faster)
+/sage.stream --semi-auto
+
+# Full auto mode (no confirmations)
+/sage.stream --auto
+
+# Parallel execution (2-3× faster)
+/sage.stream --auto --parallel=3
 ```
 
 ### Generate Specifications
 
 ```bash
 # Generate specs from docs/
-/specify
+/sage.specify
 
 # For specific component
-/specify auth-service
+/sage.specify auth-service
 ```
 
 ### Create Implementation Plan
 
 ```bash
 # Generate research-backed plan
-/plan
+/sage.plan
 
 # For specific spec
-/plan auth-service
+/sage.plan auth-service
 ```
 
 ### Break Down Tasks
 
 ```bash
 # Generate SMART tasks
-/tasks
+/sage.tasks
 
 # For specific phase
-/tasks phase-1
+/sage.tasks phase-1
+```
+
+### Documentation Management
+
+```bash
+# Create/update documentation
+/sage.update-doc task "Feature Implementation"
+
+# Generate SOP from conversation
+/sage.gen-sop "Adding New Command" --from-context
+
+# Save implementation plan
+/sage.save-plan "Authentication System"
+
+# Generate component docs from code
+/sage.docify src/auth/
+
+# Compress conversation context
+/sage.compact-context
 ```
 
 ### Commit Changes
 
 ```bash
 # Create semantic commit
-/commit
+/sage.commit
 
 # Create commit and PR
-/commit --pr
+/sage.commit --pr
 ```
 
 ## Project Structure
 
 ```text
 sage-dev/
-├── commands/              # Slash commands
-│   ├── workflow.md
-│   ├── specify.md
-│   ├── plan.md
-│   ├── tasks.md
-│   ├── implement.md
-│   ├── enforce.md
+├── commands/                    # Slash commands (sage.* prefix)
+│   ├── sage.workflow.md
+│   ├── sage.specify.md
+│   ├── sage.plan.md
+│   ├── sage.tasks.md
+│   ├── sage.implement.md
+│   ├── sage.stream.md
+│   ├── sage.enforce.md
+│   ├── sage.commit.md
+│   ├── sage.update-doc.md       # Documentation management
+│   ├── sage.gen-sop.md          # SOP generation
+│   ├── sage.docify.md           # Code documentation
+│   ├── sage.compact-context.md  # Context compression
+│   ├── SAGE.COMMANDS.md         # Command reference (uppercase)
+│   ├── SAGE.WORKFLOW.md         # Workflow guide
 │   └── ...
 │
-├── agents/               # Enforcement agents
-│   ├── index.json       # Agent registry
-│   ├── LANGUAGES.md     # Language support guide
+├── agents/                      # Enforcement agents (sage.* prefix)
+│   ├── index.json              # Agent registry
+│   ├── LANGUAGES.md            # Language support guide
 │   │
-│   ├── shared/          # Language-agnostic
-│   │   ├── bs-check.md
-│   │   ├── bs-enforce.md
-│   │   └── secret-scanner.md
+│   ├── shared/                 # Language-agnostic
+│   │   ├── bs-check.md         # name: sage.bs-check
+│   │   ├── bs-enforce.md       # name: sage.bs-enforce
+│   │   └── secret-scanner.md   # name: sage.secret-scanner
 │   │
-│   ├── python/          # Python-specific
-│   │   ├── type-enforcer.md
-│   │   ├── doc-validator.md
-│   │   ├── test-coverage.md
-│   │   └── import-enforcer.md
+│   ├── python/                 # Python-specific
+│   │   ├── type-enforcer.md    # name: sage.type-enforcer
+│   │   ├── doc-validator.md    # name: sage.doc-validator
+│   │   ├── test-coverage.md    # name: sage.test-coverage
+│   │   └── import-enforcer.md  # name: sage.import-enforcer
 │   │
-│   ├── javascript/      # JavaScript-specific
-│   └── typescript/      # TypeScript-specific
+│   ├── javascript/             # JavaScript-specific
+│   └── typescript/             # TypeScript-specific
 │
-├── rules/               # Development standards
+├── rules/                      # Development standards
 │   ├── typing-standards.md
 │   ├── test-standards.md
 │   ├── security-standards.md
 │   ├── commit-standards.md
 │   └── enforcement-guide.md
 │
-├── .sage/               # Configuration & tooling state
-│   ├── config.json      # Language & enforcement config
-│   ├── enforcement.json # Agent configuration
-│   ├── tickets/         # Ticket system (v2.1+)
-│   │   ├── index.json   # Ticket registry
-│   │   └── *.md         # Individual ticket files
-│   └── README.md        # Config documentation
+├── .sage/                      # Configuration & tooling state
+│   ├── config.json             # Language & enforcement config
+│   ├── enforcement.json        # Agent configuration
+│   │
+│   ├── tickets/                # Ticket system (v2.1+)
+│   │   ├── index.json          # Ticket registry
+│   │   └── *.md                # Individual ticket files
+│   │
+│   ├── agent/                  # Agent documentation system (v2.2+)
+│   │   ├── README.md           # Documentation index
+│   │   ├── tasks/              # Feature plans & PRDs
+│   │   ├── system/             # Architecture & specs
+│   │   ├── sops/               # Standard Operating Procedures
+│   │   ├── templates/          # Documentation templates
+│   │   │   ├── task-template.md
+│   │   │   ├── sop-template.md
+│   │   │   ├── system-template.md
+│   │   │   └── examples/       # Template examples
+│   │   └── research/           # Offloaded research results
+│   │
+│   └── README.md               # Config documentation
 │
-├── sage-setup.sh        # Installation script
-├── AGENTS_AND_RULES.md  # Agent documentation
-└── README.md            # This file
+├── assets/                     # Project assets
+│   └── sage_dev_cover_image.png
+│
+├── sage-setup.sh               # Installation script
+├── AGENTS_AND_RULES.md         # Agent documentation
+└── README.md                   # This file
 ```
 
 ## Documentation
 
-- **[SAGE_DEV_WORKFLOW.md](commands/SAGE_DEV_WORKFLOW.md)** - Complete workflow guide
-- **[SAGE_DEV_COMMANDS.md](commands/SAGE_DEV_COMMANDS.md)** - Command reference
+- **[SAGE.WORKFLOW.md](commands/sage.workflow.md)** - Complete workflow guide
+- **[SAGE.COMMANDS.md](commands/SAGE.COMMANDS.md)** - Command reference (35 commands)
 - **[AGENTS_AND_RULES.md](AGENTS_AND_RULES.md)** - Agent and rule documentation
 - **[agents/LANGUAGES.md](agents/LANGUAGES.md)** - Multi-language support guide
 - **[.sage/README.md](.sage/README.md)** - Configuration guide
+- **[.sage/agent/README.md](.sage/agent/README.md)** - Agent documentation system
 
 ## Development Workflows
 
@@ -361,7 +454,7 @@ Specification → Plan → Tasks → Implementation → Validation
 
 Strategic Intelligence → Breakdown → Roadmap → Ticket System → Phased Implementation
 
-See [SAGE_DEV_WORKFLOW.md](commands/SAGE_DEV_WORKFLOW.md) for detailed workflow documentation.
+See [sage.workflow.md](commands/sage.workflow.md) for detailed workflow documentation.
 
 ## Contributing
 
@@ -379,11 +472,11 @@ See [agents/LANGUAGES.md](agents/LANGUAGES.md) for detailed contribution guide.
 ### Creating Custom Agents
 
 1. Create agent file: `agents/[language]/custom-agent.md`
-2. Follow frontmatter format:
+2. Follow frontmatter format with `sage.*` prefix:
 
    ```markdown
    ---
-   name: custom-agent
+   name: sage.custom-agent
    description: Agent description
    model: sonnet
    color: purple
@@ -394,7 +487,7 @@ See [agents/LANGUAGES.md](agents/LANGUAGES.md) for detailed contribution guide.
    ```
 
 3. Add to `agents/index.json` registry
-4. Test with `/enforce`
+4. Test with `/sage.enforce`
 
 ## FAQ
 
@@ -412,7 +505,7 @@ A: Edit `.sage/enforcement.json` and set `"enabled": false` for the agent.
 
 **Q: What's the difference between commands and agents?**
 
-A: Commands are user-invoked workflows (e.g., `/specify`). Agents are automated enforcement checks (e.g., `type-enforcer`).
+A: Commands are user-invoked workflows (e.g., `/sage.specify`). Agents are automated enforcement checks (e.g., `sage.type-enforcer`).
 
 **Q: How do I update Sage-Dev?**
 
@@ -426,7 +519,7 @@ A: Yes! Edit files in `rules/` and `.sage/enforcement.json` to customize standar
 
 - **Issues:** [GitHub Issues](https://github.com/Mathews-Tom/sage-dev/issues)
 - **Documentation:** See `commands/`, `agents/`, and `rules/` directories
-- **Ask your AI agent:** "How do I use /workflow?" or "Explain the ticket system"
+- **Ask your AI agent:** "How do I use /sage.workflow?" or "Explain the ticket system"
 
 ## License
 
