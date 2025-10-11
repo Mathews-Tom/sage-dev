@@ -75,7 +75,7 @@ Sage-Dev supports language-specific enforcement agents while maintaining a core 
 
 ## Directory Structure
 
-```text
+```plaintext
 agents/
 ├── index.json                 # Agent registry with language metadata
 ├── LANGUAGES.md              # This file

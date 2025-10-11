@@ -8,7 +8,7 @@ description: Conventional commit standards and git workflow enforcement rules
 
 REQUIRED FORMAT:
 
-```text
+```plaintext
 <type>(<scope>): <subject>
 
 <body>
@@ -93,7 +93,7 @@ BREAKING CHANGE: Removed basic auth endpoint /api/login
 
 **Example scopes:**
 
-```text
+```plaintext
 feat(auth): add password reset flow
 fix(api): handle null user responses
 docs(api): document authentication endpoints
@@ -166,13 +166,13 @@ Closes #456
 
 **Format:**
 
-```text
+```plaintext
 BREAKING CHANGE: <description>
 ```
 
 **Example:**
 
-```text
+```plaintext
 feat(api): redesign authentication API
 
 BREAKING CHANGE: The /api/login endpoint has been removed.
@@ -184,7 +184,7 @@ Migration guide: https://docs.example.com/v2-migration
 
 **Closing issues:**
 
-```text
+```plaintext
 Closes #123
 Fixes #456
 Resolves #789
@@ -192,7 +192,7 @@ Resolves #789
 
 **Referencing issues:**
 
-```text
+```plaintext
 Related to #123
 See #456
 Part of #789
@@ -200,7 +200,7 @@ Part of #789
 
 **Multiple issues:**
 
-```text
+```plaintext
 Closes #123, #456, #789
 ```
 
@@ -257,7 +257,7 @@ Co-authored-by: John Smith <john@example.com>
 
 **Vague commit messages:**
 
-```text
+```plaintext
 ❌ fix stuff
 ❌ update code
 ❌ changes
@@ -268,25 +268,25 @@ Co-authored-by: John Smith <john@example.com>
 
 **Multiple unrelated changes:**
 
-```text
+```plaintext
 ❌ feat: add login and fix bug and update docs
 ```
 
 **Commit broken code:**
 
-```text
+```plaintext
 ❌ feat(api): add endpoint (tests failing)
 ```
 
 **Include secrets:**
 
-```text
+```plaintext
 ❌ Any commit with API keys, passwords, tokens
 ```
 
 **Commit debug code:**
 
-```text
+```plaintext
 ❌ Code with console.log, print statements, debugger
 ```
 
@@ -298,7 +298,7 @@ Co-authored-by: John Smith <john@example.com>
 
 **Format:**
 
-```text
+```plaintext
 <type>/<ticket-id>-<short-description>
 ```
 
@@ -387,7 +387,7 @@ git config commit.template ~/.gitmessage
 
 **~/.gitmessage:**
 
-```text
+```plaintext
 # <type>(<scope>): <subject> (max 72 char)
 # |<----  Using a Maximum Of 72 Characters  ---->|
 

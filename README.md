@@ -50,7 +50,7 @@ The setup wizard will:
 
 Choose your primary programming language:
 
-```text
+```plaintext
 🌐 Select your programming language:
 
    1) Python (default) - Type safety, test coverage, docstring validation
@@ -361,7 +361,7 @@ See [.sage/README.md](.sage/README.md) for configuration details.
 
 ## Project Structure
 
-```text
+```plaintext
 sage-dev/
 ├── commands/                    # Slash commands (sage.* prefix)
 │   ├── sage.workflow.md
