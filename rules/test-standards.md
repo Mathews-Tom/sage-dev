@@ -26,7 +26,7 @@ CRITICAL PATHS:
 
 ## Test Organization
 
-```text
+```plaintext
 project/
 ├── src/
 │   ├── auth/

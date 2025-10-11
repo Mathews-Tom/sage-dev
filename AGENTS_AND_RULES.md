@@ -212,7 +212,7 @@ Central registry cataloging all development enforcement agents with:
 
 ## File Structure
 
-```text
+```plaintext
 sage-dev/
 ├── agents/
 │   ├── index.json              # Agent registry v2.1.0 (UPDATED - multi-language)

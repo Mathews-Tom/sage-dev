@@ -218,12 +218,12 @@ ln -s /path/to/sage-dev/commands ~/.factory/commands
 
 ## Accessing Documentation Within Claude Code
 
-### Option 1: Use SAGE_DEV_WORKFLOW as a Slash Command
+### Option 1: Use WORKFLOW_GUIDE as a Slash Command
 
-Since `SAGE_DEV_WORKFLOW.md` is now in `~/.claude/commands/`, Claude Code will treat it as a command:
+Since `WORKFLOW_GUIDE.md` is now in `~/.claude/commands/`, Claude Code will treat it as a command:
 
 ```plaintext
-/SAGE_DEV_WORKFLOW
+/WORKFLOW_GUIDE
 # Shows the full workflow documentation and usage guide
 ```
 
@@ -459,13 +459,13 @@ head -10 ~/.claude/commands/[command].md
 
 ### Documentation Not Accessible
 
-**Cause:** SAGE_DEV_WORKFLOW.md or SAGE_DEV_COMMANDS.md not copied
+**Cause:** WORKFLOW_GUIDE.md or SAGE_DEV_COMMANDS.md not copied
 
 **Fix:**
 
 ```bash
 # Copy documentation files
-cp /path/to/sage-dev/commands/SAGE_DEV_WORKFLOW.md ~/.claude/commands/
+cp /path/to/sage-dev/commands/WORKFLOW_GUIDE.md ~/.claude/commands/
 cp /path/to/sage-dev/commands/SAGE_DEV_COMMANDS.md ~/.claude/commands/
 ```
 
@@ -665,7 +665,7 @@ Claude: [Reads ~/.claude/commands/quality.md]
 ### For New Users
 
 1. **Install commands** (Method 1 or 2)
-2. **Read documentation** (`/SAGE_DEV_COMMANDS` or `/SAGE_DEV_WORKFLOW`)
+2. **Read documentation** (`/SAGE_DEV_COMMANDS` or `/WORKFLOW_GUIDE`)
 3. **Start with workflow selector** (`/workflow`)
 4. **Follow recommended workflow sequence**
 5. **Use validation commands** (`/validate`, `/quality`)
@@ -686,7 +686,7 @@ The sage-dev command system integrates seamlessly with Claude Code:
 
 - ✅ **Copy command files** to `~/.claude/commands/`
 - ✅ **Commands appear automatically** in slash command menu
-- ✅ **Documentation accessible** via `/SAGE_DEV_WORKFLOW` and `/SAGE_DEV_COMMANDS`
+- ✅ **Documentation accessible** via `/WORKFLOW_GUIDE` and `/SAGE_DEV_COMMANDS`
 - ✅ **Contextual help** by asking Claude about any command
 - ✅ **Version controlled** via git
 - ✅ **Extensible** with custom commands

@@ -50,7 +50,7 @@ The setup wizard will:
 
 Choose your primary programming language:
 
-```text
+```plaintext
 🌐 Select your programming language:
 
    1) Python (default) - Type safety, test coverage, docstring validation
@@ -361,7 +361,7 @@ See [.sage/README.md](.sage/README.md) for configuration details.
 
 ## Project Structure
 
-```text
+```plaintext
 sage-dev/
 ├── commands/                    # Slash commands (sage.* prefix)
 │   ├── sage.workflow.md
@@ -520,6 +520,14 @@ A: Yes! Edit files in `rules/` and `.sage/enforcement.json` to customize standar
 - **Issues:** [GitHub Issues](https://github.com/Mathews-Tom/sage-dev/issues)
 - **Documentation:** See `commands/`, `agents/`, and `rules/` directories
 - **Ask your AI agent:** "How do I use /sage.workflow?" or "Explain the ticket system"
+
+## Acknowledgments
+
+**Special Thanks:**
+
+- **[Sydney Lewis](https://www.linkedin.com/in/sydches/)** - For the motivation, guidance, and wisdom that inspired this project
+
+Sage-Dev represents a distillation of collective software development experience from great developers across the industry. This tool embodies research-backed practices, battle-tested patterns, and community wisdom.
 
 ## License
 
