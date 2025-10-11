@@ -1623,7 +1623,7 @@ stateDiagram-v2
 ## Getting Help
 
 - **Detailed docs:** See `commands/<command-name>.md`
-- **Workflow Guide:** See `commands/WORKFLOW_GUIDE.md`
+- **Workflow Guide:** See `commands/SAGE.WORKFLOW_GUIDE.md`
 
 ---
 

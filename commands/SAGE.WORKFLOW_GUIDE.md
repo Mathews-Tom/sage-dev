@@ -23,21 +23,21 @@ Once installed, type `/` in Claude Code to see all 20 commands!
 
 This workflow provides a structured methodology for analyzing requirements, validating concepts, planning implementation, and managing development through a series of purpose-built slash commands.
 
-**IMPORTANT:** Start with `/workflow` to choose between Traditional (manual) or Ticket-Based (automated) workflows.
+**IMPORTANT:** Start with `/sage.workflow` to choose between Traditional (manual) or Ticket-Based (automated) workflows.
 
 ```mermaid
 graph LR
-    START["/workflow"] --> H[System Design]
-    H --> A["/enhance"]
-    A --> B["/specify"]
-    B --> C["/plan"]
-    C --> D["/tasks"]
-    D --> E["/poc"]
-    E --> F["/breakdown"]
-    F --> G["/blueprint"]
-    G --> I["/implement"]
-    I --> K["/progress"]
-    K --> J["/commit"]
+    START["/sage.workflow"] --> H[System Design]
+    H --> A["/sage.enhance"]
+    A --> B["/sage.specify"]
+    B --> C["/sage.plan"]
+    C --> D["/sage.tasks"]
+    D --> E["/sage.poc"]
+    E --> F["/sage.breakdown"]
+    F --> G["/sage.blueprint"]
+    G --> I["/sage.implement"]
+    I --> K["/sage.progress"]
+    K --> J["/sage.commit"]
 
     style A fill:#fff9c4
     style B fill:#e1f5fe
@@ -59,7 +59,7 @@ graph LR
 
 ## 🔀 Workflow Selection (START HERE)
 
-### `/workflow` - Choose Your Development Workflow
+### `/sage.workflow` - Choose Your Development Workflow
 
 **Purpose:** Interactive tool that recommends Traditional vs Ticket-Based workflow based on your project context
 
@@ -88,12 +88,12 @@ graph LR
 
 ```mermaid
 graph TD
-    Start{New Project} --> Selector["/workflow"]
+    Start{New Project} --> Selector["/sage.workflow"]
     Selector --> Questions["Questions:<br/>1. Manual or Automated?<br/>2. Production or Experimental?<br/>3. Team or Solo?"]
     Questions --> Decision{Recommendation}
 
-    Decision -->|Manual Control| Traditional["Traditional Workflow<br/>/specify → /plan → /tasks →<br/>/breakdown → /blueprint →<br/>/implement → /commit"]
-    Decision -->|Automation| Ticket["Ticket-Based Workflow<br/>/specify → /plan → /tasks →<br/>/migrate → /stream"]
+    Decision -->|Manual Control| Traditional["Traditional Workflow<br/>/sage.specify → /sage.plan → /sage.tasks →<br/>/sage.breakdown → /sage.blueprint →<br/>/sage.implement → /sage.commit"]
+    Decision -->|Automation| Ticket["Ticket-Based Workflow<br/>/sage.specify → /sage.plan → /sage.tasks →<br/>/sage.migrate → /sage.stream"]
 
     Traditional --> Review["Review at each step"]
     Ticket --> Automated["Automated with confirmations"]
@@ -107,7 +107,7 @@ graph TD
 
 ```bash
 # First time on project
-/workflow
+/sage.workflow
 
 # Answer questions:
 # 1. New project or existing? NEW
@@ -116,14 +116,14 @@ graph TD
 # 4. Experimental or production? EXPERIMENTAL
 
 # Result: TICKET_BASED workflow recommended
-# Mode saved to: .sage/workflow-mode
+# Mode saved to: .sage/sage.workflow-mode
 
 # Then follow recommended commands
-/specify
-/plan
-/tasks
-/migrate
-/stream  # Hands-off automation begins
+/sage.specify
+/sage.plan
+/sage.tasks
+/sage.migrate
+/sage.stream  # Hands-off automation begins
 ```
 
 **Key features:**
@@ -138,7 +138,7 @@ graph TD
 
 ## 📚 Command Reference
 
-### 🔍 `/enhance` - System Enhancement Research
+### 🔍 `/sage.enhance` - System Enhancement Research
 
 **Purpose:** Research-driven system enhancement analysis to identify opportunities for improved features, performance, and competitive differentiation
 
@@ -150,7 +150,7 @@ graph TD
 
 **Outputs:**
 
-- `docs/enhancement.md` - Comprehensive enhancement analysis and recommendations
+- `docs/sage.enhancement.md` - Comprehensive enhancement analysis and recommendations
 
 **What it does:**
 
@@ -188,18 +188,18 @@ docs/
   └── project-notes.md
 
 # Run enhancement research
-/enhance
+/sage.enhance
 
 # Result
-docs/enhancement.md  # Comprehensive enhancement recommendations
+docs/sage.enhancement.md  # Comprehensive enhancement recommendations
 
 # Continue with specification
-/specify
+/sage.specify
 ```
 
 ---
 
-### 1️⃣ `/specify` - Requirements Analysis
+### 1️⃣ `/sage.specify` - Requirements Analysis
 
 **Purpose:** Transform documentation into structured specifications
 
@@ -241,7 +241,7 @@ docs/
   └── technical-notes.md
 
 # Run command
-/specify
+/sage.specify
 
 # Result
 docs/specs/
@@ -252,7 +252,7 @@ docs/specs/
 
 ---
 
-### 2️⃣ `/plan` - Technical Planning
+### 2️⃣ `/sage.plan` - Technical Planning
 
 **Purpose:** Create research-backed implementation plans
 
@@ -263,7 +263,7 @@ docs/specs/
 
 **Outputs:**
 
-- `docs/specs/<component>/plan.md` for each component
+- `docs/specs/<component>/sage.plan.md` for each component
 
 **What it does:**
 
@@ -294,18 +294,18 @@ docs/specs/
 
 ---
 
-### 3️⃣ `/tasks` - Task Breakdown
+### 3️⃣ `/sage.tasks` - Task Breakdown
 
 **Purpose:** Generate SMART, estimable task breakdowns
 
 **Inputs:**
 
 - `docs/specs/*/spec.md`
-- `docs/specs/*/plan.md`
+- `docs/specs/*/sage.plan.md`
 
 **Outputs:**
 
-- `docs/specs/<component>/tasks.md` with detailed task lists
+- `docs/specs/<component>/sage.tasks.md` with detailed task lists
 
 **What it does:**
 
@@ -343,7 +343,7 @@ docs/specs/
 
 ---
 
-### 4️⃣ `/poc` - Proof of Concept
+### 4️⃣ `/sage.poc` - Proof of Concept
 
 **Purpose:** Design minimal POC to validate core system innovation
 
@@ -354,10 +354,10 @@ docs/specs/
 
 **Outputs:**
 
-- `docs/poc/README.md` - Overview and setup
-- `docs/poc/core-concept.md` - Concept definition
-- `docs/poc/architecture.md` - Simplified architecture
-- `docs/poc/implementation-guide.md` - Build guide
+- `docs/sage.poc/README.md` - Overview and setup
+- `docs/sage.poc/core-concept.md` - Concept definition
+- `docs/sage.poc/architecture.md` - Simplified architecture
+- `docs/sage.poc/sage.implementation-guide.md` - Build guide
 
 **What it does:**
 
@@ -390,7 +390,7 @@ docs/specs/
 
 ---
 
-### 5️⃣ `/breakdown` - Technical Implementation Guide
+### 5️⃣ `/sage.breakdown` - Technical Implementation Guide
 
 **Purpose:** Create detailed technical breakdowns for developers
 
@@ -401,8 +401,8 @@ docs/specs/
 
 **Outputs:**
 
-- `docs/breakdown/<component>/breakdown.md` per component
-- `docs/breakdown/README.md` index
+- `docs/sage.breakdown/<component>/sage.breakdown.md` per component
+- `docs/sage.breakdown/README.md` index
 
 **What it does:**
 
@@ -441,7 +441,7 @@ Operational Concerns: Infra, monitoring, security
 
 ---
 
-### 6️⃣ `/blueprint` - System Blueprint
+### 6️⃣ `/sage.blueprint` - System Blueprint
 
 **Purpose:** Create unified cross-component development blueprint
 
@@ -452,7 +452,7 @@ Operational Concerns: Infra, monitoring, security
 
 **Outputs:**
 
-- `docs/blueprint.md` - System-wide blueprint
+- `docs/sage.blueprint.md` - System-wide blueprint
 
 **What it does:**
 
@@ -485,15 +485,15 @@ Operational Concerns: Infra, monitoring, security
 
 ---
 
-### 7️⃣ `/implement` - Phased Implementation
+### 7️⃣ `/sage.implement` - Phased Implementation
 
 **Purpose:** Execute phased system implementation with automatic progress tracking and test validation
 
 **Inputs:**
 
-- `docs/blueprint.md` - Phase structure and status
-- `docs/specs/*/tasks.md` - Task breakdown and progress
-- `docs/breakdown/*/breakdown.md` - Implementation specifications
+- `docs/sage.blueprint.md` - Phase structure and status
+- `docs/specs/*/sage.tasks.md` - Task breakdown and progress
+- `docs/sage.breakdown/*/sage.breakdown.md` - Implementation specifications
 - Current git branch and repository state
 
 **Outputs:**
@@ -516,10 +516,10 @@ Operational Concerns: Infra, monitoring, security
 
 **When to use:**
 
-- After blueprint creation (`/blueprint`)
+- After blueprint creation (`/sage.blueprint`)
 - Starting implementation of a new phase
 - Resuming interrupted implementation
-- Before creating commits (`/commit`)
+- Before creating commits (`/sage.commit`)
 
 **Key features:**
 
@@ -532,16 +532,16 @@ Operational Concerns: Infra, monitoring, security
 
 ---
 
-### 8️⃣ `/progress` - Project Progress Analysis
+### 8️⃣ `/sage.progress` - Project Progress Analysis
 
 **Purpose:** Analyze project progress across documentation, phases, and codebase
 
 **Inputs:**
 
-- `docs/blueprint.md` - Phase structure and status
-- `docs/specs/*/tasks.md` - Task completion tracking
+- `docs/sage.blueprint.md` - Phase structure and status
+- `docs/specs/*/sage.tasks.md` - Task completion tracking
 - `docs/specs/*/spec.md` - Component definitions
-- `docs/breakdown/*/breakdown.md` - Implementation expectations
+- `docs/sage.breakdown/*/sage.breakdown.md` - Implementation expectations
 - Git repository state - Branches, commits, merges
 
 **Outputs:**
@@ -583,7 +583,7 @@ Operational Concerns: Infra, monitoring, security
 
 ---
 
-### 9️⃣ `/commit` - Git Workflow Manager
+### 9️⃣ `/sage.commit` - Git Workflow Manager
 
 **Purpose:** Organize changes into semantic commits with PR documentation
 
@@ -628,7 +628,7 @@ Operational Concerns: Infra, monitoring, security
 
 ## 📊 Analysis & Assessment Tools
 
-### 🔍 `/intel` - Comprehensive Strategic Assessment & Market Intelligence
+### 🔍 `/sage.intel` - Comprehensive Strategic Assessment & Market Intelligence
 
 **Purpose:** Gather strategic intelligence through comprehensive system assessment and market analysis to inform technical and business decisions
 
@@ -640,7 +640,7 @@ Operational Concerns: Infra, monitoring, security
 
 **Outputs:**
 
-- `docs/intel.md` - Comprehensive strategic intelligence report
+- `docs/sage.intel.md` - Comprehensive strategic intelligence report
 
 **What it does:**
 
@@ -691,33 +691,33 @@ Implementation Blueprint: Strategic timeline with success metrics
 
 ```plaintext
 docs/
-├── enhancement.md       # System enhancement research (/enhance)
+├── enhancement.md       # System enhancement research (/sage.enhance)
 ├── specs/
 │   ├── component-a/
-│   │   ├── spec.md      # Requirements (/specify)
-│   │   ├── plan.md      # Implementation plan (/plan)
-│   │   └── tasks.md     # Task breakdown (/tasks)
+│   │   ├── spec.md      # Requirements (/sage.specify)
+│   │   ├── plan.md      # Implementation plan (/sage.plan)
+│   │   └── tasks.md     # Task breakdown (/sage.tasks)
 │   └── component-b/
 │       ├── spec.md
 │       ├── plan.md
 │       └── tasks.md
 ├── poc/
-│   ├── README.md        # POC overview (/poc)
+│   ├── README.md        # POC overview (/sage.poc)
 │   ├── core-concept.md  # Core concept definition
 │   ├── architecture.md  # Simplified architecture
 │   └── implementation-guide.md
 ├── breakdown/
 │   ├── README.md        # Component index
 │   ├── component-a/
-│   │   └── breakdown.md # Technical details (/breakdown)
+│   │   └── breakdown.md # Technical details (/sage.breakdown)
 │   └── component-b/
 │       └── breakdown.md
-├── intel.md  # Strategic assessment & market intelligence (/intel)
-└── blueprint.md           # System-wide blueprint (/blueprint)
+├── intel.md  # Strategic assessment & market intelligence (/sage.intel)
+└── blueprint.md           # System-wide blueprint (/sage.blueprint)
 
 .docs/
-├── PROGRESS_REPORT.md   # Progress analysis (/progress)
-└── PR_DESCRIPTION.md    # PR description (/commit)
+├── PROGRESS_REPORT.md   # Progress analysis (/sage.progress)
+└── PR_DESCRIPTION.md    # PR description (/sage.commit)
 ```
 
 ## 🎯 Usage Patterns
@@ -728,34 +728,34 @@ docs/
 
 ```bash
 # Step 1: Research enhancement opportunities
-/enhance
+/sage.enhance
 
 # Step 2: Analyze requirements (incorporating enhancements)
-/specify
+/sage.specify
 
 # Step 3: Create technical plans
-/plan
+/sage.plan
 
 # Step 4: Break down into tasks
-/tasks
+/sage.tasks
 
 # Step 5: Validate core concept
-/poc
+/sage.poc
 
 # Step 6: Detail implementation
-/breakdown
+/sage.breakdown
 
 # Step 7: Create system blueprint
-/blueprint
+/sage.blueprint
 
 # Step 8: Execute phased implementation
-/implement
+/sage.implement
 
 # Step 9: Check progress
-/progress
+/sage.progress
 
 # Step 10: Commit changes
-/commit
+/sage.commit
 ```
 
 **Timeline:** Days 1-4 for documentation, then development
@@ -768,19 +768,19 @@ docs/
 
 ```bash
 # Step 1: Quick requirements analysis
-/specify
+/sage.specify
 
 # Step 2: Immediate POC validation
-/poc
+/sage.poc
 
 # Step 3: If POC successful, full planning
-/plan
-/tasks
-/breakdown
-/blueprint
+/sage.plan
+/sage.tasks
+/sage.breakdown
+/sage.blueprint
 
 # Step 4: Execute implementation
-/implement
+/sage.implement
 ```
 
 **Timeline:** POC within 1 week, then full planning
@@ -793,28 +793,28 @@ docs/
 
 ```bash
 # Step 1: Research enhancement opportunities
-/enhance
+/sage.enhance
 
 # Step 2: Specify enhanced components
-/specify
+/sage.specify
 
 # Step 3: Plan integration
-/plan
+/sage.plan
 
 # Step 4: Create tasks
-/tasks
+/sage.tasks
 
 # Step 5: Optional POC for risky enhancements
-/poc  # if needed
+/sage.poc  # if needed
 
 # Step 6: Implementation details
-/breakdown
+/sage.breakdown
 
 # Step 7: Update system blueprint
-/blueprint
+/sage.blueprint
 
 # Step 8: Execute implementation
-/implement
+/sage.implement
 ```
 
 **Timeline:** Enhancement cycle with competitive improvements
@@ -827,25 +827,25 @@ docs/
 
 ```bash
 # Step 1: Specify new component
-/specify
+/sage.specify
 
 # Step 2: Plan integration
-/plan
+/sage.plan
 
 # Step 3: Create tasks
-/tasks
+/sage.tasks
 
 # Step 4: Optional POC for risky features
-/poc  # if needed
+/sage.poc  # if needed
 
 # Step 5: Implementation details
-/breakdown
+/sage.breakdown
 
 # Step 6: Update system blueprint
-/blueprint
+/sage.blueprint
 
 # Step 7: Execute implementation
-/implement
+/sage.implement
 ```
 
 **Timeline:** Per-component iteration cycle
@@ -858,12 +858,12 @@ docs/
 
 ```bash
 # Step 1: Strategic intelligence gathering
-/intel  # Strategic assessment + market intelligence
+/sage.intel  # Strategic assessment + market intelligence
 
 # Step 2: Update plans based on strategic insights
-/plan     # Update technical strategy
-/tasks    # Adjust priorities and timeline
-/blueprint  # Update blueprint
+/sage.plan     # Update technical strategy
+/sage.tasks    # Adjust priorities and timeline
+/sage.blueprint  # Update blueprint
 ```
 
 **Timeline:** 1-2 days for comprehensive assessment
@@ -876,12 +876,12 @@ docs/
 
 ```bash
 # Step 1: Update affected components
-/specify  # Re-run for updated requirements
-/plan     # Re-run for technology changes
-/tasks    # Re-run for timeline updates
+/sage.specify  # Re-run for updated requirements
+/sage.plan     # Re-run for technology changes
+/sage.tasks    # Re-run for timeline updates
 
 # Step 2: Update system view
-/blueprint
+/sage.blueprint
 ```
 
 **Timeline:** Few hours for documentation sync
@@ -892,27 +892,27 @@ docs/
 
 ### Command Execution Order
 
-1. **Start with `/enhance` for new projects**
+1. **Start with `/sage.enhance` for new projects**
    - Research enhancement opportunities early
    - Identify competitive advantages before specification
    - Bridge gap between concept and formal requirements
 
-2. **Always run `/specify` after enhancement research**
+2. **Always run `/sage.specify` after enhancement research**
    - Foundation for all subsequent work
    - Incorporates enhancement insights into requirements
    - Creates component boundaries
 
-3. **Consider `/poc` early**
-   - Run after `/specify` or `/plan`
+3. **Consider `/sage.poc` early**
+   - Run after `/sage.specify` or `/sage.plan`
    - Especially for novel/risky features or enhancements
    - Fail fast on wrong assumptions
 
-4. **Use `/breakdown` before coding**
+4. **Use `/sage.breakdown` before coding**
    - Developers' implementation guide
    - Prevents rework and confusion
    - Ensures consistency
 
-5. **Keep `/blueprint` updated**
+5. **Keep `/sage.blueprint` updated**
    - Re-run after major changes
    - Use for stakeholder updates
    - Track progress weekly
@@ -921,28 +921,28 @@ docs/
 
 | Command | Re-run When... |
 |---------|---------------|
-| `/enhance` | New enhancement opportunities identified, competitive landscape changes |
-| `/specify` | Requirements change, new docs added, enhancement research complete |
-| `/plan` | Technology choices need revision, architecture changes |
-| `/tasks` | Timeline shifts, team changes, priorities update |
-| `/poc` | Core assumptions need validation, pivot required |
-| `/breakdown` | Implementation approach changes, new patterns adopted |
-| `/blueprint` | Component updates, integration changes, milestone reviews |
-| `/implement` | Ready to start implementation, phase completion, resuming work |
-| `/progress` | Daily/weekly check-ins, status updates, blocker identification |
-| `/intel` | Quarterly reviews, competitive changes, strategic planning |
-| `/commit` | Code ready for PR, feature complete |
+| `/sage.enhance` | New enhancement opportunities identified, competitive landscape changes |
+| `/sage.specify` | Requirements change, new docs added, enhancement research complete |
+| `/sage.plan` | Technology choices need revision, architecture changes |
+| `/sage.tasks` | Timeline shifts, team changes, priorities update |
+| `/sage.poc` | Core assumptions need validation, pivot required |
+| `/sage.breakdown` | Implementation approach changes, new patterns adopted |
+| `/sage.blueprint` | Component updates, integration changes, milestone reviews |
+| `/sage.implement` | Ready to start implementation, phase completion, resuming work |
+| `/sage.progress` | Daily/weekly check-ins, status updates, blocker identification |
+| `/sage.intel` | Quarterly reviews, competitive changes, strategic planning |
+| `/sage.commit` | Code ready for PR, feature complete |
 
 ### Quality Gates
 
-**After `/enhance`:**
+**After `/sage.enhance`:**
 
 - [ ] Enhancement opportunities identified across all categories
 - [ ] Research citations support all recommendations
 - [ ] Impact/effort analysis completed for prioritization
 - [ ] Enhancement blueprint aligns with project goals
 
-**After `/specify`:**
+**After `/sage.specify`:**
 
 - [ ] All components identified
 - [ ] Requirements are SMART
@@ -950,42 +950,42 @@ docs/
 - [ ] Stakeholders aligned
 - [ ] Enhancement insights incorporated
 
-**After `/plan`:**
+**After `/sage.plan`:**
 
 - [ ] Technology choices justified
 - [ ] Risks identified with mitigation
 - [ ] Timeline realistic
 - [ ] Architecture diagrams clear
 
-**After `/tasks`:**
+**After `/sage.tasks`:**
 
 - [ ] All tasks have estimates
 - [ ] Dependencies mapped
 - [ ] Resources allocated
 - [ ] Sprint structure defined
 
-**After `/poc`:**
+**After `/sage.poc`:**
 
 - [ ] Core concept validated
 - [ ] Technical feasibility proven
 - [ ] Performance acceptable
 - [ ] Ready for full implementation
 
-**After `/breakdown`:**
+**After `/sage.breakdown`:**
 
 - [ ] API contracts defined
 - [ ] Testing strategy complete
 - [ ] Security considered
 - [ ] Monitoring planned
 
-**After `/blueprint`:**
+**After `/sage.blueprint`:**
 
 - [ ] Critical path identified
 - [ ] Resource conflicts resolved
 - [ ] Timeline realistic
 - [ ] Stakeholders informed
 
-**After `/implement`:**
+**After `/sage.implement`:**
 
 - [ ] Phase implemented according to breakdown specifications
 - [ ] All phase tasks marked as completed
@@ -994,7 +994,7 @@ docs/
 - [ ] Feature branch ready for review
 - [ ] Progress tracking updated in task files
 
-**After `/progress`:**
+**After `/sage.progress`:**
 
 - [ ] Overall project completion percentage calculated
 - [ ] Phase and component status identified
@@ -1002,7 +1002,7 @@ docs/
 - [ ] Next actions clearly recommended
 - [ ] Progress report generated in .docs/
 
-**After `/intel`:**
+**After `/sage.intel`:**
 
 - [ ] Strategic capabilities and market position assessed
 - [ ] Competitive positioning and market intelligence gathered
@@ -1026,64 +1026,64 @@ mkdir -p docs
 2. **Run the workflow:**
 
 ```bash
-/enhance    # Research enhancement opportunities (for new projects)
-/specify    # Generate specifications
-/poc        # Validate core concept (optional but recommended)
-/plan       # Create implementation plans
-/tasks      # Break down into actionable tasks
-/breakdown  # Detail technical implementation
-/blueprint    # Create system blueprint
-/implement  # Execute phased implementation
+/sage.enhance    # Research enhancement opportunities (for new projects)
+/sage.specify    # Generate specifications
+/sage.poc        # Validate core concept (optional but recommended)
+/sage.plan       # Create implementation plans
+/sage.tasks      # Break down into actionable tasks
+/sage.breakdown  # Detail technical implementation
+/sage.blueprint    # Create system blueprint
+/sage.implement  # Execute phased implementation
 ```
 
 3. **Start development:**
 
-- Use `docs/breakdown/` as implementation guide
-- Track tasks from `docs/specs/*/tasks.md`
-- Reference `docs/blueprint.md` for timeline
+- Use `docs/sage.breakdown/` as implementation guide
+- Track tasks from `docs/specs/*/sage.tasks.md`
+- Reference `docs/sage.blueprint.md` for timeline
 
 4. **Commit your work:**
 
 ```bash
-/commit     # Create semantic commits and PR
+/sage.commit     # Create semantic commits and PR
 ```
 
 ### Quick Commands
 
 ```bash
 # Full workflow in sequence (new projects)
-/enhance && /specify && /poc && /plan && /tasks && /breakdown && /blueprint && /implement && /progress
+/sage.enhance && /sage.specify && /sage.poc && /sage.plan && /sage.tasks && /sage.breakdown && /sage.blueprint && /sage.implement && /sage.progress
 
 # Enhancement-driven development
-/enhance && /specify && /plan && /tasks && /blueprint && /implement && /progress
+/sage.enhance && /sage.specify && /sage.plan && /sage.tasks && /sage.blueprint && /sage.implement && /sage.progress
 
 # Strategic intelligence workflow
-/intel && /plan && /tasks && /blueprint && /implement && /progress
+/sage.intel && /sage.plan && /sage.tasks && /sage.blueprint && /sage.implement && /sage.progress
 
 # Update all documentation
-/specify && /plan && /tasks && /blueprint
+/sage.specify && /sage.plan && /sage.tasks && /sage.blueprint
 
 # Just planning and tasks
-/plan && /tasks
+/sage.plan && /sage.tasks
 
 # Just system overview
-/blueprint
+/sage.blueprint
 
 # Check project progress
-/progress
+/sage.progress
 
 # Enhancement research only
-/enhance
+/sage.enhance
 
 # Quarterly strategic review
-/intel
+/sage.intel
 ```
 
 ---
 
 ## ❓ Decision Guide
 
-### Should I run `/enhance`?
+### Should I run `/sage.enhance`?
 
 **Yes, if:**
 
@@ -1100,7 +1100,7 @@ mkdir -p docs
 - ❌ Following existing architectural patterns exactly
 - ❌ No competitive differentiation needed
 
-### Should I run `/poc`?
+### Should I run `/sage.poc`?
 
 **Yes, if:**
 
@@ -1117,7 +1117,7 @@ mkdir -p docs
 - ❌ Low technical risk
 - ❌ Straightforward implementation
 
-### When to use `/breakdown`?
+### When to use `/sage.breakdown`?
 
 **Essential for:**
 
@@ -1134,7 +1134,7 @@ mkdir -p docs
 - Well-documented frameworks
 - Prototypes and MVPs
 
-### How often to run `/blueprint`?
+### How often to run `/sage.blueprint`?
 
 **Frequency:**
 
@@ -1150,7 +1150,7 @@ mkdir -p docs
 - ❌ No external stakeholders
 - ❌ Single component system
 
-### When to run `/intel`?
+### When to run `/sage.intel`?
 
 **Essential for:**
 
@@ -1344,18 +1344,18 @@ DEFER_TASK (with categorized reason)
 
 ### Validation Commands
 
-#### `/validate` - System Integrity Check
+#### `/sage.validate` - System Integrity Check
 
 Validates ticket system before destructive operations:
 
 ```bash
-/validate
+/sage.validate
 
 # Checks:
 # ✓ Valid JSON schema
 # ✓ No duplicate IDs
 # ✓ All required fields present
-# ✓ Ticket type values valid (implementation/enhancement/bugfix/refactor)
+# ✓ Ticket type values valid (implementation/sage.enhancement/bugfix/refactor)
 # ✓ Validation type values valid (stateflow/content/interactive/integration/generic)
 # ✓ Sub-task schema valid
 # ✓ Validation scripts well-formed
@@ -1364,7 +1364,7 @@ Validates ticket system before destructive operations:
 # ✓ No circular dependencies
 ```
 
-#### `/quality` - Quality Scoring
+#### `/sage.quality` - Quality Scoring
 
 Scores ticket system quality (0-100):
 
@@ -1379,12 +1379,12 @@ Scores ticket system quality (0-100):
 # - Validation types match content (15 pts)
 ```
 
-#### `/repair` - Automatic Fixes
+#### `/sage.repair` - Automatic Fixes
 
 Repairs common ticket system issues:
 
 ```bash
-/repair
+/sage.repair
 
 # Repairs:
 # ✓ Deduplicate ticket IDs
@@ -1427,10 +1427,10 @@ Granular rollback at component level (not just entire tickets):
 # - AuthUI tasks reset
 
 # Re-implement AuthUI with fixes
-/stream --ticket=AUTH-001 --component=AuthUI
+/sage.stream --ticket=AUTH-001 --component=AuthUI
 ```
 
-### Enhanced /migrate Command
+### Enhanced /sage.migrate Command
 
 Generates enhanced ticket schema with validation types, sub-tasks, and components:
 
@@ -1448,7 +1448,7 @@ Generates enhanced ticket schema with validation types, sub-tasks, and component
 **Sub-Task Generation:**
 
 ```bash
-# Reads docs/specs/component/tasks.md
+# Reads docs/specs/component/sage.tasks.md
 # Each task becomes a sub-task with:
 # - Unique ID (TASK-XXX-N)
 # - Validation type (inherited or specific)
@@ -1464,7 +1464,7 @@ Generates enhanced ticket schema with validation types, sub-tasks, and component
 # Example: Auth ticket → AuthModule + AuthUI components
 ```
 
-### Enhanced /stream Command
+### Enhanced /sage.stream Command
 
 Processes tickets with sub-task execution, validation, and auto-fix:
 
@@ -1489,7 +1489,7 @@ Processes tickets with sub-task execution, validation, and auto-fix:
 **Interactive Component Confirmation:**
 
 ```bash
-/stream  # Default: Interactive mode
+/sage.stream  # Default: Interactive mode
 
 # After completing each component:
 # ================================================
@@ -1590,12 +1590,12 @@ For detailed information about the enhanced ticket system:
 - **Validation Framework**: `commands/VALIDATION_FRAMEWORK.md`
 - **Specialized Validators**: `commands/VALIDATORS.md`
 - **Command Details**:
-  - `/migrate` - `commands/migrate.md` (Step 6: Enhance Tickets with Validation Configuration)
-  - `/stream` - `commands/stream.md` (Steps 3b-3c: Sub-task Processing)
-  - `/validate` - `commands/validate.md` (Steps 11-15: Enhanced Schema Validation)
-  - `/quality` - `commands/quality.md` (Section 3a: Validate Ticket System Quality)
-  - `/repair` - `commands/repair.md` (Steps 9a-9d: Enhanced Schema Repairs)
-  - `/rollback` - `commands/rollback.md` (Component-Level Checkpointing)
+  - `/sage.migrate` - `commands/sage.migrate.md` (Step 6: Enhance Tickets with Validation Configuration)
+  - `/sage.stream` - `commands/sage.stream.md` (Steps 3b-3c: Sub-task Processing)
+  - `/sage.validate` - `commands/sage.validate.md` (Steps 11-15: Enhanced Schema Validation)
+  - `/sage.quality` - `commands/quality.md` (Section 3a: Validate Ticket System Quality)
+  - `/sage.repair` - `commands/sage.repair.md` (Steps 9a-9d: Enhanced Schema Repairs)
+  - `/sage.rollback` - `commands/rollback.md` (Component-Level Checkpointing)
 
 ---
 
@@ -1603,25 +1603,25 @@ For detailed information about the enhanced ticket system:
 
 ### Common Issues
 
-**Issue:** `/specify` creates too many components  
+**Issue:** `/sage.specify` creates too many components  
 **Solution:** Review and merge related components, re-run with clearer component boundaries
 
-**Issue:** `/plan` recommendations don't match constraints  
+**Issue:** `/sage.plan` recommendations don't match constraints  
 **Solution:** Add constraint documentation to `docs/`, re-run command
 
-**Issue:** `/tasks` estimates seem off  
+**Issue:** `/sage.tasks` estimates seem off  
 **Solution:** Review velocity data, adjust based on team capacity, re-estimate
 
-**Issue:** `/poc` asks unclear questions  
+**Issue:** `/sage.poc` asks unclear questions  
 **Solution:** Provide more context in initial documentation, be specific about core concept
 
-**Issue:** `/breakdown` too detailed for simple component  
+**Issue:** `/sage.breakdown` too detailed for simple component  
 **Solution:** Use for complex components only, simpler components can skip this
 
-**Issue:** `/blueprint` shows unrealistic timeline
+**Issue:** `/sage.blueprint` shows unrealistic timeline
 **Solution:** Review individual component plans, adjust scope or resources
 
-**Issue:** `/commit` groups changes incorrectly  
+**Issue:** `/sage.commit` groups changes incorrectly  
 **Solution:** Stage files manually before running, provide clearer change context
 
 ---
@@ -1658,22 +1658,22 @@ graph TD
     Start --> None[No Workflow Set]
 
     None --> Question1{Want Automation?}
-    Question1 -->|Yes| SetTicket["/workflow<br/>Choose TICKET_BASED"]
-    Question1 -->|No| SetTrad["/workflow<br/>Choose TRADITIONAL"]
+    Question1 -->|Yes| SetTicket["/sage.workflow<br/>Choose TICKET_BASED"]
+    Question1 -->|No| SetTrad["/sage.workflow<br/>Choose TRADITIONAL"]
 
     Trad --> HasTasks{Has tasks.md<br/>files?}
-    HasTasks -->|Yes| ReadyMigrate["✅ Ready to Migrate<br/>/migrate"]
-    HasTasks -->|No| NeedTasks["Run first:<br/>/specify → /plan → /tasks"]
+    HasTasks -->|Yes| ReadyMigrate["✅ Ready to Migrate<br/>/sage.migrate"]
+    HasTasks -->|No| NeedTasks["Run first:<br/>/sage.specify → /sage.plan → /sage.tasks"]
     NeedTasks --> ReadyMigrate
 
     ReadyMigrate --> PostMigrate["Ticket system created<br/>.sage/tickets/index.json<br/>.sage/tickets/*.md"]
-    PostMigrate --> UseDevstream["/stream<br/>Automated development"]
+    PostMigrate --> UseDevstream["/sage.stream<br/>Automated development"]
 
     Tick --> WantManual{Want Manual<br/>Control?}
-    WantManual -->|Yes| BackToTrad["/workflow<br/>Choose TRADITIONAL"]
-    WantManual -->|No| KeepTicket["Continue with<br/>/stream"]
+    WantManual -->|Yes| BackToTrad["/sage.workflow<br/>Choose TRADITIONAL"]
+    WantManual -->|No| KeepTicket["Continue with<br/>/sage.stream"]
 
-    BackToTrad --> ManualImpl["Manual /implement<br/>Manual /commit"]
+    BackToTrad --> ManualImpl["Manual /sage.implement<br/>Manual /sage.commit"]
 
     style ReadyMigrate fill:#c8e6c9
     style UseDevstream fill:#c8e6c9
@@ -1689,52 +1689,52 @@ You can combine both workflows for maximum flexibility:
 
 ```bash
 # Phase 1: Traditional planning (manual control)
-/workflow  # Choose TRADITIONAL
-/specify
-/plan
-/tasks
-/breakdown  # Optional: detailed architecture
+/sage.workflow  # Choose TRADITIONAL
+/sage.specify
+/sage.plan
+/sage.tasks
+/sage.breakdown  # Optional: detailed architecture
 
 # Phase 2: Switch to automation
-/migrate    # Convert tasks to tickets
-/workflow  # Switch to TICKET_BASED
-/stream          # Automated implementation
+/sage.migrate    # Convert tasks to tickets
+/sage.workflow  # Switch to TICKET_BASED
+/sage.stream          # Automated implementation
 ```
 
 **Scenario 2: Ticket Automation with Manual Review**
 
 ```bash
 # Setup ticket automation
-/workflow  # Choose TICKET_BASED
-/specify → /plan → /tasks → /migrate
+/sage.workflow  # Choose TICKET_BASED
+/sage.specify → /sage.plan → /sage.tasks → /sage.migrate
 
 # Run automation in interactive mode (default)
-/stream  # Review at each checkpoint
+/sage.stream  # Review at each checkpoint
 
 # Or preview first
-/stream --dry-run  # See what would happen
-/stream            # Execute with confirmations
+/sage.stream --dry-run  # See what would happen
+/sage.stream            # Execute with confirmations
 ```
 
 **Scenario 3: Mixed Manual and Automated**
 
 ```bash
 # Automated for most tickets
-/stream  # Process bulk tickets
+/sage.stream  # Process bulk tickets
 
 # Manual for critical/complex tickets
-/implement TICKET-042  # Single ticket, full control
+/sage.implement TICKET-042  # Single ticket, full control
 # ... review code, run tests manually ...
-/commit
+/sage.commit
 ```
 
 ### Migration Checklist
 
-#### Before Running `/migrate`
+#### Before Running `/sage.migrate`
 
 - [ ] ✅ All specifications complete (`docs/specs/*/spec.md`)
-- [ ] ✅ All implementation plans exist (`docs/specs/*/plan.md`)
-- [ ] ✅ All task breakdowns created (`docs/specs/*/tasks.md`)
+- [ ] ✅ All implementation plans exist (`docs/specs/*/sage.plan.md`)
+- [ ] ✅ All task breakdowns created (`docs/specs/*/sage.tasks.md`)
 - [ ] ✅ Tasks follow SMART criteria (Specific, Measurable, Achievable, Relevant, Time-bound)
 - [ ] ✅ Clean git state (commit or stash changes)
 - [ ] ✅ Understand automation implications (AI will commit code)
@@ -1744,30 +1744,30 @@ You can combine both workflows for maximum flexibility:
 
 - [ ] ✅ Verify `.sage/tickets/index.json` created
 - [ ] ✅ Verify ticket markdown files in `.sage/tickets/`
-- [ ] ✅ Check `.sage/workflow-mode` set to TICKET_BASED
+- [ ] ✅ Check `.sage/sage.workflow-mode` set to TICKET_BASED
 - [ ] ✅ Review ticket priorities and estimates
-- [ ] ✅ Sync with GitHub if using `/sync`
+- [ ] ✅ Sync with GitHub if using `/sage.sync`
 
-#### First `/stream` Run
+#### First `/sage.stream` Run
 
 - [ ] ✅ Start with `--dry-run` to preview
 - [ ] ✅ Use interactive mode (default) first time
 - [ ] ✅ Review confirmation points (6 checkpoints)
 - [ ] ✅ Monitor ticket progress
-- [ ] ✅ Check rollback available if needed (`/rollback`)
+- [ ] ✅ Check rollback available if needed (`/sage.rollback`)
 
 ### Common Transition Scenarios
 
 #### Scenario A: New Project, Automation from Start
 
 ```bash
-/workflow     # Choose TICKET_BASED
-/specify
-/plan
-/tasks
-/migrate       # Convert to tickets immediately
-/stream --dry-run   # Preview automation
-/stream             # Execute with confirmations
+/sage.workflow     # Choose TICKET_BASED
+/sage.specify
+/sage.plan
+/sage.tasks
+/sage.migrate       # Convert to tickets immediately
+/sage.stream --dry-run   # Preview automation
+/sage.stream             # Execute with confirmations
 ```
 
 **Timeline:** Day 1 - Automation ready
@@ -1776,15 +1776,15 @@ You can combine both workflows for maximum flexibility:
 #### Scenario B: Existing Project, Gradual Migration
 
 ```bash
-# Already have docs/specs/*/tasks.md from traditional workflow
+# Already have docs/specs/*/sage.tasks.md from traditional workflow
 
-/workflow     # Choose TICKET_BASED
-/migrate       # Convert existing tasks
-/stream --dry-run   # Preview first
-/stream             # Start automation
+/sage.workflow     # Choose TICKET_BASED
+/sage.migrate       # Convert existing tasks
+/sage.stream --dry-run   # Preview first
+/sage.stream             # Start automation
 
 # Can switch back anytime
-/workflow     # Choose TRADITIONAL if needed
+/sage.workflow     # Choose TRADITIONAL if needed
 ```
 
 **Timeline:** Migration in minutes
@@ -1793,16 +1793,16 @@ You can combine both workflows for maximum flexibility:
 #### Scenario C: Traditional Workflow, Manual Control
 
 ```bash
-/workflow     # Choose TRADITIONAL
-/specify
-/plan
-/tasks
-/breakdown             # Optional detailed design
+/sage.workflow     # Choose TRADITIONAL
+/sage.specify
+/sage.plan
+/sage.tasks
+/sage.breakdown             # Optional detailed design
 
 # Implement manually, component by component
 # ... write code, tests manually ...
-/progress              # Check completion
-/commit                # Manual commits
+/sage.progress              # Check completion
+/sage.commit                # Manual commits
 ```
 
 **Timeline:** Days to weeks (depends on scope)
@@ -1811,11 +1811,11 @@ You can combine both workflows for maximum flexibility:
 #### Scenario D: Ticket Automation with Review Gates
 
 ```bash
-/workflow     # Choose TICKET_BASED
-/specify → /plan → /tasks → /migrate
+/sage.workflow     # Choose TICKET_BASED
+/sage.specify → /sage.plan → /sage.tasks → /sage.migrate
 
 # Use interactive mode for control
-/stream  # Default: 6 confirmation checkpoints
+/sage.stream  # Default: 6 confirmation checkpoints
 # 1. Start cycle
 # 2. Before each ticket
 # 3. After implementation
@@ -1850,14 +1850,14 @@ You can combine both workflows for maximum flexibility:
 
 ### Rollback from Failed Migration
 
-If `/migrate` fails or produces unexpected results:
+If `/sage.migrate` fails or produces unexpected results:
 
 ```bash
 /rollback  # Restore pre-migration state
 
 # Fix issues in task files
 # Re-run migration when ready
-/migrate
+/sage.migrate
 ```
 
 Checkpoint includes:
@@ -1872,23 +1872,23 @@ Checkpoint includes:
 **Check current mode:**
 
 ```bash
-cat .sage/workflow-mode  # Shows TRADITIONAL or TICKET_BASED
+cat .sage/sage.workflow-mode  # Shows TRADITIONAL or TICKET_BASED
 ```
 
 **Switch mode:**
 
 ```bash
-/workflow  # Interactive questionnaire
+/sage.workflow  # Interactive questionnaire
 # Or manually:
-echo "TRADITIONAL" > .sage/workflow-mode
-echo "TICKET_BASED" > .sage/workflow-mode
+echo "TRADITIONAL" > .sage/sage.workflow-mode
+echo "TICKET_BASED" > .sage/sage.workflow-mode
 ```
 
 **Mode validation:**
 
-- `/implement` - Requires TICKET_BASED mode
-- `/stream` - Requires TICKET_BASED mode
-- `/migrate` - Sets mode to TICKET_BASED
+- `/sage.implement` - Requires TICKET_BASED mode
+- `/sage.stream` - Requires TICKET_BASED mode
+- `/sage.migrate` - Sets mode to TICKET_BASED
 - Other commands - Workflow agnostic
 
 ---
@@ -1915,7 +1915,7 @@ echo "TICKET_BASED" > .sage/workflow-mode
 
 ### POC Best Practices
 
-- [Proof of Concept Guide](https://www.atlassian.com/agile/project-management/poc)
+- [Proof of Concept Guide](https://www.atlassian.com/agile/project-management/sage.poc)
 - [Technical Spike](https://www.scaledagileframework.com/spikes/)
 
 ---

@@ -331,7 +331,7 @@ echo "TRADITIONAL" > .sage/workflow-mode   # Switch to Traditional
 
 ## 📚 Additional Resources
 
-- **WORKFLOW_GUIDE.md:** Full workflow documentation
+- **SAGE.WORKFLOW_GUIDE.md:** Full workflow documentation
 - **SAGE_DEV_COMMANDS.md:** Command reference with visual workflow diagrams
 - **commands/[name].md:** Individual command details
 - **.docs/GAP_ANALYSIS.md:** System architecture insights
