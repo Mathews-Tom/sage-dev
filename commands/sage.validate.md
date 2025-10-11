@@ -10,6 +10,7 @@ Quality assurance engineer validating ticket system integrity.
 ## Purpose
 
 Ensure ticket system is valid and consistent before destructive operations by:
+
 - Validating schema of .sage/tickets/index.json
 - Checking for duplicate ticket IDs
 - Verifying dependency graph is acyclic
