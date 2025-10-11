@@ -10,7 +10,7 @@ SUPPORTED_LANGUAGES = ["python", "javascript", "typescript"]
 # Agent directories for commands
 AGENT_DIRS: dict[str, Path] = {
     "claude-code": Path.home() / ".claude" / "commands",
-    "opencode": Path.home() / ".config" / "opencode" / "commands",
+    "opencode": Path.home() / ".config" / "opencode" / "command",
     "droid": Path.home() / ".factory" / "commands",
 }
 
