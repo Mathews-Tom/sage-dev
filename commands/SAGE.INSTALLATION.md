@@ -220,7 +220,7 @@ ln -s /path/to/sage-dev/commands ~/.factory/commands
 
 ### Option 1: Use WORKFLOW_GUIDE as a Slash Command
 
-Since `WORKFLOW_GUIDE.md` is now in `~/.claude/commands/`, Claude Code will treat it as a command:
+Since `SAGE.WORKFLOW_GUIDE.md` is now in `~/.claude/commands/`, Claude Code will treat it as a command:
 
 ```plaintext
 /WORKFLOW_GUIDE
@@ -459,13 +459,13 @@ head -10 ~/.claude/commands/[command].md
 
 ### Documentation Not Accessible
 
-**Cause:** WORKFLOW_GUIDE.md or SAGE_DEV_COMMANDS.md not copied
+**Cause:** SAGE.WORKFLOW_GUIDE.md or SAGE_DEV_COMMANDS.md not copied
 
 **Fix:**
 
 ```bash
 # Copy documentation files
-cp /path/to/sage-dev/commands/WORKFLOW_GUIDE.md ~/.claude/commands/
+cp /path/to/sage-dev/commands/SAGE.WORKFLOW_GUIDE.md ~/.claude/commands/
 cp /path/to/sage-dev/commands/SAGE_DEV_COMMANDS.md ~/.claude/commands/
 ```
 

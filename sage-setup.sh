@@ -319,7 +319,7 @@ ls -1 "$SAMPLE_DIR"/*.md 2>/dev/null | while read file; do
   FILENAME=$(basename "$file" .md)
   DESCRIPTION=$(grep "^description:" "$file" 2>/dev/null | sed 's/description: //' || echo "")
 
-  if [ "$FILENAME" = "WORKFLOW_GUIDE" ] || [ "$FILENAME" = "SAGE_DEV_COMMANDS" ] || [ "$FILENAME" = "TESTING" ] || [ "$FILENAME" = "INSTALLATION" ]; then
+  if [ "$FILENAME" = "SAGE.WORKFLOW_GUIDE" ] || [ "$FILENAME" = "SAGE_DEV_COMMANDS" ] || [ "$FILENAME" = "TESTING" ] || [ "$FILENAME" = "INSTALLATION" ]; then
     printf "   📄 %-20s (Documentation)\n" "$FILENAME"
   else
     printf "   /%s\n" "$FILENAME"
@@ -351,7 +351,7 @@ echo "📊 Installation Summary:"
 echo "   • Language: $SELECTED_LANGUAGE"
 echo "   • Commands: $COMMAND_COUNT files"
 echo "     - Slash commands: $(( COMMAND_COUNT - 4 ))"
-echo "     - Documentation: 4 (WORKFLOW_GUIDE, SAGE_DEV_COMMANDS, TESTING, INSTALLATION)"
+echo "     - Documentation: 4 (SAGE.WORKFLOW_GUIDE, SAGE_DEV_COMMANDS, TESTING, INSTALLATION)"
 echo "   • Agents: $TOTAL_AGENT_COUNT files + registry"
 echo "     - Shared ($SHARED_AGENT_COUNT): bs-check, bs-enforce, secret-scanner"
 if [ "$SELECTED_LANGUAGE" = "python" ]; then
@@ -452,7 +452,7 @@ echo "   • test-coverage    Enforce coverage thresholds"
 echo ""
 echo "📚 Documentation:"
 echo ""
-echo "   /WORKFLOW_GUIDE    Full workflow guide"
+echo "   /SAGE.WORKFLOW_GUIDE    Full workflow guide"
 echo "   /SAGE_DEV_COMMANDS Complete command syntax reference"
 echo ""
 echo "   Or simply ask your AI agent:"
