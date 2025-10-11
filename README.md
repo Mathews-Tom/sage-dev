@@ -521,6 +521,14 @@ A: Yes! Edit files in `rules/` and `.sage/enforcement.json` to customize standar
 - **Documentation:** See `commands/`, `agents/`, and `rules/` directories
 - **Ask your AI agent:** "How do I use /sage.workflow?" or "Explain the ticket system"
 
+## Acknowledgments
+
+**Special Thanks:**
+
+- **[Sydney Lewis](https://www.linkedin.com/in/sydches/)** - For the motivation, guidance, and wisdom that inspired this project
+
+Sage-Dev represents a distillation of collective software development experience from great developers across the industry. This tool embodies research-backed practices, battle-tested patterns, and community wisdom.
+
 ## License
 
 [Your License Here]
