@@ -1,5 +1,5 @@
 ---
-name: doc-validator
+name: sage.doc-validator
 description: Validates docstring completeness and quality for all Python functions and classes. Enforces Google-style docstrings with proper argument, return, and exception documentation.
 model: sonnet
 color: blue

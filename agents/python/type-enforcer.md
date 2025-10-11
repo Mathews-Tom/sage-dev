@@ -1,5 +1,5 @@
 ---
-name: type-enforcer
+name: sage.type-enforcer
 description: Validates Python 3.12 typing standards and blocks legacy typing imports. Enforces built-in generics, | unions, and modern type annotation practices.
 model: sonnet
 color: purple

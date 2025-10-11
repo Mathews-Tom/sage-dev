@@ -2,7 +2,7 @@
 
 Complete reference for all sage-dev commands with workflow visualizations and usage patterns.
 
-**Last Updated:** 2025-10-03
+**Last Updated:** 2025-10-10
 
 ---
 
@@ -20,7 +20,7 @@ Quick reference for command syntax, parameters, and usage.
 
 ## Workflow Selection
 
-### `/workflow`
+### `/sage.workflow`
 
 **Purpose:** Choose between Traditional and Ticket-Based workflows
 
@@ -31,12 +31,12 @@ Quick reference for command syntax, parameters, and usage.
 **Usage:**
 
 ```bash
-/workflow
+/sage.workflow
 ```
 
 **Outputs:**
 
-- Creates `.sage/workflow-mode` file (TRADITIONAL or TICKET_BASED)
+- Creates `.sage/sage.workflow-mode` file (TRADITIONAL or TICKET_BASED)
 - Recommendation with rationale
 
 **When to Use:**
@@ -49,7 +49,7 @@ Quick reference for command syntax, parameters, and usage.
 
 ## Research & Enhancement
 
-### `/enhance`
+### `/sage.enhance`
 
 **Purpose:** Research-driven system enhancement analysis
 
@@ -60,7 +60,7 @@ Quick reference for command syntax, parameters, and usage.
 **Usage:**
 
 ```bash
-/enhance
+/sage.enhance
 ```
 
 **Outputs:**
@@ -76,7 +76,7 @@ Quick reference for command syntax, parameters, and usage.
 
 ---
 
-### `/intel`
+### `/sage.intel`
 
 **Purpose:** Comprehensive system assessment and market analysis
 
@@ -87,7 +87,7 @@ Quick reference for command syntax, parameters, and usage.
 **Usage:**
 
 ```bash
-/intel
+/sage.intel
 ```
 
 **Outputs:**
@@ -105,7 +105,7 @@ Quick reference for command syntax, parameters, and usage.
 
 ## Planning & Specification
 
-### `/specify`
+### `/sage.specify`
 
 **Purpose:** Generate structured specifications from docs folder
 
@@ -116,7 +116,7 @@ Quick reference for command syntax, parameters, and usage.
 **Usage:**
 
 ```bash
-/specify
+/sage.specify
 ```
 
 **Outputs:**
@@ -132,7 +132,7 @@ Quick reference for command syntax, parameters, and usage.
 
 ---
 
-### `/plan`
+### `/sage.plan`
 
 **Purpose:** Generate implementation plans from specifications
 
@@ -144,12 +144,12 @@ Quick reference for command syntax, parameters, and usage.
 **Usage:**
 
 ```bash
-/plan
+/sage.plan
 ```
 
 **Outputs:**
 
-- `docs/specs/<component>/implementation_plan.md` files
+- `docs/specs/<component>/sage.implementation_plan.md` files
 - Research-backed implementation strategies
 
 **When to Use:**
@@ -160,7 +160,7 @@ Quick reference for command syntax, parameters, and usage.
 
 ---
 
-### `/tasks`
+### `/sage.tasks`
 
 **Purpose:** Generate SMART task breakdowns from plans
 
@@ -172,12 +172,12 @@ Quick reference for command syntax, parameters, and usage.
 **Usage:**
 
 ```bash
-/tasks
+/sage.tasks
 ```
 
 **Outputs:**
 
-- `docs/specs/<component>/tasks.md` files
+- `docs/specs/<component>/sage.tasks.md` files
 - Granular, actionable task lists
 
 **When to Use:**
@@ -188,7 +188,7 @@ Quick reference for command syntax, parameters, and usage.
 
 ---
 
-### `/breakdown`
+### `/sage.breakdown`
 
 **Purpose:** Generate technical breakdowns with architecture diagrams
 
@@ -199,14 +199,14 @@ Quick reference for command syntax, parameters, and usage.
 **Usage:**
 
 ```bash
-/breakdown                    # All components
-/breakdown component1         # Specific component
-/breakdown comp1 comp2        # Multiple components
+/sage.breakdown                    # All components
+/sage.breakdown component1         # Specific component
+/sage.breakdown comp1 comp2        # Multiple components
 ```
 
 **Outputs:**
 
-- `docs/specs/<component>/breakdown.md` files
+- `docs/specs/<component>/sage.breakdown.md` files
 - Architecture diagrams, interfaces, testing strategies
 
 **When to Use:**
@@ -217,7 +217,7 @@ Quick reference for command syntax, parameters, and usage.
 
 ---
 
-### `/poc`
+### `/sage.poc`
 
 **Purpose:** Generate minimal POC documentation for quick validation
 
@@ -228,7 +228,7 @@ Quick reference for command syntax, parameters, and usage.
 **Usage:**
 
 ```bash
-/poc
+/sage.poc
 ```
 
 **Outputs:**
@@ -246,7 +246,7 @@ Quick reference for command syntax, parameters, and usage.
 
 ## Workflow Management
 
-### `/progress`
+### `/sage.progress`
 
 **Purpose:** Analyze project progress across all phases
 
@@ -257,7 +257,7 @@ Quick reference for command syntax, parameters, and usage.
 **Usage:**
 
 ```bash
-/progress
+/sage.progress
 ```
 
 **Outputs:**
@@ -267,8 +267,8 @@ Quick reference for command syntax, parameters, and usage.
 
 **When to Use:**
 
-- After `/implement` iterations
-- Before `/commit`
+- After `/sage.implement` iterations
+- Before `/sage.commit`
 - Status reporting
 - Sprint reviews
 
@@ -276,38 +276,38 @@ Quick reference for command syntax, parameters, and usage.
 
 ## Ticket-Based Workflow
 
-### `/migrate`
+### `/sage.migrate`
 
 **Purpose:** Convert Traditional workflow to Ticket-Based
 
 **Prerequisites:**
 
 - Traditional workflow project
-- `docs/specs/*/tasks.md` files exist
+- `docs/specs/*/sage.tasks.md` files exist
 
 **Usage:**
 
 ```bash
-/migrate
+/sage.migrate
 ```
 
 **Outputs:**
 
 - `.sage/tickets/index.json`
 - `.sage/tickets/TICKET-*.md` files
-- `.sage/workflow-mode` set to TICKET_BASED
+- `.sage/sage.workflow-mode` set to TICKET_BASED
 
 **When to Use:**
 
 - Switching from Traditional to Ticket-Based workflow
 - Automating task tracking
-- Enabling `/stream`
+- Enabling `/sage.stream`
 
-**⚠️ Checkpoint Created:** Yes (use `/rollback` if migration fails)
+**⚠️ Checkpoint Created:** Yes (use `/sage.rollback` if migration fails)
 
 ---
 
-### `/sync`
+### `/sage.sync`
 
 **Purpose:** Sync ticket system with GitHub issues
 
@@ -320,7 +320,7 @@ Quick reference for command syntax, parameters, and usage.
 **Usage:**
 
 ```bash
-/sync
+/sage.sync
 ```
 
 **Outputs:**
@@ -337,7 +337,7 @@ Quick reference for command syntax, parameters, and usage.
 
 ---
 
-### `/implement`
+### `/sage.implement`
 
 **Purpose:** Implement a single ticket with isolated context
 
@@ -350,7 +350,7 @@ Quick reference for command syntax, parameters, and usage.
 **Usage:**
 
 ```bash
-/implement TICKET-001
+/sage.implement TICKET-001
 ```
 
 **Outputs:**
@@ -364,13 +364,13 @@ Quick reference for command syntax, parameters, and usage.
 
 - Manual ticket implementation
 - Single-ticket focus
-- Before automation via `/stream`
+- Before automation via `/sage.stream`
 
-**⚠️ Checkpoint Created:** Yes (use `/rollback` if implementation fails)
+**⚠️ Checkpoint Created:** Yes (use `/sage.rollback` if implementation fails)
 
 ---
 
-### `/stream`
+### `/sage.stream`
 
 **Purpose:** Automated cycle processing unprocessed tickets
 
@@ -383,13 +383,25 @@ Quick reference for command syntax, parameters, and usage.
 **Execution Modes:**
 
 ```bash
-/stream                              # Interactive mode (default, sequential)
-/stream --interactive                # Explicit interactive (sequential)
-/stream --auto                       # Fully automated (CI/CD, sequential)
-/stream --auto --parallel=3          # Fully automated with 3 parallel workers
-/stream --auto --parallel=auto       # Fully automated with auto-detected workers
-/stream --dry-run                    # Preview only
+/sage.stream                              # Interactive mode (default, sequential)
+/sage.stream --interactive                # Explicit interactive (sequential)
+/sage.stream --semi-auto                  # Semi-automated (component-level automation)
+/sage.stream --component-auto             # Alias for --semi-auto
+/sage.stream --auto                       # Fully automated (CI/CD, sequential)
+/sage.stream --auto --parallel=3          # Fully automated with 3 parallel workers
+/sage.stream --auto --parallel=auto       # Fully automated with auto-detected workers
+/sage.stream --dry-run                    # Preview only
 ```
+
+**Semi-Auto Mode:**
+- Component-level automation with batch processing
+- Groups tickets by prefix (AUTH-*, UI-*, API-*)
+- Processes all tickets within a component automatically
+- Pauses between components for review
+- **Performance**: ~3-5× faster than interactive
+- **Confirmation Points**: Component start, component push, component continue
+- **Best for**: Organized ticket queues with clear component boundaries
+- **Resume support**: Preserves batches on pause
 
 **Parallel Mode:**
 - Only available with `--auto` mode
@@ -402,7 +414,7 @@ Quick reference for command syntax, parameters, and usage.
 - **Token usage**: N× higher (concurrent API calls)
 - **Best for**: 20+ independent tickets
 
-**Interactive Confirmation Points:**
+**Interactive Mode Confirmation Points:**
 
 1. Start cycle confirmation
 2. Before each ticket (yes/no/skip)
@@ -410,6 +422,12 @@ Quick reference for command syntax, parameters, and usage.
 4. Before commit (optional diff review)
 5. Before push to GitHub
 6. Continue to next ticket (yes/no/pause)
+
+**Semi-Auto Mode Confirmation Points:**
+
+1. Start component (yes/no/skip) - once per component
+2. Push component changes (yes/no/later) - once per component
+3. Continue to next component (yes/continue/pause) - between components
 
 **Outputs:**
 
@@ -425,11 +443,11 @@ Quick reference for command syntax, parameters, and usage.
 - Automated development cycles
 - CI/CD integration (--auto mode)
 
-**⚠️ Checkpoint Created:** Yes (use `/rollback` if cycle fails)
+**⚠️ Checkpoint Created:** Yes (use `/sage.rollback` if cycle fails)
 
 ---
 
-### `/estimate`
+### `/sage.estimate`
 
 **Purpose:** Add time estimates and calculate velocity metrics
 
@@ -441,7 +459,7 @@ Quick reference for command syntax, parameters, and usage.
 **Usage:**
 
 ```bash
-/estimate
+/sage.estimate
 ```
 
 **Outputs:**
@@ -458,12 +476,12 @@ Quick reference for command syntax, parameters, and usage.
 
 - **Base Estimates:** Epic (40h), Story (16h), Task (4h), Subtask (2h)
 - **Priority Multipliers:** P0 (1.5x), P1 (1.2x), P2 (1.0x), P3 (0.8x), P4 (0.5x)
-- **Velocity Tracking:** Uses historical data from `.sage/stream-velocity.log`
+- **Velocity Tracking:** Uses historical data from `.sage/sage.stream-velocity.log`
 
 **When to Use:**
 
 - Before sprint planning
-- After `/stream` cycles (to update projections)
+- After `/sage.stream` cycles (to update projections)
 - When estimating project completion date
 - For burndown chart visualization
 
@@ -478,7 +496,7 @@ Quick reference for command syntax, parameters, and usage.
 
 ## Safety & Recovery
 
-### `/rollback`
+### `/sage.rollback`
 
 **Purpose:** Restore system state after failed operations
 
@@ -490,10 +508,10 @@ Quick reference for command syntax, parameters, and usage.
 **Rollback Modes:**
 
 ```bash
-/rollback                     # Interactive with confirmation
-/rollback --force             # Skip confirmation
-/rollback --tickets-only      # Restore only ticket system
-/rollback --git-only          # Restore only git state
+/sage.rollback                     # Interactive with confirmation
+/sage.rollback --force             # Skip confirmation
+/sage.rollback --tickets-only      # Restore only ticket system
+/sage.rollback --git-only          # Restore only git state
 ```
 
 **Restores:**
@@ -502,22 +520,225 @@ Quick reference for command syntax, parameters, and usage.
 - `.sage/tickets/index.json`
 - Ticket markdown files
 - Task progress files
-- `.sage/workflow-mode`
+- `.sage/sage.workflow-mode`
 
 **When to Use:**
 
-- After `/stream` failure
-- After `/implement` error
-- After `/migrate` failure
+- After `/sage.stream` failure
+- After `/sage.implement` error
+- After `/sage.migrate` failure
 - Recovering from corrupted state
 
 **⚠️ Archives Used Checkpoint:** Yes (check `.sage/checkpoints-archive/`)
 
 ---
 
+## Context Engineering
+
+### `/sage.update-doc`
+
+**Purpose:** Create or update agent-readable documentation
+
+**Prerequisites:**
+
+- `.sage/agent/` directory structure (auto-initialized)
+
+**Usage:**
+
+```bash
+/sage.update-doc task "Feature Name"
+/sage.update-doc system "Architecture"
+/sage.update-doc sop "Deployment Process"
+```
+
+**Outputs:**
+
+- `.sage/agent/sage.tasks/<feature-name>.md`
+- `.sage/agent/system/<component-name>.md`
+- `.sage/agent/sops/<procedure-name>.md`
+- Auto-updated `.sage/agent/README.md` index
+
+**When to Use:**
+
+- After implementing a feature
+- Documenting system architecture
+- Creating Standard Operating Procedures
+
+---
+
+### `/sage.docify`
+
+**Purpose:** Generate component documentation from source code
+
+**Prerequisites:**
+
+- Source code files or directories to document
+
+**Usage:**
+
+```bash
+/sage.docify src/auth/
+/sage.docify commands/sage.stream.md
+```
+
+**Outputs:**
+
+- `.sage/agent/system/<component-name>.md`
+- Auto-updated index
+
+**When to Use:**
+
+- Documenting code components
+- Creating system documentation
+- Architecture analysis
+
+---
+
+### `/sage.gen-sop`
+
+**Purpose:** Generate Standard Operating Procedures
+
+**Prerequisites:**
+
+- None (works with or without context)
+
+**Usage:**
+
+```bash
+/sage.gen-sop "Deployment Process"              # From template
+/sage.gen-sop "Fixing Test Failures" --from-context  # Extract from conversation
+```
+
+**Outputs:**
+
+- `.sage/agent/sops/<procedure-name>.md`
+- Auto-updated index
+
+**When to Use:**
+
+- After error correction workflows
+- Documenting recurring tasks
+- Capturing tribal knowledge
+
+---
+
+### `/sage.save-plan`
+
+**Purpose:** Save implementation plans from conversation
+
+**Prerequisites:**
+
+- Active planning discussion in conversation
+
+**Usage:**
+
+```bash
+/sage.save-plan "Parallel Execution Feature"
+```
+
+**Outputs:**
+
+- `.sage/agent/sage.tasks/<feature-name>-plan.md`
+- Auto-updated index
+
+**When to Use:**
+
+- After planning discussions
+- Preserving implementation decisions
+- Before starting implementation
+
+---
+
+### `/update-index`
+
+**Purpose:** Regenerate `.sage/agent/README.md` index
+
+**Prerequisites:**
+
+- `.sage/agent/` directory with documentation files
+
+**Usage:**
+
+```bash
+/update-index
+```
+
+**Outputs:**
+
+- Updated `.sage/agent/README.md` with:
+  - Recently updated files (last 10)
+  - Categorized links (tasks, system, SOPs)
+  - Navigation structure
+
+**When to Use:**
+
+- Auto-triggered after doc commands
+- Manual refresh of index
+- Verifying documentation coverage
+
+---
+
+### `/sage.compact-context`
+
+**Purpose:** Compress conversation state to reduce token usage
+
+**Prerequisites:**
+
+- Active conversation with context to compress
+
+**Usage:**
+
+```bash
+/sage.compact-context              # Normal compression
+/sage.compact-context --aggressive # Aggressive compression (may lose detail)
+```
+
+**Outputs:**
+
+- Compressed conversation summary
+- 30%+ token reduction
+- Preserved critical context
+
+**When to Use:**
+
+- Long conversations
+- Before major operations
+- Context budget management
+
+---
+
+### `/sage.offload-research`
+
+**Purpose:** Delegate extended research to sub-agent
+
+**Prerequisites:**
+
+- Research topic or question
+
+**Usage:**
+
+```bash
+/sage.offload-research "Best practices for caching"
+/sage.offload-research "Performance optimization" .sage/agent/research/perf.md
+```
+
+**Outputs:**
+
+- `.sage/agent/research/<topic>.md` (or specified file)
+- Research summary with findings
+- Main conversation preserved
+
+**When to Use:**
+
+- Extended research tasks
+- Background investigation
+- Preserving main conversation focus
+
+---
+
 ## Delivery
 
-### `/commit`
+### `/sage.commit`
 
 **Purpose:** Create semantic commits and push changes
 
@@ -529,7 +750,7 @@ Quick reference for command syntax, parameters, and usage.
 **Usage:**
 
 ```bash
-/commit
+/sage.commit
 ```
 
 **Outputs:**
@@ -541,7 +762,7 @@ Quick reference for command syntax, parameters, and usage.
 **When to Use:**
 
 - After implementation complete
-- After `/progress` check
+- After `/sage.progress` check
 - Delivering work
 
 **⚠️ Git Operations:**
@@ -556,11 +777,13 @@ Quick reference for command syntax, parameters, and usage.
 
 | Command | Flags | Default |
 |---------|-------|---------|
-| `/stream` | `--interactive`, `--auto`, `--dry-run`, `--parallel=N\|auto` | `--interactive` (sequential) |
-| `/rollback` | `--force`, `--tickets-only`, `--git-only` | Interactive |
-| `/breakdown` | `[component-names...]` | All components |
+| `/sage.stream` | `--interactive`, `--semi-auto`, `--auto`, `--dry-run`, `--parallel=N\|auto` | `--interactive` (sequential) |
+| `/sage.rollback` | `--force`, `--tickets-only`, `--git-only` | Interactive |
+| `/sage.breakdown` | `[component-names...]` | All components |
+| `/sage.compact-context` | `--aggressive` | Normal mode |
+| `/sage.gen-sop` | `--from-context` | Template mode |
 
-**Note:** `--parallel` requires `--auto` mode. Usage: `/stream --auto --parallel=3` or `/stream --auto --parallel=auto`
+**Note:** `--parallel` requires `--auto` mode. Usage: `/sage.stream --auto --parallel=3` or `/sage.stream --auto --parallel=auto`
 
 ---
 
@@ -568,22 +791,29 @@ Quick reference for command syntax, parameters, and usage.
 
 | Command | Traditional | Ticket-Based |
 |---------|-------------|--------------|
-| `/workflow` | ✅ | ✅ |
-| `/enhance` | ✅ | ✅ |
-| `/intel` | ✅ | ✅ |
-| `/specify` | ✅ | ⚠️ Optional |
-| `/plan` | ✅ | ⚠️ Optional |
-| `/tasks` | ✅ | ⚠️ Optional |
-| `/breakdown` | ✅ | ⚠️ Optional |
-| `/poc` | ✅ | ✅ |
-| `/progress` | ✅ | ✅ |
-| `/migrate` | ✅ Required | ❌ N/A |
-| `/implement` | ❌ N/A | ✅ Required |
-| `/stream` | ❌ N/A | ✅ Required |
-| `/estimate` | ❌ N/A | ✅ Required |
-| `/sync` | ❌ N/A | ✅ Required |
-| `/rollback` | ✅ | ✅ |
-| `/commit` | ✅ | ✅ |
+| `/sage.workflow` | ✅ | ✅ |
+| `/sage.enhance` | ✅ | ✅ |
+| `/sage.intel` | ✅ | ✅ |
+| `/sage.specify` | ✅ | ⚠️ Optional |
+| `/sage.plan` | ✅ | ⚠️ Optional |
+| `/sage.tasks` | ✅ | ⚠️ Optional |
+| `/sage.breakdown` | ✅ | ⚠️ Optional |
+| `/sage.poc` | ✅ | ✅ |
+| `/sage.progress` | ✅ | ✅ |
+| `/sage.migrate` | ✅ Required | ❌ N/A |
+| `/sage.implement` | ❌ N/A | ✅ Required |
+| `/sage.stream` | ❌ N/A | ✅ Required |
+| `/sage.estimate` | ❌ N/A | ✅ Required |
+| `/sage.sync` | ❌ N/A | ✅ Required |
+| `/sage.rollback` | ✅ | ✅ |
+| `/sage.commit` | ✅ | ✅ |
+| `/sage.update-doc` | ✅ | ✅ |
+| `/sage.docify` | ✅ | ✅ |
+| `/sage.gen-sop` | ✅ | ✅ |
+| `/sage.save-plan` | ✅ | ✅ |
+| `/update-index` | ✅ | ✅ |
+| `/sage.compact-context` | ✅ | ✅ |
+| `/sage.offload-research` | ✅ | ✅ |
 
 **Legend:**
 
@@ -600,19 +830,19 @@ Quick reference for command syntax, parameters, and usage.
 
 These commands create checkpoints before destructive operations:
 
-- `/stream` - Before cycle start
-- `/implement` - Before ticket implementation
-- `/migrate` - Before migration
+- `/sage.stream` - Before cycle start
+- `/sage.implement` - Before ticket implementation
+- `/sage.migrate` - Before migration
 
-**Rollback available:** Run `/rollback` if operation fails
+**Rollback available:** Run `/sage.rollback` if operation fails
 
 ### Confirmation-Protected Commands
 
 These commands require confirmation in interactive mode:
 
-- `/stream` - 6 confirmation points
-- `/commit` - Commit and push confirmations
-- `/rollback` - Restore confirmation
+- `/sage.stream` - 6 confirmation points
+- `/sage.commit` - Commit and push confirmations
+- `/sage.rollback` - Restore confirmation
 
 ---
 
@@ -620,23 +850,26 @@ These commands require confirmation in interactive mode:
 
 ### System Files
 
-- `.sage/workflow-mode` - Current workflow mode (TRADITIONAL or TICKET_BASED)
+- `.sage/sage.workflow-mode` - Current workflow mode (TRADITIONAL or TICKET_BASED)
 - `.sage/checkpoint.json` - Active checkpoint metadata
 - `.sage/checkpoint-*` - Checkpoint backup files
 - `.sage/checkpoints-archive/` - Archived checkpoints
-- `.sage/rollback.log` - Rollback event log
-- `.sage/stream-velocity.log` - Velocity tracking data
+- `.sage/sage.rollback.log` - Rollback event log
+- `.sage/sage.stream-velocity.log` - Velocity tracking data
 - `.sage/velocity-metrics.json` - Calculated velocity metrics
 - `.sage/burndown-data.json` - Burndown chart data
+- `.sage/batches/` - Component batch files (semi-auto mode)
+- `.sage/agent/` - Agent documentation directory
+- `.sage/agent/README.md` - Documentation index
 
 ### Documentation
 
 - `docs/` - Component documentation
 - `docs/specs/` - Component specifications
 - `docs/specs/*/spec.md` - Specification files
-- `docs/specs/*/implementation_plan.md` - Implementation plans
-- `docs/specs/*/tasks.md` - Task breakdowns
-- `docs/specs/*/breakdown.md` - Technical breakdowns
+- `docs/specs/*/sage.implementation_plan.md` - Implementation plans
+- `docs/specs/*/sage.tasks.md` - Task breakdowns
+- `docs/specs/*/sage.breakdown.md` - Technical breakdowns
 
 ### Tickets
 
@@ -646,38 +879,38 @@ These commands require confirmation in interactive mode:
 ### Reports
 
 - `.docs/` - Developer-local analysis and reports
-- `PROGRESS_REPORT.md` - Generated by `/progress`
-- `reports/estimation-report.md` - Generated by `/estimate`
+- `PROGRESS_REPORT.md` - Generated by `/sage.progress`
+- `reports/estimation-report.md` - Generated by `/sage.estimate`
 
 ---
 
 ## Quick Decision Guide
 
 **Need to choose workflow?**
-→ `/workflow`
+→ `/sage.workflow`
 
 **Starting new feature?**
-→ Traditional: `/specify` → `/plan` → `/tasks`
-→ Ticket-Based: `/migrate` → `/estimate` → `/stream`
+→ Traditional: `/sage.specify` → `/sage.plan` → `/sage.tasks`
+→ Ticket-Based: `/sage.migrate` → `/sage.estimate` → `/sage.stream`
 
 **Want automation?**
-→ Switch to Ticket-Based with `/migrate`
-→ Use `/stream --auto` for CI/CD
+→ Switch to Ticket-Based with `/sage.migrate`
+→ Use `/sage.stream --auto` for CI/CD
 
 **Need sprint planning?**
-→ `/estimate` for velocity and ETA
+→ `/sage.estimate` for velocity and ETA
 
 **Command failed?**
-→ `/rollback` to restore state
+→ `/sage.rollback` to restore state
 
 **Need status update?**
-→ `/progress`
+→ `/sage.progress`
 
 **Ready to deliver?**
-→ `/progress` → `/commit`
+→ `/sage.progress` → `/sage.commit`
 
 **Need competitive analysis?**
-→ `/enhance` or `/intel`
+→ `/sage.enhance` or `/sage.intel`
 
 ---
 
@@ -685,35 +918,35 @@ These commands require confirmation in interactive mode:
 
 ### Workflow Mode Mismatch
 
-```text
-ERROR: /implement requires TICKET_BASED workflow mode
+```plaintext
+ERROR: /sage.implement requires TICKET_BASED workflow mode
 Current mode: TRADITIONAL
 
 To use ticket-based implementation:
-  1. Run /migrate to convert to ticket system
-  2. Or run /workflow to reconfigure
+  1. Run /sage.migrate to convert to ticket system
+  2. Or run /sage.workflow to reconfigure
 ```
 
-**Solution:** Run `/migrate` or `/workflow`
+**Solution:** Run `/sage.migrate` or `/sage.workflow`
 
 ### Missing Prerequisites
 
-```text
+```plaintext
 ERROR: No tasks.md files found
 Cannot migrate to ticket system without tasks
 
 Next steps:
-  1. Run /specify to generate specifications
-  2. Run /plan to create implementation plans
-  3. Run /tasks to generate task breakdowns
-  4. Retry /migrate
+  1. Run /sage.specify to generate specifications
+  2. Run /sage.plan to create implementation plans
+  3. Run /sage.tasks to generate task breakdowns
+  4. Retry /sage.migrate
 ```
 
 **Solution:** Follow prerequisite command chain
 
 ### Checkpoint Not Found
 
-```text
+```plaintext
 ERROR: No checkpoint found
 Nothing to rollback
 ```
@@ -724,12 +957,12 @@ Nothing to rollback
 
 ## Performance Tips
 
-1. **Use `/stream --dry-run`** to preview before automation
+1. **Use `/sage.stream --dry-run`** to preview before automation
 2. **Create checkpoints manually** before risky operations
-3. **Run `/progress`** frequently to track completion
-4. **Use `/sync`** to keep team in sync
+3. **Run `/sage.progress`** frequently to track completion
+4. **Use `/sage.sync`** to keep team in sync
 5. **Archive old tickets** to reduce index.json size
-6. **Run `/estimate`** after completing tickets to update velocity
+6. **Run `/sage.estimate`** after completing tickets to update velocity
 
 ---
 
@@ -741,21 +974,21 @@ Visual representations of workflows, command relationships, and process flows.
 
 ```mermaid
 graph TB
-    Start[📁 Documentation] --> Specify["/specify<br/>Generate Specs + Epic Tickets"]
+    Start[📁 Documentation] --> Specify["/sage.specify<br/>Generate Specs + Epic Tickets"]
 
-    Specify --> Plan["/plan<br/>Architecture + Ticket Dependencies"]
-    Plan --> Tasks["/tasks<br/>Generate Story Tickets"]
-    Tasks --> Breakdown["/breakdown<br/>Implementation Details"]
+    Specify --> Plan["/sage.plan<br/>Architecture + Ticket Dependencies"]
+    Plan --> Tasks["/sage.tasks<br/>Generate Story Tickets"]
+    Tasks --> Breakdown["/sage.breakdown<br/>Implementation Details"]
 
     Breakdown --> Choice{Existing<br/>Project?}
-    Choice -->|Yes| Migrate["/migrate<br/>Convert to Ticket System"]
+    Choice -->|Yes| Migrate["/sage.migrate<br/>Convert to Ticket System"]
     Choice -->|No| Ready[Tickets Ready]
     Migrate --> Ready
 
-    Ready --> Estimate["/estimate<br/>Add Time Estimates + Velocity"]
-    Estimate --> Cycle["/stream<br/>Automated Execution Loop"]
+    Ready --> Estimate["/sage.estimate<br/>Add Time Estimates + Velocity"]
+    Estimate --> Cycle["/sage.stream<br/>Automated Execution Loop"]
     Cycle --> SelectTicket[Select UNPROCESSED Ticket]
-    SelectTicket --> SubAgent["/implement (sub-agent)<br/>Ticket Clearance Methodology"]
+    SelectTicket --> SubAgent["/sage.implement (sub-agent)<br/>Ticket Clearance Methodology"]
 
     SubAgent --> TestPass{Tests<br/>Pass?}
     TestPass -->|No| Debug[Debug & Fix]
@@ -764,10 +997,10 @@ graph TB
     UserConfirm -->|No| Defer[DEFER Ticket]
     UserConfirm -->|Yes| Complete[Mark COMPLETED]
 
-    Complete --> UpdateEstimate["/estimate<br/>Update Velocity"]
-    UpdateEstimate --> Progress["/progress<br/>Ticket State Report"]
-    Progress --> CommitCmd["/commit<br/>+ Ticket IDs"]
-    CommitCmd --> Sync["/sync<br/>Push to GitHub"]
+    Complete --> UpdateEstimate["/sage.estimate<br/>Update Velocity"]
+    UpdateEstimate --> Progress["/sage.progress<br/>Ticket State Report"]
+    Progress --> CommitCmd["/sage.commit<br/>+ Ticket IDs"]
+    CommitCmd --> Sync["/sage.sync<br/>Push to GitHub"]
 
     Sync --> MoreTickets{More<br/>UNPROCESSED?}
     MoreTickets -->|Yes| SelectTicket
@@ -795,26 +1028,26 @@ graph TB
 
 ```mermaid
 graph TB
-    Start[📁 Documentation] --> Specify["/specify<br/>Requirements Analysis"]
+    Start[📁 Documentation] --> Specify["/sage.specify<br/>Requirements Analysis"]
 
     Specify --> POC{Need<br/>Validation?}
-    POC -->|Yes| POCGen["/poc<br/>Proof of Concept"]
+    POC -->|Yes| POCGen["/sage.poc<br/>Proof of Concept"]
     POC -->|No| Plan
-    POCGen -->|Validated ✓| Plan["/plan<br/>Technical Planning"]
+    POCGen -->|Validated ✓| Plan["/sage.plan<br/>Technical Planning"]
     POCGen -->|Failed ✗| Revise[Revise Approach]
     Revise --> Specify
 
-    Plan --> Tasks["/tasks<br/>Task Breakdown"]
-    Tasks --> Breakdown["/breakdown<br/>Implementation Details"]
+    Plan --> Tasks["/sage.tasks<br/>Task Breakdown"]
+    Tasks --> Breakdown["/sage.breakdown<br/>Implementation Details"]
 
     Breakdown --> Dev[👨‍💻 Manual Development]
 
-    Start -.-> Assessment["/intel<br/>Strategic Assessment"]
+    Start -.-> Assessment["/sage.intel<br/>Strategic Assessment"]
     Assessment -.-> Specify
     Assessment -.-> Plan
 
-    Dev --> Progress["/progress<br/>Status Analysis"]
-    Progress --> Commit["/commit<br/>Git Workflow"]
+    Dev --> Progress["/sage.progress<br/>Status Analysis"]
+    Progress --> Commit["/sage.commit<br/>Git Workflow"]
     Commit --> PR[📤 Pull Request]
 
     style POCGen fill:#fff3e0
@@ -834,26 +1067,26 @@ graph TB
 
 ```mermaid
 graph TD
-    A["/workflow"] --> B{Workflow Mode?}
-    B -->|Traditional| C["/specify"]
-    B -->|Traditional| D["/enhance"]
-    B -->|Traditional| E["/intel"]
-    C --> F["/plan"]
-    F --> G["/tasks"]
-    G --> H["/breakdown"]
+    A["/sage.workflow"] --> B{Workflow Mode?}
+    B -->|Traditional| C["/sage.specify"]
+    B -->|Traditional| D["/sage.enhance"]
+    B -->|Traditional| E["/sage.intel"]
+    C --> F["/sage.plan"]
+    F --> G["/sage.tasks"]
+    G --> H["/sage.breakdown"]
     H --> I[Manual Implementation]
-    I --> J["/progress"]
-    J --> K["/commit"]
+    I --> J["/sage.progress"]
+    J --> K["/sage.commit"]
 
-    B -->|Ticket-Based| L["/migrate"]
-    L --> LA["/estimate"]
-    LA --> M["/implement"]
-    LA --> N["/stream"]
-    M --> O["/sync"]
+    B -->|Ticket-Based| L["/sage.migrate"]
+    L --> LA["/sage.estimate"]
+    LA --> M["/sage.implement"]
+    LA --> N["/sage.stream"]
+    M --> O["/sage.sync"]
     N --> O
     O --> K
 
-    M -.->|On Failure| P["/rollback"]
+    M -.->|On Failure| P["/sage.rollback"]
     N -.->|On Failure| P
     L -.->|On Failure| P
 ```
@@ -864,21 +1097,21 @@ graph TD
 
 ```mermaid
 stateDiagram-v2
-    [*] --> UNPROCESSED: /specify, /tasks
-    UNPROCESSED --> IN_PROGRESS: /implement starts
+    [*] --> UNPROCESSED: /sage.specify, /sage.tasks
+    UNPROCESSED --> IN_PROGRESS: /sage.implement starts
     IN_PROGRESS --> COMPLETED: Tests pass + User confirms
     IN_PROGRESS --> DEFERRED: Tests fail or Dependencies unmet
     DEFERRED --> IN_PROGRESS: Blocker resolved
-    COMPLETED --> [*]: /commit + /sync
+    COMPLETED --> [*]: /sage.commit + /sage.sync
 
     note right of UNPROCESSED
-        - Created by /specify (Epic)
-        - Created by /tasks (Story)
+        - Created by /sage.specify (Epic)
+        - Created by /sage.tasks (Story)
         - Dependencies checked
     end note
 
     note right of IN_PROGRESS
-        - /implement active
+        - /sage.implement active
         - Branch created
         - Commits happening
         - Timestamps recorded
@@ -907,19 +1140,19 @@ gantt
     title Development Workflow Timeline
     dateFormat YYYY-MM-DD
     section Assessment
-    /intel :2024-01-01, 2d
+    /sage.intel :2024-01-01, 2d
     section Documentation
-    /specify          :2024-01-03, 2d
-    /poc              :2024-01-05, 3d
-    /plan             :2024-01-08, 2d
-    /tasks            :2024-01-10, 1d
-    /breakdown        :2024-01-11, 2d
+    /sage.specify          :2024-01-03, 2d
+    /sage.poc              :2024-01-05, 3d
+    /sage.plan             :2024-01-08, 2d
+    /sage.tasks            :2024-01-10, 1d
+    /sage.breakdown        :2024-01-11, 2d
     section Estimation
-    /estimate         :2024-01-13, 1d
+    /sage.estimate         :2024-01-13, 1d
     section Implementation
-    /stream        :2024-01-14, 10d
+    /sage.stream        :2024-01-14, 10d
     section Delivery
-    /commit           :2024-01-24, 1d
+    /sage.commit           :2024-01-24, 1d
 ```
 
 ---
@@ -928,12 +1161,12 @@ gantt
 
 ```mermaid
 graph TB
-    Start([Start]) --> Assessment{"/intel<br/>Optional?"}
-    Assessment -->|Yes| AssessmentRun["/intel"]
+    Start([Start]) --> Assessment{"/sage.intel<br/>Optional?"}
+    Assessment -->|Yes| AssessmentRun["/sage.intel"]
     Assessment -->|No| Specify
 
     AssessmentRun --> AssessmentCheck{Strategic Intelligence<br/>Complete?}
-    AssessmentCheck -->|Yes| Specify{"/specify<br/>Complete?"}
+    AssessmentCheck -->|Yes| Specify{"/sage.specify<br/>Complete?"}
     AssessmentCheck -->|No| AssessmentFix[Refine Analysis]
     AssessmentFix --> AssessmentRun
 
@@ -944,25 +1177,25 @@ graph TB
     SpecCheck -->|Pass| POC{Need<br/>POC?}
     SpecCheck -->|Fail| SpecFix
 
-    POC -->|Yes| POCRun["/poc"]
+    POC -->|Yes| POCRun["/sage.poc"]
     POC -->|No| Plan
 
     POCRun --> POCCheck{Validated?}
-    POCCheck -->|Yes| Plan["/plan"]
+    POCCheck -->|Yes| Plan["/sage.plan"]
     POCCheck -->|No| Pivot[Pivot Strategy]
     Pivot --> Specify
 
     Plan --> PlanCheck{Quality Check}
-    PlanCheck -->|Pass| Tasks["/tasks"]
+    PlanCheck -->|Pass| Tasks["/sage.tasks"]
     PlanCheck -->|Fail| PlanFix[Fix Issues]
     PlanFix --> Plan
 
     Tasks --> TaskCheck{Quality Check}
-    TaskCheck -->|Pass| Estimate["/estimate"]
+    TaskCheck -->|Pass| Estimate["/sage.estimate"]
     TaskCheck -->|Fail| TaskFix[Fix Issues]
     TaskFix --> Tasks
 
-    Estimate --> DevStream["/stream"]
+    Estimate --> DevStream["/sage.stream"]
     DevStream --> Ready([Ready to Deliver])
 
     style AssessmentCheck fill:#e91e63
@@ -979,12 +1212,12 @@ graph TB
 ```mermaid
 sequenceDiagram
     participant User
-    participant Estimate as /estimate
-    participant Devstream as /stream
-    participant Implement as /implement (sub-agent)
-    participant Progress as /progress
-    participant Commit as /commit
-    participant Sync as /sync
+    participant Estimate as /sage.estimate
+    participant Devstream as /sage.stream
+    participant Implement as /sage.implement (sub-agent)
+    participant Progress as /sage.progress
+    participant Commit as /sage.commit
+    participant Sync as /sage.sync
 
     User->>Estimate: Calculate velocity & ETA
     Estimate-->>User: Project timeline + estimates
@@ -1023,70 +1256,70 @@ Advanced usage patterns, integrations, and best practices.
 
 ```bash
 # 1. Choose workflow
-/workflow
+/sage.workflow
 # Select TRADITIONAL
 
 # 2. Research and plan
-/enhance                      # Optional: competitive analysis
-/specify                      # Generate specs from docs
-/plan                         # Create implementation plans
-/tasks                        # Break down into tasks
-/breakdown component-name     # Optional: architecture diagrams
+/sage.enhance                      # Optional: competitive analysis
+/sage.specify                      # Generate specs from docs
+/sage.plan                         # Create implementation plans
+/sage.tasks                        # Break down into tasks
+/sage.breakdown component-name     # Optional: architecture diagrams
 
 # 3. Implement manually
 # ... write code, tests ...
 
 # 4. Verify and deliver
-/progress                     # Check completion status
-/commit                       # Commit and push
+/sage.progress                     # Check completion status
+/sage.commit                       # Commit and push
 ```
 
 ### Ticket-Based Workflow
 
 ```bash
 # 1. Choose workflow
-/workflow
+/sage.workflow
 # Select TICKET_BASED
 
 # 2. Migrate to tickets (if coming from Traditional)
-/migrate
+/sage.migrate
 
 # 3. Estimation and planning
-/estimate                     # Add time estimates, calculate velocity
+/sage.estimate                     # Add time estimates, calculate velocity
 
 # 4. Automated implementation
-/stream                    # Interactive mode (default)
+/sage.stream                    # Interactive mode (default)
 # Or:
-/stream --auto             # Fully automated
-/stream --dry-run          # Preview only
+/sage.stream --auto             # Fully automated
+/sage.stream --dry-run          # Preview only
 
 # 5. Update projections
-/estimate                     # Recalculate velocity, update ETA
+/sage.estimate                     # Recalculate velocity, update ETA
 
 # 6. Sync and deliver
-/sync                 # Sync with GitHub
-/progress                     # Check status
-/commit                       # Deliver
+/sage.sync                 # Sync with GitHub
+/sage.progress                     # Check status
+/sage.commit                       # Deliver
 ```
 
 ### Recovery Workflow
 
 ```bash
 # If command fails:
-/rollback                     # Restore state
+/sage.rollback                     # Restore state
 
 # Review failure
-cat .sage/rollback.log
+cat .sage/sage.rollback.log
 
 # Fix issue and retry
-/stream                    # Or original command
+/sage.stream                    # Or original command
 ```
 
 ### Sprint Planning Workflow
 
 ```bash
 # Before sprint
-/estimate                     # Get velocity and capacity
+/sage.estimate                     # Get velocity and capacity
 cat reports/estimation-report.md
 
 # Review burndown data
@@ -1096,11 +1329,11 @@ cat .sage/burndown-data.json
 cat .sage/velocity-metrics.json
 
 # During sprint
-/stream --interactive      # Execute tickets
-/progress                     # Daily standup status
+/sage.stream --interactive      # Execute tickets
+/sage.progress                     # Daily standup status
 
 # After sprint
-/estimate                     # Update velocity
+/sage.estimate                     # Update velocity
 # Review completed vs planned
 ```
 
@@ -1108,9 +1341,9 @@ cat .sage/velocity-metrics.json
 
 ## Ticket Hierarchy
 
-```text
-Epic (AUTH-001)         [/specify creates]
-  ├─ Story (AUTH-002)   [/tasks creates]
+```plaintext
+Epic (AUTH-001)         [/sage.specify creates]
+  ├─ Story (AUTH-002)   [/sage.tasks creates]
   │   ├─ Subtask AUTH-003
   │   └─ Subtask AUTH-004
   ├─ Story (AUTH-005)
@@ -1125,34 +1358,34 @@ Epic (AUTH-001)         [/specify creates]
 ### New Project with Tickets
 
 ```bash
-/specify              # Creates epic tickets
-/plan                 # Adds dependencies to epics
-/tasks                # Creates story tickets
-/breakdown            # Adds implementation details
-/estimate             # Adds time estimates + velocity setup
-/stream            # Automated execution starts
+/sage.specify              # Creates epic tickets
+/sage.plan                 # Adds dependencies to epics
+/sage.tasks                # Creates story tickets
+/sage.breakdown            # Adds implementation details
+/sage.estimate             # Adds time estimates + velocity setup
+/sage.stream            # Automated execution starts
 # ... tickets processed automatically ...
-/estimate             # Update velocity after completion
+/sage.estimate             # Update velocity after completion
 # Final: All COMPLETED or DEFERRED
 ```
 
 ### Existing Project Migration
 
 ```bash
-/migrate      # Convert docs/git → tickets
-/estimate             # Add estimates and baseline velocity
-/sync         # Push to GitHub
-/stream            # Start processing
+/sage.migrate      # Convert docs/git → tickets
+/sage.estimate             # Add estimates and baseline velocity
+/sage.sync         # Push to GitHub
+/sage.stream            # Start processing
 ```
 
 ### Manual Ticket Processing
 
 ```bash
-/implement AUTH-001   # Work on specific ticket
-/progress             # Check status
-/commit               # Commit with #AUTH-001
-/estimate             # Update velocity
-/sync         # Sync updates
+/sage.implement AUTH-001   # Work on specific ticket
+/sage.progress             # Check status
+/sage.commit               # Commit with #AUTH-001
+/sage.estimate             # Update velocity
+/sage.sync         # Sync updates
 ```
 
 ---
@@ -1165,17 +1398,17 @@ graph TD
     NewProject -->|Yes| AllDocs[Run All Commands]
     NewProject -->|No| Update{What Changed?}
 
-    Update -->|Requirements| Specify["/specify → /plan → /tasks → /estimate"]
-    Update -->|Technology| Plan["/plan → /tasks → /breakdown"]
-    Update -->|Timeline| Tasks["/tasks → /estimate"]
-    Update -->|Market/Strategy| Assessment["/intel → /plan"]
-    Update -->|Implementation Ready| Implement["/stream"]
-    Update -->|Check Status| Progress["/progress"]
-    Update -->|Code Ready| Commit["/commit"]
+    Update -->|Requirements| Specify["/sage.specify → /sage.plan → /sage.tasks → /sage.estimate"]
+    Update -->|Technology| Plan["/sage.plan → /sage.tasks → /sage.breakdown"]
+    Update -->|Timeline| Tasks["/sage.tasks → /sage.estimate"]
+    Update -->|Market/Strategy| Assessment["/sage.intel → /sage.plan"]
+    Update -->|Implementation Ready| Implement["/sage.stream"]
+    Update -->|Check Status| Progress["/sage.progress"]
+    Update -->|Code Ready| Commit["/sage.commit"]
 
     AllDocs --> Risk{High Risk?}
-    Risk -->|Yes| POCFirst["/intel → /specify → /poc → /plan → /tasks → /estimate → /stream"]
-    Risk -->|No| Standard["/intel → /specify → /plan → /tasks → /estimate → /stream"]
+    Risk -->|Yes| POCFirst["/sage.intel → /sage.specify → /sage.poc → /sage.plan → /sage.tasks → /sage.estimate → /sage.stream"]
+    Risk -->|No| Standard["/sage.intel → /sage.specify → /sage.plan → /sage.tasks → /sage.estimate → /sage.stream"]
 
     style Specify fill:#e1f5fe
     style Plan fill:#e8eaf6
@@ -1192,21 +1425,21 @@ graph TD
 
 ```mermaid
 graph LR
-    A[Initial Specs] --> B["/stream"]
+    A[Initial Specs] --> B["/sage.stream"]
     B --> C[Implementation]
-    C --> M["/progress"]
+    C --> M["/sage.progress"]
     M --> D{Feedback}
-    D -->|Requirements Changed| E["/specify"]
-    D -->|Tech Issues| F["/plan"]
-    D -->|Estimate Wrong| G["/tasks → /estimate"]
-    D -->|Market Changes| H["/intel"]
+    D -->|Requirements Changed| E["/sage.specify"]
+    D -->|Tech Issues| F["/sage.plan"]
+    D -->|Estimate Wrong| G["/sage.tasks → /sage.estimate"]
+    D -->|Market Changes| H["/sage.intel"]
     D -->|All Good| J[Continue]
 
     E --> K[Update Docs]
     F --> K
     G --> K
     H --> K
-    K --> L["/estimate"]
+    K --> L["/sage.estimate"]
     L --> B
 
     style C fill:#ff9800
@@ -1220,12 +1453,12 @@ graph LR
 ```mermaid
 graph TB
     subgraph "Sage-Dev Workflow"
-        Specify["/specify"]
-        Plan["/plan"]
-        Tasks["/tasks"]
-        Estimate["/estimate"]
-        Breakdown["/breakdown"]
-        Commit["/commit"]
+        Specify["/sage.specify"]
+        Plan["/sage.plan"]
+        Tasks["/sage.tasks"]
+        Estimate["/sage.estimate"]
+        Breakdown["/sage.breakdown"]
+        Commit["/sage.commit"]
     end
 
     subgraph "External Tools"
@@ -1256,14 +1489,14 @@ graph TB
 graph TD
     Problem{Issue?} --> Type{What Type?}
 
-    Type -->|Too many components| Merge[Merge related components<br/>Re-run /specify]
-    Type -->|Wrong tech choice| Research[Add constraints<br/>Re-run /plan]
-    Type -->|Bad estimates| Velocity[Review velocity<br/>Re-run /estimate]
-    Type -->|Unclear POC| Context[Add more context<br/>Re-run /poc]
-    Type -->|Too detailed| Simplify[Skip /breakdown<br/>for simple components]
-    Type -->|Timeline off| Scope[Adjust scope<br/>Re-run /estimate]
-    Type -->|Wrong commits| Stage[Stage manually<br/>Re-run /commit]
-    Type -->|Market misalignment| Assessment[Update strategic intelligence<br/>Re-run /intel]
+    Type -->|Too many components| Merge[Merge related components<br/>Re-run /sage.specify]
+    Type -->|Wrong tech choice| Research[Add constraints<br/>Re-run /sage.plan]
+    Type -->|Bad estimates| Velocity[Review velocity<br/>Re-run /sage.estimate]
+    Type -->|Unclear POC| Context[Add more context<br/>Re-run /sage.poc]
+    Type -->|Too detailed| Simplify[Skip /sage.breakdown<br/>for simple components]
+    Type -->|Timeline off| Scope[Adjust scope<br/>Re-run /sage.estimate]
+    Type -->|Wrong commits| Stage[Stage manually<br/>Re-run /sage.commit]
+    Type -->|Market misalignment| Assessment[Update strategic intelligence<br/>Re-run /sage.intel]
 
     Merge --> Verify{Fixed?}
     Research --> Verify
@@ -1291,22 +1524,22 @@ gantt
     title Sprint Planning Integration
     dateFormat YYYY-MM-DD
     section Sprint 0
-    /intel :s0-0, 2024-01-01, 2d
-    /specify & /poc       :s0-1, after s0-0, 3d
-    /plan & /tasks        :s0-2, after s0-1, 2d
-    /breakdown & /estimate :s0-3, after s0-2, 2d
+    /sage.intel :s0-0, 2024-01-01, 2d
+    /sage.specify & /sage.poc       :s0-1, after s0-0, 3d
+    /sage.plan & /sage.tasks        :s0-2, after s0-1, 2d
+    /sage.breakdown & /sage.estimate :s0-3, after s0-2, 2d
     section Sprint 1
     Setup & Foundation    :s1-1, 2024-01-10, 10d
     Daily Updates         :milestone, 2024-01-20, 0d
     section Sprint 2
     Core Features         :s2-1, 2024-01-20, 10d
-    /estimate Update      :s2-2, 2024-01-30, 1d
+    /sage.estimate Update      :s2-2, 2024-01-30, 1d
     section Sprint 3
     Integration           :s3-1, 2024-01-31, 10d
     Testing              :s3-2, after s3-1, 3d
     section Sprint 4
     Polish & Deploy       :s4-1, 2024-02-13, 7d
-    /commit & PR         :s4-2, after s4-1, 1d
+    /sage.commit & PR         :s4-2, after s4-1, 1d
 ```
 
 ---
@@ -1315,15 +1548,15 @@ gantt
 
 | Scenario | Commands to Run | Skip |
 |----------|----------------|------|
-| **New Project** | `/intel` → `/specify` → `/poc` → `/plan` → `/tasks` → `/estimate` → `/stream` → `/progress` | None |
-| **High Risk Feature** | `/intel` → `/specify` → `/poc` → `/plan` → `/tasks` → `/estimate` → `/stream` | `/breakdown` (unless complex) |
-| **Simple Feature** | `/specify` → `/plan` → `/tasks` → `/stream` → `/progress` | `/intel`, `/poc`, `/breakdown`, `/estimate` |
-| **Sprint Planning** | `/estimate` → Review reports | Others |
-| **Strategic Planning** | `/intel` → `/plan` | Others |
-| **Requirement Change** | `/specify` → `/estimate` | Others |
-| **Timeline Update** | `/estimate` | Others |
-| **Status Check** | `/progress` | All others |
-| **Code Complete** | `/commit` | All others |
+| **New Project** | `/sage.intel` → `/sage.specify` → `/sage.poc` → `/sage.plan` → `/sage.tasks` → `/sage.estimate` → `/sage.stream` → `/sage.progress` | None |
+| **High Risk Feature** | `/sage.intel` → `/sage.specify` → `/sage.poc` → `/sage.plan` → `/sage.tasks` → `/sage.estimate` → `/sage.stream` | `/sage.breakdown` (unless complex) |
+| **Simple Feature** | `/sage.specify` → `/sage.plan` → `/sage.tasks` → `/sage.stream` → `/sage.progress` | `/sage.intel`, `/sage.poc`, `/sage.breakdown`, `/sage.estimate` |
+| **Sprint Planning** | `/sage.estimate` → Review reports | Others |
+| **Strategic Planning** | `/sage.intel` → `/sage.plan` | Others |
+| **Requirement Change** | `/sage.specify` → `/sage.estimate` | Others |
+| **Timeline Update** | `/sage.estimate` | Others |
+| **Status Check** | `/sage.progress` | All others |
+| **Code Complete** | `/sage.commit` | All others |
 
 ---
 
@@ -1335,15 +1568,15 @@ gantt
 stateDiagram-v2
     [*] --> Assessment
 
-    Assessment --> Documentation: /intel
-    Documentation --> Validated: /specify + /poc
-    Validated --> Planned: /plan
-    Planned --> TasksReady: /tasks
-    TasksReady --> Estimated: /estimate
-    Estimated --> Development: /stream
+    Assessment --> Documentation: /sage.intel
+    Documentation --> Validated: /sage.specify + /sage.poc
+    Validated --> Planned: /sage.plan
+    Planned --> TasksReady: /sage.tasks
+    TasksReady --> Estimated: /sage.estimate
+    Estimated --> Development: /sage.stream
 
     Development --> CodeComplete: Features Done
-    CodeComplete --> Committed: /commit
+    CodeComplete --> Committed: /sage.commit
     Committed --> [*]: PR Merged
 
     note right of Assessment

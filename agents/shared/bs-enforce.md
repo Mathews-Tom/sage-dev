@@ -1,5 +1,5 @@
 ---
-name: bs-enforce
+name: sage.bs-enforce
 description: Enforcement officer that blocks any code containing bullshit patterns. Runs after every write operation to prevent fallbacks, mocks, templates, error swallowing, graceful degradation, and magic defaults from entering the codebase.
 model: sonnet
 color: orange

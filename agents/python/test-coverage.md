@@ -1,5 +1,5 @@
 ---
-name: test-coverage
+name: sage.test-coverage
 description: Enforces minimum test coverage thresholds and blocks commits below threshold. Validates test quality and ensures production code is adequately tested.
 model: sonnet
 color: green

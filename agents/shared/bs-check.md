@@ -1,5 +1,5 @@
 ---
-name: bs-check
+name: sage.bs-check
 description: Removes all bullshit code patterns (fallbacks, mocks, templates, error swallowing, graceful degradation, magic defaults) from Python files. Replaces with explicit errors per NO BULLSHIT CODE principles.
 model: sonnet
 color: red
