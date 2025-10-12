@@ -18,15 +18,85 @@ Complete reference for all sage-dev commands with workflow visualizations and us
 
 Quick reference for command syntax, parameters, and usage.
 
+## Initialization (New in v2.5)
+
+### `/sage.init`
+
+**Purpose:** One-time repository initialization with codebase analysis and pattern extraction
+
+**Prerequisites:**
+
+- None (run once per repository)
+
+**Usage:**
+
+```bash
+/sage.init
+```
+
+**Outputs:**
+
+- `.sage/agent/examples/<language>/` - Extracted code patterns by category
+- `.sage/agent/system/architecture.md` - Baseline architecture documentation
+- `.sage/agent/system/tech-stack.md` - Technology stack analysis
+- `.sage/agent/system/patterns.md` - Code pattern documentation
+- `docs/features/` - Directory for feature requests
+- `docs/research/` - Directory for research outputs
+- `.sage/config.json` - Updated with initialization status
+
+**When to Use:**
+
+- First time setting up sage-dev in a repository
+- Before using context engineering workflow
+- One-time setup for pattern extraction
+
+**⚠️ Note:** Automatically recommends `/sage.workflow` as next step
+
+---
+
+### `/sage.init-feature`
+
+**Purpose:** Create structured feature request documents
+
+**Prerequisites:**
+
+- None (can run without `/sage.init`, but recommended after)
+
+**Usage:**
+
+```bash
+/sage.init-feature user-authentication
+/sage.init-feature <feature-name>  # Must be kebab-case
+```
+
+**Outputs:**
+
+- `docs/features/<feature-name>.md` - Structured feature request with:
+  - Feature Description
+  - User Stories
+  - Technical Considerations
+  - Success Criteria
+  - Repository Pattern References
+
+**When to Use:**
+
+- Starting a new feature
+- Before research phase (`/sage.intel`)
+- Creating feature documentation for context engineering workflow
+
+**⚠️ Note:** Automatically recommends `/sage.intel` as next step
+
+---
+
 ## Workflow Selection
 
 ### `/sage.workflow`
 
-**Purpose:** Choose between Traditional and Ticket-Based workflows
+**Purpose:** Choose between Traditional, Ticket-Based, or Context Engineering workflows
 
 **Prerequisites:**
 
-- None (run first)
+- None (recommended after `/sage.init` if using context engineering)
 
 **Usage:**
 
@@ -41,7 +111,7 @@ Quick reference for command syntax, parameters, and usage.
 
 **When to Use:**
 
-- First command to run on new project
+- After `/sage.init` for workflow selection
 - When switching workflow approaches
 - When unsure which workflow to use
 
@@ -793,6 +863,8 @@ Quick reference for command syntax, parameters, and usage.
 
 | Command | Traditional | Ticket-Based |
 |---------|-------------|--------------|
+| `/sage.init` | ✅ | ✅ |
+| `/sage.init-feature` | ✅ | ✅ |
 | `/sage.workflow` | ✅ | ✅ |
 | `/sage.enhance` | ✅ | ✅ |
 | `/sage.intel` | ✅ | ✅ |
