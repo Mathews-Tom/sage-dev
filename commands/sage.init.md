@@ -11,6 +11,7 @@ Repository initialization specialist that analyzes codebases and bootstraps the 
 ## Purpose
 
 One-time initialization that:
+
 - Analyzes repository structure and codebase
 - Detects programming languages and frameworks
 - Extracts code patterns into `.sage/agent/examples/`
@@ -75,6 +76,7 @@ echo ""
 ### Step 3: Determine Primary Language
 
 Use **SequentialThinking** to:
+
 - Analyze file counts and project structure
 - Identify primary and secondary languages
 - Detect frameworks from dependencies
@@ -83,7 +85,8 @@ Use **SequentialThinking** to:
 - Detect CI/CD configuration
 
 Output format:
-```
+
+```plaintext
 Primary Language: Python
 Secondary Languages: JavaScript
 Framework: FastAPI
@@ -147,6 +150,7 @@ mkdir -p .sage/agent/examples/python/api
 **Pattern Extraction Categories:**
 
 For **Python**:
+
 - `classes/` - Class definitions with common patterns
 - `functions/` - Function patterns (sync/async)
 - `async/` - Async/await patterns
@@ -157,6 +161,7 @@ For **Python**:
 - `errors/` - Error handling patterns
 
 For **JavaScript/TypeScript**:
+
 - `components/` - Component patterns (React, Vue, etc.)
 - `hooks/` - Custom hooks
 - `async/` - Promise/async patterns
@@ -165,6 +170,7 @@ For **JavaScript/TypeScript**:
 - `types/` - TypeScript type definitions
 
 For **Other Languages**:
+
 - Similar category structure appropriate to language paradigms
 
 ### Step 6: Generate Baseline System Documentation
@@ -501,6 +507,7 @@ Use **SequentialThinking** to intelligently extract patterns:
 ## Language-Specific Extraction
 
 ### Python
+
 - Classes with `__init__`, properties, methods
 - Async functions with `async/await`
 - Decorators (@property, @classmethod, custom)
@@ -511,6 +518,7 @@ Use **SequentialThinking** to intelligently extract patterns:
 - Error handling patterns
 
 ### JavaScript/TypeScript
+
 - React components (functional, class)
 - Custom hooks
 - API routes (Express, Next.js)
@@ -520,6 +528,7 @@ Use **SequentialThinking** to intelligently extract patterns:
 - Redux/state management patterns
 
 ### Go
+
 - Struct definitions
 - Interface implementations
 - Goroutine patterns
@@ -528,6 +537,7 @@ Use **SequentialThinking** to intelligently extract patterns:
 - Error handling patterns
 
 ### Rust
+
 - Struct and enum definitions
 - Trait implementations
 - Error handling (Result, Option)
@@ -546,6 +556,7 @@ Use **SequentialThinking** to intelligently extract patterns:
 ## Error Handling
 
 ### No Language Detected
+
 ```plaintext
 ⚠️  Could not detect primary programming language
 
@@ -560,6 +571,7 @@ Would you like to create minimal structure anyway? [Y/n]
 ```
 
 ### Permission Issues
+
 ```plaintext
 ❌ ERROR: Cannot create .sage/ directory
 
@@ -571,6 +583,7 @@ Or run with appropriate permissions.
 ```
 
 ### Already Initialized
+
 ```plaintext
 ✓ sage-dev already initialized
 

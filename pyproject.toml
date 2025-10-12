@@ -1,7 +1,7 @@
 [project]
 name = "sage-dev"
-version = "2.2.0"
-description = "Interactive CLI setup tool for AI coding agents with language-specific enforcement"
+version = "2.5.0"
+description = "Interactive CLI setup tool for AI coding agents with context engineering and language-specific enforcement"
 readme = "README.md"
 authors = [
     { name = "Mathews-Tom", email = "tommathews2007@gmail.com" }

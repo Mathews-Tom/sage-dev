@@ -2,9 +2,9 @@
 
 ![Sage-DEV Cover Image](assets/sage_dev_cover_image.png)
 
-**Version 2.2** - Wisdom-guided software development with language-specific enforcement
+**Version 2.5** - Context engineering with research-driven development
 
-Development workflows enriched with collective wisdom. Claude commands that incorporate best practices from thousands of projects, research-backed recommendations, and battle-tested patterns. Build on the shoulders of giants.
+Development workflows enriched with collective wisdom and context engineering principles. Claude commands that incorporate best practices, research-backed recommendations, and battle-tested patterns. Features comprehensive context assembly, pattern extraction, and research-driven specifications.
 
 ## Features
 
@@ -15,14 +15,17 @@ Development workflows enriched with collective wisdom. Claude commands that inco
 - 🔒 **Security-First** - Built-in secret scanning and validation
 - 🎯 **Configurable Enforcement** - STRICT, BALANCED, or PROTOTYPE modes
 
-## What's New in v2.2
+## What's New in v2.5
 
-- 🏷️ **Sage Branding** - All commands now use `sage.*` prefix for clear namespace isolation
-- 📚 **Context Engineering** - Agent-optimized documentation system in `.sage/agent/` directory
-- 🤖 **Documentation Commands** - `/sage.update-doc`, `/sage.gen-sop`, `/sage.docify` for knowledge management
-- ⚡ **Semi-Auto Mode** - Component-level automation for `/sage.stream` (3-5× faster execution)
-- 🔄 **Resume Support** - Pause and resume ticket processing with automatic state management
-- 📖 **Agent Templates** - Reusable documentation templates for tasks, SOPs, and system docs
+- 🧬 **Context Engineering Integration** - Comprehensive context assembly from coleam00/context-engineering-intro principles
+- 🚀 **New Initialization Flow** - `/sage.init` for repository analysis and pattern extraction
+- 📋 **Feature Request System** - `/sage.init-feature` for structured feature documentation
+- 🔬 **Research-Driven Development** - Enhanced `/sage.intel` with feature-focused research mode
+- 📊 **PRP Format Plans** - Product Requirements Prompt format in `/sage.plan` with full traceability
+- 🎯 **Priority-Based Discovery** - `/sage.specify` uses research → features → docs priority
+- 🧠 **Context Assembly Engine** - `/sage.implement` loads all 6 levels of documentation context
+- 📚 **Pattern Library** - Automatic code pattern extraction to `.sage/agent/examples/`
+- 🔗 **Complete Traceability** - Feature → Research → Spec → Plan → Implementation chain
 
 ## Quick Start
 
@@ -62,17 +65,32 @@ Enter choice [1-3] (default: 1):
 
 Your selection is saved to `.sage/config.json` and determines which enforcement agents are installed.
 
-### 4. Start Developing
-
-Open your AI coding agent and type `/sage.` to see available commands:
+### 4. Initialize Your Repository (New in v2.5)
 
 ```bash
-/sage.workflow     # Choose your development workflow
+/sage.init         # One-time initialization: extract patterns, generate baseline docs
+/sage.workflow     # Choose Traditional vs Ticket-Based workflow
+```
+
+### 5. Start Developing with Context Engineering
+
+**Research-Driven Feature Development:**
+```bash
+/sage.init-feature user-authentication    # Create feature request
+/sage.intel                               # Research best practices and solutions
+/sage.specify                             # Generate specification from research
+/sage.plan                                # Create PRP-format implementation plan
+/sage.tasks                               # Break down into SMART tasks
+/sage.implement                           # Execute with full context assembly
+```
+
+**Or use Traditional/Ticket-Based workflows:**
+```bash
 /sage.specify      # Generate specifications from docs
 /sage.plan         # Create implementation plans
 /sage.tasks        # Break down into SMART tasks
 /sage.enforce      # Run enforcement pipeline
-/sage.stream       # Automated ticket execution (interactive/semi-auto/auto/parallel)
+/sage.stream       # Automated ticket execution
 ```
 
 ## Supported Languages
@@ -154,12 +172,17 @@ rm .sage/config.json
 
 ## What Gets Installed
 
-### Commands (35 slash commands)
+### Commands (37 slash commands)
 
-**Workflow & Planning:**
+**Initialization & Setup (New in v2.5):**
+- `/sage.init` - One-time repository initialization with pattern extraction
+- `/sage.init-feature` - Create structured feature request documents
 - `/sage.workflow` - Choose Traditional vs Ticket-Based workflow
-- `/sage.specify` - Generate specifications from docs
-- `/sage.plan` - Create implementation plans
+
+**Research & Planning:**
+- `/sage.intel` - Strategic intelligence and feature-focused research
+- `/sage.specify` - Generate specifications from research and docs (priority-based)
+- `/sage.plan` - Create PRP-format implementation plans with full context
 - `/sage.tasks` - Break down into SMART tasks
 - `/sage.breakdown` - Generate technical breakdowns
 
@@ -405,6 +428,11 @@ sage-dev/
 │   ├── commit-standards.md
 │   └── enforcement-guide.md
 │
+├── docs/                        # Project documentation (v2.5+)
+│   ├── features/               # Feature requests (from /sage.init-feature)
+│   ├── research/               # Research outputs (from /sage.intel)
+│   └── specs/                  # Specifications and plans
+│
 ├── .sage/                      # Configuration & tooling state
 │   ├── config.json             # Language & enforcement config
 │   ├── enforcement.json        # Agent configuration
@@ -415,8 +443,15 @@ sage-dev/
 │   │
 │   ├── agent/                  # Agent documentation system (v2.2+)
 │   │   ├── README.md           # Documentation index
+│   │   ├── examples/           # Code patterns (v2.5 - from /sage.init)
+│   │   │   ├── python/         # Language-specific patterns
+│   │   │   ├── javascript/
+│   │   │   └── typescript/
+│   │   ├── system/             # Architecture & specs (v2.5 - baseline docs)
+│   │   │   ├── architecture.md
+│   │   │   ├── tech-stack.md
+│   │   │   └── patterns.md
 │   │   ├── tasks/              # Feature plans & PRDs
-│   │   ├── system/             # Architecture & specs
 │   │   ├── sops/               # Standard Operating Procedures
 │   │   ├── templates/          # Documentation templates
 │   │   │   ├── task-template.md
@@ -446,15 +481,41 @@ sage-dev/
 
 ## Development Workflows
 
+### Context Engineering Workflow (New in v2.5)
+
+Research-Driven Feature Development with Complete Traceability:
+
+```
+/sage.init (once per repo)
+    ↓
+/sage.workflow (choose workflow)
+    ↓
+/sage.init-feature → /sage.intel → /sage.specify → /sage.plan → /sage.tasks → /sage.implement
+```
+
+**Benefits:**
+- Complete traceability: Feature → Research → Spec → Plan → Implementation
+- Research-backed decisions at every step
+- Pattern-driven development with repository examples
+- Comprehensive context assembly before implementation
+
 ### Traditional Workflow
 
 Specification → Plan → Tasks → Implementation → Validation
+
+```
+/sage.specify → /sage.plan → /sage.tasks → /sage.breakdown → /sage.blueprint → /sage.implement
+```
 
 ### Ticket-Based Workflow
 
 Strategic Intelligence → Breakdown → Roadmap → Ticket System → Phased Implementation
 
-See [sage.workflow.md](commands/sage.workflow.md) for detailed workflow documentation.
+```
+/sage.specify → /sage.plan → /sage.tasks → /sage.migrate → /sage.stream
+```
+
+See [SAGE.WORKFLOW_GUIDE.md](commands/SAGE.WORKFLOW_GUIDE.md) for detailed workflow documentation.
 
 ## Contributing
 

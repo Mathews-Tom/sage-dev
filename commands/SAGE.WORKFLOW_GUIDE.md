@@ -136,6 +136,274 @@ graph TD
 
 ---
 
+## 🧬 Context Engineering Workflow (NEW in v2.5)
+
+Research-driven feature development with comprehensive context assembly and complete traceability.
+
+### Overview
+
+The Context Engineering workflow integrates principles from [coleam00/context-engineering-intro](https://github.com/coleam00/context-engineering-intro) to provide:
+
+- **Complete Traceability**: Feature → Research → Spec → Plan → Implementation chain
+- **Research-Backed Decisions**: Every technical choice supported by research
+- **Pattern-Driven Development**: Automatic code pattern extraction and reuse
+- **Comprehensive Context**: All relevant documentation loaded before implementation
+
+### Workflow Diagram
+
+```mermaid
+graph LR
+    Init["/sage.init"] --> Workflow["/sage.workflow"]
+    Workflow --> Feature["/sage.init-feature"]
+    Feature --> Intel["/sage.intel"]
+    Intel --> Specify["/sage.specify"]
+    Specify --> Plan["/sage.plan"]
+    Plan --> Tasks["/sage.tasks"]
+    Tasks --> Implement["/sage.implement"]
+
+    style Init fill:#e1f5fe
+    style Feature fill:#fff9c4
+    style Intel fill:#ffccbc
+    style Specify fill:#c8e6c9
+    style Plan fill:#f8bbd0
+    style Implement fill:#e8f5e9
+```
+
+### Step-by-Step Guide
+
+#### 1. `/sage.init` - Initialize Repository (Once Per Repo)
+
+**Purpose:** Extract code patterns and generate baseline documentation
+
+**What it does:**
+- Analyzes codebase for patterns
+- Extracts examples to `.sage/agent/examples/`
+- Generates system documentation (architecture.md, tech-stack.md, patterns.md)
+- Creates `docs/features/` and `docs/research/` directories
+
+**Example:**
+```bash
+/sage.init
+
+# Output:
+# - .sage/agent/examples/python/ (47 patterns extracted)
+# - .sage/agent/system/architecture.md
+# - .sage/agent/system/tech-stack.md
+# - .sage/agent/system/patterns.md
+# - docs/features/ (created)
+# - docs/research/ (created)
+```
+
+#### 2. `/sage.workflow` - Choose Development Approach
+
+Select your workflow (Traditional, Ticket-Based, or Context Engineering)
+
+#### 3. `/sage.init-feature` - Create Feature Request
+
+**Purpose:** Structure initial feature documentation
+
+**What it does:**
+- Creates `docs/features/<feature-name>.md`
+- Captures user stories and use cases
+- Links to repository patterns
+- Identifies technical considerations
+
+**Example:**
+```bash
+/sage.init-feature user-authentication
+
+# Creates: docs/features/user-authentication.md
+# Includes: Feature description, user stories, technical considerations
+```
+
+#### 4. `/sage.intel` - Research & Enhancement
+
+**Purpose:** Comprehensive research on the feature
+
+**What it does:**
+- **Feature-Focused Mode** (NEW): Prioritizes feature requests
+- Researches best practices and competitive solutions
+- Analyzes security and performance patterns
+- Recommends technology stack
+- Outputs to `docs/research/<feature-name>-intel.md`
+
+**Example:**
+```bash
+/sage.intel
+
+# Discovers: docs/features/user-authentication.md
+# Researches: OAuth2, JWT, session-based auth patterns
+# Analyzes: Security best practices, performance patterns
+# Creates: docs/research/user-authentication-intel.md
+```
+
+#### 5. `/sage.specify` - Generate Specifications
+
+**Purpose:** Create formal specifications from research
+
+**What it does:**
+- **Priority-Based Discovery** (NEW):
+  1. Priority 1: `docs/research/` (research outputs)
+  2. Priority 2: `docs/features/` (feature requests)
+  3. Priority 3: Other `docs/` files
+- Generates specifications with research citations
+- Creates traceability links
+
+**Example:**
+```bash
+/sage.specify
+
+# Reads: docs/research/user-authentication-intel.md
+# Reads: docs/features/user-authentication.md
+# Creates: docs/specs/authentication/spec.md (with research citations)
+```
+
+#### 6. `/sage.plan` - Create Implementation Plan
+
+**Purpose:** Generate PRP-format implementation blueprint
+
+**What it does:**
+- **Product Requirements Prompt (PRP) Format** (NEW)
+- Assembles context from 6 priority levels:
+  1. Specifications
+  2. Research outputs
+  3. Feature requests
+  4. Code examples (from `/sage.init`)
+  5. System documentation
+  6. Project standards (CLAUDE.md)
+- Creates unified blueprint with complete traceability
+
+**Example:**
+```bash
+/sage.plan
+
+# Context Assembly:
+# ✓ Specifications
+# ✓ Research (user-authentication-intel.md)
+# ✓ Features (user-authentication.md)
+# ✓ Code Patterns (.sage/agent/examples/python/auth/)
+# ✓ System Docs (architecture.md, tech-stack.md)
+# ✓ Standards (CLAUDE.md)
+#
+# Creates: docs/specs/authentication/plan.md (PRP format)
+```
+
+#### 7. `/sage.tasks` - Break Down Tasks
+
+Same as traditional workflow - generates SMART tasks
+
+#### 8. `/sage.implement` - Execute with Context Assembly
+
+**Purpose:** Implementation with comprehensive context loading
+
+**What it does:**
+- **Context Assembly Engine** (NEW): Loads all 6 priority levels
+- Feature requests, research, specs, plans
+- Code patterns from repository
+- System documentation
+- Implements with full context awareness
+
+**Example:**
+```bash
+/sage.implement AUTH-001
+
+# Context Assembly:
+# ✓ Ticket: AUTH-001
+# ✓ Component: authentication
+# ✓ Spec: docs/specs/authentication/spec.md
+# ✓ Plan: docs/specs/authentication/plan.md (PRP format)
+# ✓ Research: docs/research/user-authentication-intel.md
+# ✓ Features: docs/features/user-authentication.md
+# ✓ Code Patterns: .sage/agent/examples/python/auth/
+# ✓ System Architecture: .sage/agent/system/architecture.md
+# ✓ Project Standards: CLAUDE.md
+#
+# Ready for implementation with full context
+```
+
+### Complete Example Workflow
+
+```bash
+# One-time initialization
+/sage.init                    # Extract patterns, generate baseline docs
+
+# Choose workflow
+/sage.workflow                # Select Context Engineering approach
+
+# Feature development cycle
+/sage.init-feature user-authentication
+/sage.intel                   # Research best practices
+/sage.specify                 # Generate research-backed spec
+/sage.plan                    # Create PRP-format plan
+/sage.tasks                   # Break down tasks
+/sage.implement               # Execute with full context
+
+# Repeat for additional features
+/sage.init-feature payment-integration
+/sage.intel
+/sage.specify
+/sage.plan
+/sage.tasks
+/sage.implement
+```
+
+### Key Benefits
+
+1. **Research-Driven**: All decisions backed by comprehensive research
+2. **Complete Traceability**: Clear chain from feature idea to implementation
+3. **Pattern Reuse**: Automatic extraction and application of code patterns
+4. **Context-Rich**: Implementation has ALL relevant information
+5. **Maintains Structure**: Works within sage-dev's command framework
+
+### Directory Structure
+
+```
+docs/
+├── features/              # Feature requests (from /sage.init-feature)
+│   ├── user-authentication.md
+│   └── payment-integration.md
+├── research/              # Research outputs (from /sage.intel)
+│   ├── user-authentication-intel.md
+│   └── payment-integration-intel.md
+└── specs/                 # Specifications (from /sage.specify)
+    ├── authentication/
+    │   ├── spec.md        # Research-backed specification
+    │   ├── plan.md        # PRP-format implementation plan
+    │   └── tasks.md
+    └── payment/
+        ├── spec.md
+        ├── plan.md
+        └── tasks.md
+
+.sage/agent/
+├── examples/              # Code patterns (from /sage.init)
+│   └── python/
+│       ├── auth/
+│       ├── api/
+│       └── testing/
+└── system/                # Baseline docs (from /sage.init)
+    ├── architecture.md
+    ├── tech-stack.md
+    └── patterns.md
+```
+
+### When to Use Context Engineering Workflow
+
+**Best for:**
+- ✅ New features requiring research
+- ✅ Complex technical decisions
+- ✅ Projects needing strong documentation
+- ✅ Teams valuing traceability
+- ✅ Research-backed development approach
+
+**Optional for:**
+- Small, well-understood features
+- Simple CRUD operations
+- Maintenance tasks
+- Quick prototypes
+
+---
+
 ## 📚 Command Reference
 
 ### 🔍 `/sage.enhance` - System Enhancement Research
