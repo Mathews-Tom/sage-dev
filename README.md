@@ -494,7 +494,7 @@ sage-dev/
 
 Research-Driven Feature Development with Complete Traceability:
 
-```
+```plaintext
 /sage.init (once per repo)
     ↓
 /sage.workflow (choose workflow)
@@ -513,7 +513,7 @@ Research-Driven Feature Development with Complete Traceability:
 
 Specification → Plan → Tasks → Implementation → Validation
 
-```
+```plaintext
 /sage.specify → /sage.plan → /sage.tasks → /sage.breakdown → /sage.blueprint → /sage.implement
 ```
 
@@ -521,7 +521,7 @@ Specification → Plan → Tasks → Implementation → Validation
 
 Strategic Intelligence → Breakdown → Roadmap → Ticket System → Phased Implementation
 
-```
+```plaintext
 /sage.specify → /sage.plan → /sage.tasks → /sage.migrate → /sage.stream
 ```
 
@@ -596,7 +596,8 @@ A: Yes! Edit files in `rules/` and `.sage/enforcement.json` to customize standar
 
 **Special Thanks:**
 
-- **[Sydney Lewis](https://www.linkedin.com/in/sydches/)** - For the motivation, guidance, and wisdom that inspired this project
+- **[Sydney Lewis](https://www.linkedin.com/in/sydches/)** - For the motivation, guidance, and wisdom that inspired this project.
+- All the outstanding developers, who offered feedback and insights throughout my career. I’m grateful for their support and guidance, and I am honored to have built my foundations on their steadfast shoulders.
 
 Sage-Dev represents a distillation of collective software development experience from great developers across the industry. This tool embodies research-backed practices, battle-tested patterns, and community wisdom.
 

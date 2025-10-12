@@ -233,7 +233,7 @@ fi
 # Only execute in semi-auto mode
 if [ "$EXECUTION_MODE" = "semi-auto" ]; then
   echo "┌────────────────────────────────────────────────┐"
-  echo "│         COMPONENT GROUPING (STEP 1.5a)        │"
+  echo "│         COMPONENT GROUPING (STEP 1.5a)         │"
   echo "└────────────────────────────────────────────────┘"
   echo ""
 
@@ -566,7 +566,7 @@ fi
 # Semi-auto mode: Select next component from batches
 if [ "$EXECUTION_MODE" = "semi-auto" ]; then
   echo "┌────────────────────────────────────────────────┐"
-  echo "│    COMPONENT SELECTION (STEP 2 - SEMI-AUTO)   │"
+  echo "│    COMPONENT SELECTION (STEP 2 - SEMI-AUTO)    │"
   echo "└────────────────────────────────────────────────┘"
   echo ""
 
@@ -673,9 +673,9 @@ else
   fi
 
   echo "┌─ Parallel Batch Selected ──────────────────────┐"
-  echo "│ Batch size: ${#TICKET_BATCH[@]} tickets"
-  echo "│ Tickets: ${TICKET_BATCH[*]}"
-  echo "└─────────────────────────────────────────────────┘"
+  echo "│ Batch size: ${#TICKET_BATCH[@]} tickets        │"
+  echo "│ Tickets: ${TICKET_BATCH[*]}                    │"
+  echo "└────────────────────────────────────────────────┘"
   echo ""
 fi
 ```
@@ -868,8 +868,8 @@ if [ "$TASK_COUNT" -gt 0 ]; then
 
     # Display task info
     echo "┌────────────────────────────────────────────────┐"
-    echo "│  Sub-Task: $TASK_ID"
-    echo "│  Type: $TASK_TYPE"
+    echo "│  Sub-Task: $TASK_ID                            │"
+    echo "│  Type: $TASK_TYPE                              │"
     echo "└────────────────────────────────────────────────┘"
     echo "Description: $TASK_DESC"
     echo "Validation: $VALIDATION_SCRIPT"
@@ -2043,7 +2043,7 @@ if [ "$EXECUTION_MODE" = "semi-auto" ] && [ -n "$COMPONENT_NAME" ]; then
 
     echo ""
     echo "┌────────────────────────────────────────────────┐"
-    echo "│    COMPONENT COMPLETION: $COMPONENT_NAME"
+    echo "│    COMPONENT COMPLETION: $COMPONENT_NAME       │"
     echo "└────────────────────────────────────────────────┘"
     echo ""
     echo "Statistics:"

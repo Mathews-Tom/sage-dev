@@ -1041,9 +1041,9 @@ BATCH 1/3
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 ┌─ Parallel Batch Selected ──────────────────────┐
-│ Batch size: 3 tickets
-│ Tickets: AUTH-001 AUTH-002 UI-001
-└─────────────────────────────────────────────────┘
+│ Batch size: 3 tickets                          │ 
+│ Tickets: AUTH-001 AUTH-002 UI-001              │
+└────────────────────────────────────────────────┘
 
 ┌────────────────────────────────────────────────┐
 │     LAUNCHING PARALLEL WORKER BATCH            │
@@ -1100,23 +1100,23 @@ Cycle Duration: 18m 32s (wall time)
 
 ┌─ Ticket Summary ───────────────────────────────┐
 │                                                │
-│  Total Tickets:    9
-│  Completed:        9 (100%)
-│  In Progress:      0
-│  Deferred:         0
-│  Unprocessed:      0
+│  Total Tickets:    9                           │
+│  Completed:        9 (100%)                    │
+│  In Progress:      0                           │
+│  Deferred:         0                           │
+│  Unprocessed:      0                           │
 │                                                │
 └────────────────────────────────────────────────┘
 
 ┌─ Parallel Execution Metrics ───────────────────┐
 │                                                │
-│  Workers:          3
-│  Total Batches:    3
-│  Avg Batch Time:   6m 11s
-│  Commits Applied:  9
+│  Workers:          3                           │
+│  Total Batches:    3                           │
+│  Avg Batch Time:   6m 11s                      │
+│  Commits Applied:  9                           │
 │                                                │
-│  Time Saved:       ~37 minutes
-│  Efficiency:       2.5× faster than sequential
+│  Time Saved:       ~37 minutes                 │
+│  Efficiency:       2.5× faster than sequential │
 │                                                │
 └────────────────────────────────────────────────┘
 
