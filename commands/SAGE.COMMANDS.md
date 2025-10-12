@@ -394,6 +394,7 @@ Quick reference for command syntax, parameters, and usage.
 ```
 
 **Semi-Auto Mode:**
+
 - Component-level automation with batch processing
 - Groups tickets by prefix (AUTH-*, UI-*, API-*)
 - Processes all tickets within a component automatically
@@ -404,6 +405,7 @@ Quick reference for command syntax, parameters, and usage.
 - **Resume support**: Preserves batches on pause
 
 **Parallel Mode:**
+
 - Only available with `--auto` mode
 - Processes multiple independent tickets concurrently
 - Auto-detects optimal worker count (CPU/2, capped 1-8) with `--parallel=auto`

@@ -75,6 +75,7 @@ Your selection is saved to `.sage/config.json` and determines which enforcement 
 ### 5. Start Developing with Context Engineering
 
 **Research-Driven Feature Development:**
+
 ```bash
 /sage.init-feature user-authentication    # Create feature request
 /sage.intel                               # Research best practices and solutions
@@ -85,6 +86,7 @@ Your selection is saved to `.sage/config.json` and determines which enforcement 
 ```
 
 **Or use Traditional/Ticket-Based workflows:**
+
 ```bash
 /sage.specify      # Generate specifications from docs
 /sage.plan         # Create implementation plans
@@ -175,11 +177,13 @@ rm .sage/config.json
 ### Commands (37 slash commands)
 
 **Initialization & Setup (New in v2.5):**
+
 - `/sage.init` - One-time repository initialization with pattern extraction
 - `/sage.init-feature` - Create structured feature request documents
 - `/sage.workflow` - Choose Traditional vs Ticket-Based workflow
 
 **Research & Planning:**
+
 - `/sage.intel` - Strategic intelligence and feature-focused research
 - `/sage.specify` - Generate specifications from research and docs (priority-based)
 - `/sage.plan` - Create PRP-format implementation plans with full context
@@ -187,12 +191,14 @@ rm .sage/config.json
 - `/sage.breakdown` - Generate technical breakdowns
 
 **Execution & Automation:**
+
 - `/sage.implement` - Execute phased implementation
 - `/sage.stream` - Automated ticket execution (interactive/semi-auto/auto/parallel)
 - `/sage.enforce` - Run agent enforcement pipeline
 - `/sage.commit` - Create semantic commits and PRs
 
 **Documentation & Knowledge Management:**
+
 - `/sage.update-doc` - Create or update agent documentation
 - `/sage.gen-sop` - Generate Standard Operating Procedures
 - `/sage.save-plan` - Save implementation plans from conversation
@@ -202,6 +208,7 @@ rm .sage/config.json
 - `/sage.offload-research` - Delegate research to sub-agents
 
 **Ticket System:**
+
 - `/sage.validate` - Validate ticket system integrity
 - `/sage.sync` - Synchronize tickets with GitHub
 - `/sage.migrate` - Convert existing documentation to tickets
@@ -209,6 +216,7 @@ rm .sage/config.json
 - `/sage.repair` - Repair ticket system issues
 
 **Analysis & Intelligence:**
+
 - `/sage.progress` - Analyze project progress
 - `/sage.enhance` - Research-driven enhancement analysis
 - `/sage.intel` - Strategic intelligence gathering
@@ -216,6 +224,7 @@ rm .sage/config.json
 - `/sage.blueprint` - Generate unified system blueprint
 
 **Utilities:**
+
 - `/sage.rollback` - Rollback last operation
 - `/sage.poc` - Generate minimal POC documentation
 
@@ -494,6 +503,7 @@ Research-Driven Feature Development with Complete Traceability:
 ```
 
 **Benefits:**
+
 - Complete traceability: Feature → Research → Spec → Plan → Implementation
 - Research-backed decisions at every step
 - Pattern-driven development with repository examples
