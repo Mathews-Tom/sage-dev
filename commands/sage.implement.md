@@ -113,16 +113,26 @@ EOF
 - Record start timestamp
 - This ensures resumption safety if interrupted
 
-### 3. Analyze Requirements
+### 3. Comprehensive Context Assembly
+
+**Context Engineering: Load ALL relevant documentation before implementation**
 
 ```bash
-# Load ticket context documents
+echo "📚 Assembling Implementation Context..."
+echo ""
+
+# ========================================
+# PRIORITY 1: Ticket Documentation (Required)
+# ========================================
+echo "Loading ticket context..."
+
+# Load ticket-linked documents
 SPEC_PATH=$(echo $TICKET_DATA | jq -r '.docs.spec')
 PLAN_PATH=$(echo $TICKET_DATA | jq -r '.docs.plan')
 BREAKDOWN_PATH=$(echo $TICKET_DATA | jq -r '.docs.breakdown // empty')
 TASKS_PATH=$(echo $TICKET_DATA | jq -r '.docs.tasks // empty')
 
-# Read context documents
+# Read ticket documents
 test -f "$SPEC_PATH" && cat "$SPEC_PATH"
 test -f "$PLAN_PATH" && cat "$PLAN_PATH"
 test -f "$BREAKDOWN_PATH" && cat "$BREAKDOWN_PATH"
@@ -130,15 +140,176 @@ test -f "$TASKS_PATH" && cat "$TASKS_PATH"
 
 # Extract acceptance criteria from ticket
 echo $TICKET_DATA | jq -r '.acceptanceCriteria[]'
+
+echo "✓ Ticket documentation loaded"
+echo ""
+
+# ========================================
+# PRIORITY 2: Research & Intelligence
+# ========================================
+echo "Loading research and intelligence..."
+
+# Extract component name from spec path (e.g., docs/specs/auth/spec.md → auth)
+COMPONENT=$(echo "$SPEC_PATH" | sed 's|docs/specs/||' | sed 's|/spec.md||')
+
+# Try to find related research from feature name in plan
+RESEARCH_FILES=$(find docs/research -type f -name "*.md" 2>/dev/null | \
+  grep -i "$COMPONENT" || echo "")
+
+if [ -n "$RESEARCH_FILES" ]; then
+  echo "$RESEARCH_FILES" | while read RESEARCH_FILE; do
+    echo "  Loading: $RESEARCH_FILE"
+    cat "$RESEARCH_FILE"
+  done
+  echo "✓ Research documentation loaded"
+else
+  echo "ℹ️  No research documentation found for component: $COMPONENT"
+fi
+echo ""
+
+# ========================================
+# PRIORITY 3: Original Feature Requests
+# ========================================
+echo "Loading feature requests..."
+
+# Find related feature requests
+FEATURE_FILES=$(find docs/features -type f -name "*.md" 2>/dev/null | \
+  grep -i "$COMPONENT" || echo "")
+
+if [ -n "$FEATURE_FILES" ]; then
+  echo "$FEATURE_FILES" | while read FEATURE_FILE; do
+    echo "  Loading: $FEATURE_FILE"
+    cat "$FEATURE_FILE"
+  done
+  echo "✓ Feature requests loaded"
+else
+  echo "ℹ️  No feature requests found for component: $COMPONENT"
+fi
+echo ""
+
+# ========================================
+# PRIORITY 4: Code Examples & Patterns
+# ========================================
+echo "Loading code patterns..."
+
+# Detect primary language from existing codebase
+PRIMARY_LANG=$(find . -name "*.py" -not -path "*/venv/*" -not -path "*/.venv/*" | head -1 && echo "python" || \
+               find . -name "*.js" -not -path "*/node_modules/*" | head -1 && echo "javascript" || \
+               find . -name "*.go" | head -1 && echo "go" || \
+               echo "unknown")
+
+if [ "$PRIMARY_LANG" != "unknown" ] && [ -d ".sage/agent/examples/$PRIMARY_LANG" ]; then
+  echo "  Primary language: $PRIMARY_LANG"
+
+  # List available pattern categories
+  PATTERN_CATEGORIES=$(find .sage/agent/examples/$PRIMARY_LANG -type d -mindepth 1 -maxdepth 1 2>/dev/null)
+
+  if [ -n "$PATTERN_CATEGORIES" ]; then
+    echo "  Available patterns:"
+    echo "$PATTERN_CATEGORIES" | while read PATTERN_DIR; do
+      CATEGORY=$(basename "$PATTERN_DIR")
+      PATTERN_COUNT=$(find "$PATTERN_DIR" -type f -name "*.md" | wc -l)
+      echo "    - $CATEGORY ($PATTERN_COUNT patterns)"
+
+      # Load relevant patterns for this component
+      find "$PATTERN_DIR" -type f -name "*.md" | head -3 | while read PATTERN_FILE; do
+        echo "      Loading: $(basename $PATTERN_FILE)"
+        cat "$PATTERN_FILE"
+      done
+    done
+    echo "✓ Code patterns loaded"
+  else
+    echo "ℹ️  No code patterns found"
+  fi
+else
+  echo "ℹ️  No code examples available (run /sage.init to extract patterns)"
+fi
+echo ""
+
+# ========================================
+# PRIORITY 5: System Documentation
+# ========================================
+echo "Loading system context..."
+
+# Architecture context
+if [ -f ".sage/agent/system/architecture.md" ]; then
+  echo "  Loading: architecture.md"
+  cat .sage/agent/system/architecture.md
+fi
+
+# Tech stack context
+if [ -f ".sage/agent/system/tech-stack.md" ]; then
+  echo "  Loading: tech-stack.md"
+  cat .sage/agent/system/tech-stack.md
+fi
+
+# Pattern documentation
+if [ -f ".sage/agent/system/patterns.md" ]; then
+  echo "  Loading: patterns.md"
+  cat .sage/agent/system/patterns.md
+fi
+
+if [ -f ".sage/agent/system/architecture.md" ] || \
+   [ -f ".sage/agent/system/tech-stack.md" ] || \
+   [ -f ".sage/agent/system/patterns.md" ]; then
+  echo "✓ System documentation loaded"
+else
+  echo "ℹ️  No system documentation (run /sage.init to generate)"
+fi
+echo ""
+
+# ========================================
+# PRIORITY 6: Project Standards
+# ========================================
+echo "Loading project standards..."
+
+# Load CLAUDE.md if exists
+if [ -f "CLAUDE.md" ]; then
+  echo "  Loading: CLAUDE.md"
+  cat CLAUDE.md
+  echo "✓ Project standards loaded"
+else
+  echo "ℹ️  No CLAUDE.md found"
+fi
+echo ""
+
+# ========================================
+# Context Assembly Summary
+# ========================================
+echo "═══════════════════════════════════════"
+echo "        CONTEXT ASSEMBLY COMPLETE"
+echo "═══════════════════════════════════════"
+echo ""
+echo "Loaded Context:"
+echo "  ✓ Ticket: $TICKET_ID"
+echo "  ✓ Component: $COMPONENT"
+echo "  ✓ Spec: $SPEC_PATH"
+echo "  ✓ Plan: $PLAN_PATH"
+[ -f "$BREAKDOWN_PATH" ] && echo "  ✓ Breakdown: $BREAKDOWN_PATH"
+[ -f "$TASKS_PATH" ] && echo "  ✓ Tasks: $TASKS_PATH"
+[ -n "$RESEARCH_FILES" ] && echo "  ✓ Research: $(echo "$RESEARCH_FILES" | wc -l) files"
+[ -n "$FEATURE_FILES" ] && echo "  ✓ Features: $(echo "$FEATURE_FILES" | wc -l) files"
+[ "$PRIMARY_LANG" != "unknown" ] && echo "  ✓ Code Patterns: $PRIMARY_LANG"
+[ -f ".sage/agent/system/architecture.md" ] && echo "  ✓ System Architecture"
+[ -f "CLAUDE.md" ] && echo "  ✓ Project Standards"
+echo ""
+echo "Ready for implementation with full context"
+echo "═══════════════════════════════════════"
+echo ""
 ```
 
 **Key Actions:**
 
-- Read all linked documentation (spec, plan, breakdown, tasks)
-- Extract acceptance criteria from ticket
-- Use SequentialThinking to understand requirements
-- Identify files to create/modify
-- Determine testing approach
+- **Priority 1:** Load ticket documentation (spec, plan, breakdown, tasks)
+- **Priority 2:** Load research and intelligence for component
+- **Priority 3:** Load original feature requests
+- **Priority 4:** Load code examples and patterns from repository
+- **Priority 5:** Load system documentation (architecture, tech-stack, patterns)
+- **Priority 6:** Load project standards (CLAUDE.md)
+- Use SequentialThinking with ALL context to understand requirements
+- Identify files to create/modify based on comprehensive context
+- Determine testing approach from research and patterns
+- Apply repository patterns and system conventions
 
 ### 4. Check Dependencies
 
