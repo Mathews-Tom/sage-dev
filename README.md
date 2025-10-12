@@ -601,10 +601,6 @@ A: Yes! Edit files in `rules/` and `.sage/enforcement.json` to customize standar
 
 Sage-Dev represents a distillation of collective software development experience from great developers across the industry. This tool embodies research-backed practices, battle-tested patterns, and community wisdom.
 
-## License
-
-[Your License Here]
-
 ---
 
 **Build with wisdom. Enforce with intelligence. Develop with Sage-Dev.** 🚀
