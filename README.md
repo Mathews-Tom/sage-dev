@@ -1,6 +1,6 @@
 # Sage-DEV
 
-![Sage-DEV Cover Image](assets/sage_dev_cover_image.png)
+![Sage-DEV Cover Image](assets/sage_dev_cover_image.jpg)
 
 **Version 2.5** - Context engineering with research-driven development
 
