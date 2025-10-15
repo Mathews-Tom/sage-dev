@@ -1018,7 +1018,7 @@ Ticket Status: IN_PROGRESS
 
 ```
 ================================================
-DEVSTREAM EXECUTION MODE: auto
+SAGE-STREAM EXECUTION MODE: auto
 PARALLEL EXECUTION: 3 workers
 ================================================
 ⚠️  AUTO MODE: No confirmations, fully automated
