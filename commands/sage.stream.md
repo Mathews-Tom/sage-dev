@@ -98,7 +98,7 @@ fi
 
 # Display execution mode
 echo "================================================"
-echo "DEVSTREAM EXECUTION MODE: $EXECUTION_MODE"
+echo "SAGE-STREAM EXECUTION MODE: $EXECUTION_MODE"
 if [ "$PARALLEL_MODE" = "true" ]; then
   echo "PARALLEL EXECUTION: $PARALLEL_WORKERS workers"
 fi
@@ -174,7 +174,7 @@ COMPLETION_PCT=$((COMPLETED * 100 / TOTAL_TICKETS))
 
 # Display cycle summary with progress
 echo "┌────────────────────────────────────────────────┐"
-echo "│         DEVSTREAM CYCLE INITIALIZATION         │"
+echo "│         SAGE-STREAM CYCLE INITIALIZATION         │"
 echo "└────────────────────────────────────────────────┘"
 echo ""
 echo "Ticket Statistics:"
@@ -2470,7 +2470,7 @@ echo "════════════════════════�
 - Updated `.sage/tickets/index.json` with new states
 - Implemented code committed to git
 - `.docs/PROGRESS_REPORT.md` updated
-- `.docs/DEVSTREAM_SUMMARY.md` created
+- `.docs/SAGE-STREAM_SUMMARY.md` created
 - All changes pushed to GitHub via `/sync`
 
 **Workflow Position:**
@@ -2626,7 +2626,7 @@ git status | grep "both modified"
 # (open .docs/PROGRESS_REPORT.md in another terminal)
 
 # After completion, review deferred tickets
-cat .docs/DEVSTREAM_SUMMARY.md
+cat .docs/SAGE-STREAM_SUMMARY.md
 ```
 
 ## Performance Considerations
@@ -2852,7 +2852,7 @@ Continue to next component UI (3 tickets)? (yes/no/pause): yes
 
 # Output:
 ================================================
-DEVSTREAM EXECUTION MODE: auto
+SAGE-STREAM EXECUTION MODE: auto
 PARALLEL EXECUTION: 3 workers
 ================================================
 ⚠️  AUTO MODE: No confirmations, fully automated
