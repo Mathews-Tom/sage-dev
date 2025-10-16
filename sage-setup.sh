@@ -260,6 +260,33 @@ install_to_agent() {
   echo "   ✓ Copied $INSTALLED_RULES rule files"
   echo ""
 
+  # Install git commit-msg hook (AI attribution blocker)
+  echo "🪝 Installing git commit-msg hook..."
+  if [ -d ".git/hooks" ]; then
+    HOOK_TEMPLATE="$SCRIPT_DIR/.sage/templates/commit-msg.hook"
+    HOOK_TARGET=".git/hooks/commit-msg"
+
+    if [ -f "$HOOK_TEMPLATE" ]; then
+      # Backup existing hook if present
+      if [ -f "$HOOK_TARGET" ]; then
+        cp "$HOOK_TARGET" "$HOOK_TARGET.backup.$(date +%Y%m%d-%H%M%S)"
+        echo "   ℹ️  Backed up existing commit-msg hook"
+      fi
+
+      # Install hook
+      cp "$HOOK_TEMPLATE" "$HOOK_TARGET"
+      chmod +x "$HOOK_TARGET"
+      echo "   ✓ Installed commit-msg hook (AI attribution blocker)"
+      echo "   ✓ Hook will automatically strip AI attribution from commits"
+    else
+      echo "   ⚠️  Hook template not found: $HOOK_TEMPLATE"
+    fi
+  else
+    echo "   ⚠️  Not a git repository - skipping hook installation"
+    echo "   ℹ️  Run 'git init' first to enable git hooks"
+  fi
+  echo ""
+
   # Verify installation
   if [ "$INSTALLED_COMMANDS" -eq "$COMMAND_COUNT" ]; then
     echo "✅ Commands installation complete"
@@ -363,7 +390,8 @@ elif [ "$SELECTED_LANGUAGE" = "typescript" ]; then
 fi
 echo "   • Rules: $RULE_COUNT files"
 echo "     - enforcement-guide, typing-standards"
-echo "     - test-standards, security-standards, commit-standards"
+echo "     - test-standards, security-standards, git-commit-standards"
+echo "   • Git Hooks: commit-msg (AI attribution blocker)"
 echo ""
 
 # Check and suggest .gitignore additions
