@@ -73,9 +73,23 @@ Developer organizing changes into clean, conventional commits with comprehensive
    ```bash
    # For each group, include ticket ID in commit message
    git add <files>
-   git commit -m "type(scope): #TICKET-ID subject" -m "body
 
-   Closes: #TICKET-ID"
+   # IMPORTANT: Validate commit message for AI attribution
+   COMMIT_MSG="type(scope): #TICKET-ID subject
+
+body
+
+Closes: #TICKET-ID"
+
+   # Check for AI attribution patterns (fail-fast)
+   if echo "$COMMIT_MSG" | grep -qiE "(Generated with|Claude Code|Co-Authored-By: Claude|AI-assisted|Claude-generated)"; then
+     echo "❌ ERROR: Commit message contains AI attribution" >&2
+     echo "AI tools must not be credited in commits" >&2
+     exit 1
+   fi
+
+   # Commit with validated message
+   git commit -m "$COMMIT_MSG"
    ```
 
 5. **Update Ticket with Commit Info**:
