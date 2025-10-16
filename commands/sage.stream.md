@@ -174,7 +174,7 @@ COMPLETION_PCT=$((COMPLETED * 100 / TOTAL_TICKETS))
 
 # Display cycle summary with progress
 echo "┌────────────────────────────────────────────────┐"
-echo "│         SAGE-STREAM CYCLE INITIALIZATION         │"
+echo "│         SAGE-STREAM CYCLE INITIALIZATION       │"
 echo "└────────────────────────────────────────────────┘"
 echo ""
 echo "Ticket Statistics:"
