@@ -7,6 +7,25 @@
 
 Enhanced sage-dev system with comprehensive **multi-language** agent enforcement and rule framework for automated code quality validation. Supports Python, JavaScript, and TypeScript with language-specific and shared agents.
 
+## 🎯 Cross-Platform Skills (New in v2.6)
+
+**Agents are now portable!** All enforcement agents described in this document are available as **Universal Skills** that work across Claude, ChatGPT, Gemini, and other LLMs.
+
+**Quick Start:**
+```bash
+./sage-skillify.sh  # Generates portable Skills from agents
+# Upload skills/*.zip to your preferred LLM
+```
+
+Skills consolidate agents and rules into 8 portable packages:
+- **Sage Python Quality Suite** - type-enforcer + doc-validator + test-coverage + import-enforcer
+- **Sage Security Guard** - secret-scanner + bs-check + bs-enforce
+- And 6 more domain-specific Skills
+
+**Learn More:** See [docs/SKILLS_GUIDE.md](docs/SKILLS_GUIDE.md) for cross-platform usage.
+
+---
+
 ## What Was Added
 
 ### 1. Multi-Language Architecture

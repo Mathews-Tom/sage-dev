@@ -637,6 +637,22 @@ A: `cd sage-dev && git pull && ./sage-setup.sh [agent] [language]`
 
 A: Yes! Edit files in `rules/` and `.sage/enforcement.json` to customize standards and thresholds.
 
+**Q: What are Skills and when should I use them?**
+
+A: Skills are portable expertise packages that work across all LLM platforms (Claude, ChatGPT, Gemini). Use Skills when working outside Claude Code CLI or when you prefer auto-discovery over slash commands. See [docs/SKILLS_GUIDE.md](docs/SKILLS_GUIDE.md).
+
+**Q: Do Skills work in ChatGPT/Gemini?**
+
+A: Yes! Skills work everywhere. Generate them with `./sage-skillify.sh` and upload the ZIP files to any LLM. Skills auto-activate based on conversation context.
+
+**Q: Can I use both Skills and slash commands?**
+
+A: Yes, but they serve different use cases. Use slash commands in Claude Code CLI for workflow orchestration (`/sage.stream`, `/sage.implement`). Use Skills in any LLM for domain expertise and quality guidance.
+
+**Q: How do Skills compare to slash commands?**
+
+A: Skills = cross-platform + auto-discovery + natural language. Slash commands = Claude Code only + explicit invocation + workflow automation. Skills focus on expertise, commands focus on orchestration.
+
 ## Support
 
 - **Issues:** [GitHub Issues](https://github.com/Mathews-Tom/sage-dev/issues)

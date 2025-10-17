@@ -8,9 +8,82 @@ Complete reference for all sage-dev commands with workflow visualizations and us
 
 ## Table of Contents
 
+- [Cross-Platform Skills Alternative](#cross-platform-skills-alternative)
 - [Part 1: Command Reference](#part-1-command-reference)
 - [Part 2: Workflow Visualization](#part-2-workflow-visualization)
 - [Part 3: Integration & Patterns](#part-3-integration--patterns)
+
+---
+
+# Cross-Platform Skills Alternative
+
+## 🎯 Universal Skills - Use Sage-Dev Anywhere
+
+Before diving into slash commands, know that Sage-Dev is now available as **portable Claude Skills** that work across **all LLM platforms** - Claude, ChatGPT, Gemini, and more.
+
+### Skills vs Slash Commands
+
+| Aspect | **Universal Skills** | **Slash Commands** |
+|--------|---------------------|-------------------|
+| **Platform Support** | Claude, ChatGPT, Gemini, all LLMs | Claude Code CLI only |
+| **Activation** | Auto-discovery (mention keywords) | Manual invocation (`/sage.specify`) |
+| **Learning Curve** | Zero - natural language | Must memorize 37 commands |
+| **Use Case** | Domain expertise, quality enforcement | Workflow orchestration, automation |
+| **Installation** | Upload ZIP files (2 minutes) | Run `./sage-setup.sh` |
+| **Portability** | Works everywhere | Claude Code only |
+
+### Available Skills (8 Total)
+
+| Skill | Size | Auto-Activates When You Mention... |
+|-------|------|-----------------------------------|
+| **Sage Python Quality Suite** | 16 KB | `python`, `typing`, `pytest`, `*.py` |
+| **Sage Security Guard** | 13 KB | `security`, `secrets`, `api keys` |
+| **Sage Research Intelligence** | 13 KB | `research`, `market analysis` |
+| **Sage Specification Engine** | 69 KB | `specification`, `requirements` |
+| **Sage Implementation Planner** | 8 KB | `plan`, `planning`, `tasks` |
+| **Sage Documentation Generator** | 14 KB | `documentation`, `SOP`, `docstring` |
+| **Sage Context Optimizer** | 5 KB | `context`, `compression` |
+| **Sage Ticket Manager** | 24 KB | `ticket`, `validation`, `sync` |
+
+### Quick Install
+
+```bash
+# Generate Skills
+./sage-skillify.sh
+
+# For Claude: Upload skills/*.zip to capabilities panel
+# For ChatGPT: Upload skills/*.zip per conversation
+# For Gemini: Upload skills/*.zip per conversation
+```
+
+### When to Use Skills vs Slash Commands
+
+**Use Skills when:**
+- Working in ChatGPT, Gemini, or other LLMs
+- Want automatic expertise without memorizing commands
+- Need domain-specific guidance (Python quality, security, research)
+- Prefer natural language over command syntax
+
+**Use Slash Commands when:**
+- Working in Claude Code CLI
+- Need explicit workflow orchestration (`/sage.stream`, `/sage.implement`)
+- Want ticket automation and batch processing
+- Require git integration and CI/CD
+
+### Skills Equivalent Commands
+
+Skills consolidate multiple slash commands:
+
+| Skill | Equivalent Slash Commands |
+|-------|--------------------------|
+| **Sage Research Intelligence** | `/sage.intel`, `/sage.enhance` |
+| **Sage Specification Engine** | `/sage.specify`, `/sage.breakdown`, `/sage.blueprint` |
+| **Sage Implementation Planner** | `/sage.plan`, `/sage.tasks` |
+| **Sage Documentation Generator** | `/sage.update-doc`, `/sage.gen-sop`, `/sage.docify`, `/sage.save-plan` |
+| **Sage Context Optimizer** | `/sage.compact-context`, `/sage.offload-research` |
+| **Sage Ticket Manager** | `/sage.validate`, `/sage.sync`, `/sage.migrate`, `/sage.estimate`, `/sage.repair` |
+
+**For detailed Skills installation and usage, see [SKILLS_GUIDE.md](../docs/SKILLS_GUIDE.md)**
 
 ---
 
