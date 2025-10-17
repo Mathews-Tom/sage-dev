@@ -4,8 +4,9 @@
 
 set -euo pipefail
 
-VERSION="1.0.0"
+VERSION="2.0.0"
 OUTPUT_DIR="skills"
+SKILLS_SRC_DIR="skills/skills-src"
 TEMP_DIR=".skillify-temp"
 
 # Colors for output
@@ -23,40 +24,60 @@ info() { echo -e "${BLUE}→${NC} $1"; }
 # Clean and create directories
 setup_dirs() {
     info "Setting up directory structure..."
-    rm -rf "$OUTPUT_DIR" "$TEMP_DIR"
-    mkdir -p "$OUTPUT_DIR" "$TEMP_DIR"
+    rm -rf "$TEMP_DIR"
+    mkdir -p "$OUTPUT_DIR/ai-development" "$TEMP_DIR"
     log "Directories created"
 }
 
-# Generate skill.json metadata
-generate_skill_json() {
-    local skill_name="$1"
-    local description="$2"
-    local triggers="$3"
-    local version="$4"
+# Package skills from skills-src directory
+package_from_source() {
+    local source_dir="$1"
+    local output_subdir="$2"  # e.g., "ai-development" or ""
 
-    cat > "$TEMP_DIR/skill.json" <<EOF
-{
-  "name": "$skill_name",
-  "version": "$version",
-  "description": "$description",
-  "triggers": [$triggers],
-  "requires": ["code_execution"],
-  "created": "$(date -u +"%Y-%m-%dT%H:%M:%SZ")",
-  "author": "Sage-Dev",
-  "license": "MIT"
-}
-EOF
+    if [ ! -d "$source_dir" ]; then
+        return
+    fi
+
+    for skill_dir in "$source_dir"/*; do
+        if [ -d "$skill_dir" ] && [ -f "$skill_dir/Skill.md" ]; then
+            local skill_name=$(basename "$skill_dir")
+            info "Packaging $skill_name from source..."
+
+            # Copy to temp directory
+            cp -r "$skill_dir" "$TEMP_DIR/"
+
+            # Package
+            local output_path="$OUTPUT_DIR"
+            if [ -n "$output_subdir" ]; then
+                output_path="$OUTPUT_DIR/$output_subdir"
+                mkdir -p "$output_path"
+            fi
+
+            (cd "$TEMP_DIR" && zip -r "../$output_path/${skill_name}.zip" "$skill_name" -q)
+            rm -rf "$TEMP_DIR/$skill_name"
+            log "Packaged: $output_path/${skill_name}.zip"
+        fi
+    done
 }
 
-# Create instruction.md from multiple source files
-create_instruction() {
+# Generate Skill.md with YAML frontmatter and markdown body
+generate_skill_md() {
     local output_file="$1"
-    shift
+    local skill_name="$2"
+    local description="$3"
+    local version="$4"
+    shift 4
     local source_files=("$@")
 
-    cat > "$output_file" <<'HEADER'
-# Sage-Dev Skill
+    # Create YAML frontmatter
+    cat > "$output_file" <<EOF
+---
+name: $skill_name
+description: $description
+version: $version
+---
+
+# $skill_name
 
 You are a specialized Sage-Dev assistant with expertise in software development workflows and quality enforcement.
 
@@ -70,12 +91,13 @@ You are a specialized Sage-Dev assistant with expertise in software development 
 
 ---
 
-HEADER
+EOF
 
+    # Append content from source files
     for file in "${source_files[@]}"; do
         if [ -f "$file" ]; then
             echo "" >> "$output_file"
-            echo "## $(basename "$file" .md)" >> "$output_file"
+            echo "## $(basename "$file" .md | sed 's/^sage\.//')" >> "$output_file"
             echo "" >> "$output_file"
             # Remove frontmatter if present
             sed '/^---$/,/^---$/d' "$file" >> "$output_file"
@@ -101,12 +123,13 @@ bundle_resources() {
     done
 }
 
-# Package skill as zip
+# Package skill as zip (ZIP must contain skill folder as root)
 package_skill() {
     local skill_name="$1"
-    local skill_dir="$TEMP_DIR/$skill_name"
 
-    (cd "$skill_dir" && zip -r "../../$OUTPUT_DIR/${skill_name}.zip" . -q)
+    # ZIP structure should be: skill-name.zip/skill-name/Skill.md
+    # NOT: skill-name.zip/Skill.md
+    (cd "$TEMP_DIR" && zip -r "../$OUTPUT_DIR/${skill_name}.zip" "$skill_name" -q)
     log "Packaged: $OUTPUT_DIR/${skill_name}.zip"
 }
 
@@ -118,16 +141,11 @@ generate_python_quality_suite() {
     local skill_dir="$TEMP_DIR/sage-python-quality-suite"
     mkdir -p "$skill_dir"
 
-    # Generate skill.json
-    generate_skill_json \
+    # Generate Skill.md with YAML frontmatter
+    generate_skill_md "$skill_dir/Skill.md" \
         "Sage Python Quality Suite" \
-        "Python 3.12+ type enforcement, docstring validation, test coverage, import standards" \
-        '"python", "*.py", "typing", "pytest", "mypy"' \
-        "$VERSION"
-    mv "$TEMP_DIR/skill.json" "$skill_dir/"
-
-    # Create instruction.md
-    create_instruction "$skill_dir/instruction.md" \
+        "Apply Python 3.12+ typing, docstrings, test coverage, and import standards to code" \
+        "$VERSION" \
         "agents/python/type-enforcer.md" \
         "agents/python/doc-validator.md" \
         "agents/python/test-coverage.md" \
@@ -153,14 +171,10 @@ generate_security_guard() {
     local skill_dir="$TEMP_DIR/sage-security-guard"
     mkdir -p "$skill_dir"
 
-    generate_skill_json \
+    generate_skill_md "$skill_dir/Skill.md" \
         "Sage Security Guard" \
-        "Detects hardcoded secrets, API keys, credentials, and enforces no-bullshit code principles" \
-        '"security", "secrets", "api keys", "credentials", "*.py", "*.js", "*.ts"' \
-        "$VERSION"
-    mv "$TEMP_DIR/skill.json" "$skill_dir/"
-
-    create_instruction "$skill_dir/instruction.md" \
+        "Detect secrets, enforce security standards, and eliminate bullshit code patterns" \
+        "$VERSION" \
         "agents/shared/secret-scanner.md" \
         "agents/shared/bs-check.md" \
         "agents/shared/bs-enforce.md"
@@ -180,14 +194,10 @@ generate_research_intelligence() {
     local skill_dir="$TEMP_DIR/sage-research-intelligence"
     mkdir -p "$skill_dir"
 
-    generate_skill_json \
+    generate_skill_md "$skill_dir/Skill.md" \
         "Sage Research Intelligence" \
-        "Strategic intelligence gathering and enhancement analysis for research-driven development" \
-        '"research", "intelligence", "market analysis", "best practices", "competitive analysis"' \
-        "$VERSION"
-    mv "$TEMP_DIR/skill.json" "$skill_dir/"
-
-    create_instruction "$skill_dir/instruction.md" \
+        "Gather strategic intelligence and analyze market trends for research-driven development" \
+        "$VERSION" \
         "commands/sage.intel.md" \
         "commands/sage.enhance.md"
 
@@ -203,14 +213,10 @@ generate_specification_engine() {
     local skill_dir="$TEMP_DIR/sage-specification-engine"
     mkdir -p "$skill_dir"
 
-    generate_skill_json \
+    generate_skill_md "$skill_dir/Skill.md" \
         "Sage Specification Engine" \
-        "Generate structured specifications, technical breakdowns, and system blueprints from documentation" \
-        '"specification", "spec", "requirements", "architecture", "technical breakdown"' \
-        "$VERSION"
-    mv "$TEMP_DIR/skill.json" "$skill_dir/"
-
-    create_instruction "$skill_dir/instruction.md" \
+        "Generate specifications, technical breakdowns, and system blueprints from requirements" \
+        "$VERSION" \
         "commands/sage.specify.md" \
         "commands/sage.breakdown.md" \
         "commands/sage.blueprint.md"
@@ -233,14 +239,10 @@ generate_implementation_planner() {
     local skill_dir="$TEMP_DIR/sage-implementation-planner"
     mkdir -p "$skill_dir"
 
-    generate_skill_json \
+    generate_skill_md "$skill_dir/Skill.md" \
         "Sage Implementation Planner" \
         "Create PRP-format implementation plans and SMART task breakdowns from specifications" \
-        '"plan", "planning", "implementation", "tasks", "breakdown", "PRP"' \
-        "$VERSION"
-    mv "$TEMP_DIR/skill.json" "$skill_dir/"
-
-    create_instruction "$skill_dir/instruction.md" \
+        "$VERSION" \
         "commands/sage.plan.md" \
         "commands/sage.tasks.md"
 
@@ -256,14 +258,10 @@ generate_documentation_generator() {
     local skill_dir="$TEMP_DIR/sage-documentation-generator"
     mkdir -p "$skill_dir"
 
-    generate_skill_json \
+    generate_skill_md "$skill_dir/Skill.md" \
         "Sage Documentation Generator" \
-        "Create and update documentation, SOPs, code documentation, and implementation plans" \
-        '"documentation", "SOP", "standard operating procedure", "docstring", "inline docs"' \
-        "$VERSION"
-    mv "$TEMP_DIR/skill.json" "$skill_dir/"
-
-    create_instruction "$skill_dir/instruction.md" \
+        "Create and update documentation, SOPs, docstrings, and implementation plans" \
+        "$VERSION" \
         "commands/sage.update-doc.md" \
         "commands/sage.gen-sop.md" \
         "commands/sage.docify.md" \
@@ -283,14 +281,10 @@ generate_context_optimizer() {
     local skill_dir="$TEMP_DIR/sage-context-optimizer"
     mkdir -p "$skill_dir"
 
-    generate_skill_json \
+    generate_skill_md "$skill_dir/Skill.md" \
         "Sage Context Optimizer" \
-        "Compress conversation context and delegate research to sub-agents for efficient token usage" \
-        '"context", "compression", "token optimization", "research delegation"' \
-        "$VERSION"
-    mv "$TEMP_DIR/skill.json" "$skill_dir/"
-
-    create_instruction "$skill_dir/instruction.md" \
+        "Compress conversation context and delegate research to sub-agents for token efficiency" \
+        "$VERSION" \
         "commands/sage.compact-context.md" \
         "commands/sage.offload-research.md"
 
@@ -305,14 +299,10 @@ generate_ticket_manager() {
     local skill_dir="$TEMP_DIR/sage-ticket-manager"
     mkdir -p "$skill_dir"
 
-    generate_skill_json \
+    generate_skill_md "$skill_dir/Skill.md" \
         "Sage Ticket Manager" \
-        "Validate, synchronize, migrate, estimate, and repair ticket system integrity" \
-        '"ticket", "tickets", "validation", "sync", "migration", "estimation"' \
-        "$VERSION"
-    mv "$TEMP_DIR/skill.json" "$skill_dir/"
-
-    create_instruction "$skill_dir/instruction.md" \
+        "Validate, sync, migrate, estimate, and repair ticket system integrity" \
+        "$VERSION" \
         "commands/sage.validate.md" \
         "commands/sage.sync.md" \
         "commands/sage.migrate.md" \
@@ -351,20 +341,35 @@ main() {
     info "Generating Utility Skills..."
     generate_ticket_manager
 
+    echo ""
+    info "Packaging AI Development Skills from source..."
+    package_from_source "$SKILLS_SRC_DIR/ai-development" "ai-development"
+
     # Cleanup
     rm -rf "$TEMP_DIR"
 
     echo ""
     echo "═══════════════════════════════════════════════════════"
-    log "Successfully generated $(ls -1 "$OUTPUT_DIR" | wc -l | tr -d ' ') Skills"
+
+    # Count skills
+    CORE_SKILLS=$(ls -1 "$OUTPUT_DIR"/*.zip 2>/dev/null | wc -l | tr -d ' ')
+    AI_SKILLS=$(ls -1 "$OUTPUT_DIR/ai-development"/*.zip 2>/dev/null | wc -l | tr -d ' ')
+    TOTAL_SKILLS=$((CORE_SKILLS + AI_SKILLS))
+
+    log "Successfully generated $TOTAL_SKILLS Skills ($CORE_SKILLS core + $AI_SKILLS AI development)"
     echo ""
-    echo "Output directory: $OUTPUT_DIR/"
-    ls -lh "$OUTPUT_DIR"
+    echo "Output directory structure:"
+    echo "  $OUTPUT_DIR/ (Core Skills)"
+    ls -lh "$OUTPUT_DIR"/*.zip 2>/dev/null | awk '{print "    " $9 " (" $5 ")"}'
+    echo ""
+    echo "  $OUTPUT_DIR/ai-development/ (AI Development Skills)"
+    ls -lh "$OUTPUT_DIR/ai-development"/*.zip 2>/dev/null | awk '{print "    " $9 " (" $5 ")"}'
     echo ""
     echo "Next steps:"
     echo "  1. Test Skills in Claude: Upload to Claude capabilities panel"
     echo "  2. Test cross-platform: Upload zips to ChatGPT/Gemini"
     echo "  3. Review installation guide: docs/SKILLS_GUIDE.md"
+    echo "  4. Review AI Skills guide: docs/AI_SKILLS_GUIDE.md"
     echo "═══════════════════════════════════════════════════════"
     echo ""
 }

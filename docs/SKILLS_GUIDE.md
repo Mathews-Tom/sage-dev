@@ -1,7 +1,8 @@
 # Sage-Dev Skills - Universal Installation Guide
 
-**Version:** 1.0.0
+**Version:** 2.0.0
 **Last Updated:** 2025-10-17
+**AI Skills:** See [AI_SKILLS_GUIDE.md](AI_SKILLS_GUIDE.md)
 
 Sage-Dev Skills are portable, composable development expertise packages that work across **all LLM platforms** - Claude, ChatGPT, Gemini, and more.
 
@@ -21,7 +22,26 @@ Skills are **auto-discoverable context packages** that provide specialized devel
 
 ---
 
-## Available Skills (8 Total)
+## Available Skills (8 Core + 5 AI Development)
+
+**📦 Core Development Skills** (8 total)
+
+Skills for general software development, quality enforcement, planning, and documentation.
+
+**🤖 AI Development Skills** (5 total)
+
+Specialized Skills for building AI applications. See [AI_SKILLS_GUIDE.md](AI_SKILLS_GUIDE.md) for complete guide.
+
+Quick overview:
+- **sage-api-forge** - REST & GraphQL API scaffolding
+- **sage-rag-architect** - RAG pipeline builder
+- **sage-model-bridge** - LLM provider integration
+- **sage-test-factory** - Comprehensive test generation
+- **sage-doc-weaver** - Documentation automation
+
+---
+
+## Core Development Skills
 
 ### Enforcement Skills
 
@@ -165,7 +185,7 @@ Most AI coding tools support file uploads. Process:
 4. Tool extracts and applies guidance
 
 **Verification:**
-If the tool displays Skill contents (skill.json, instruction.md), it can use Skills.
+If the tool displays Skill contents (Skill.md with YAML frontmatter), it can use Skills.
 
 ---
 
@@ -418,10 +438,20 @@ cd skills/
 unzip -l sage-python-quality-suite.zip
 
 Expected output:
-- skill.json
-- instruction.md
-- resources/
+Archive:  sage-python-quality-suite.zip
+  Length      Date    Time    Name
+---------  ---------- -----   ----
+        0  10-17-2025 22:21   sage-python-quality-suite/
+        0  10-17-2025 22:21   sage-python-quality-suite/resources/
+     8020  10-17-2025 22:21   sage-python-quality-suite/resources/typing-standards.md
+     9995  10-17-2025 22:21   sage-python-quality-suite/resources/test-standards.md
+    37050  10-17-2025 22:21   sage-python-quality-suite/Skill.md
 ```
+
+**Key structure:**
+- ZIP contains skill folder as root: `sage-python-quality-suite/`
+- Main file is `Skill.md` with YAML frontmatter
+- Resources bundled in `resources/` subfolder
 
 If corrupted, regenerate:
 ```bash
@@ -441,16 +471,15 @@ generate_custom_skill() {
     local skill_dir="$TEMP_DIR/my-custom-skill"
     mkdir -p "$skill_dir"
 
-    generate_skill_json \
+    # Generate Skill.md with YAML frontmatter
+    generate_skill_md "$skill_dir/Skill.md" \
         "My Custom Skill" \
-        "Description of what this skill does" \
-        '"trigger1", "trigger2"' \
-        "$VERSION"
-
-    create_instruction "$skill_dir/instruction.md" \
+        "Description of what this skill does (when to use it)" \
+        "$VERSION" \
         "path/to/source1.md" \
         "path/to/source2.md"
 
+    # Optional: Bundle additional resources
     bundle_resources "$skill_dir" \
         "path/to/resources"
 
@@ -464,17 +493,33 @@ info "Generating Custom Skills..."
 generate_custom_skill
 ```
 
-### Skill Versioning
+### Skill Format
 
-Skills include version metadata in `skill.json`:
-```json
-{
-  "name": "Sage Python Quality Suite",
-  "version": "1.0.0",
-  "created": "2025-10-17T...",
-  ...
-}
+Skills follow the official Claude Skills format with `Skill.md` containing YAML frontmatter:
+
+```markdown
+---
+name: Sage Python Quality Suite
+description: Apply Python 3.12+ typing, docstrings, test coverage, and import standards to code
+version: 1.0.0
+---
+
+# Sage Python Quality Suite
+
+You are a specialized Sage-Dev assistant with expertise in...
+
+## Core Principles
+
+- **No Bullshit Code**: Fail fast, throw errors early...
+- **Type Safety First**: Use modern typing...
+
+[... rest of skill instructions ...]
 ```
+
+**Key fields:**
+- `name:` Human-friendly name (64 chars max)
+- `description:` When to use this Skill (200 chars max) - Claude uses this to decide when to invoke
+- `version:` Track versions as you iterate
 
 When updating Skills:
 1. Modify source files (commands/*.md, agents/*.md)
@@ -533,7 +578,7 @@ A: Enforcement Skills are language-specific (Python Quality Suite, JavaScript Qu
 A: In Claude, check the capabilities panel. In ChatGPT/Gemini, ask "Which Skills are currently loaded?"
 
 **Q: Can I modify Skill contents?**
-A: Yes! Unzip, edit `instruction.md`, re-zip. Skills are just packaged markdown.
+A: Yes! Unzip, edit `Skill.md`, re-zip. Skills follow the official Claude Skills format with YAML frontmatter.
 
 **Q: Do Skills work with Claude Code (CLI)?**
 A: Yes, if uploaded to Claude capabilities panel. Skills are platform-agnostic once uploaded.
@@ -563,9 +608,11 @@ A: Not directly. Copilot doesn't support Skill uploads. Use Cursor or Claude Cod
 
 - **Issues**: [GitHub Issues](https://github.com/Mathews-Tom/sage-dev/issues)
 - **Discussions**: [GitHub Discussions](https://github.com/Mathews-Tom/sage-dev/discussions)
-- **Documentation**: See `README.md` and `commands/SAGE.COMMANDS.md`
+- **Core Skills Documentation**: This guide (SKILLS_GUIDE.md)
+- **AI Development Skills**: [AI_SKILLS_GUIDE.md](AI_SKILLS_GUIDE.md)
+- **Commands Reference**: `commands/SAGE.COMMANDS.md`
 
 ---
 
-*Generated by sage-skillify.sh v1.0.0*
+*Generated by sage-skillify.sh v2.0.0*
 *Last Updated: 2025-10-17*
