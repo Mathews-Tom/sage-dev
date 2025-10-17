@@ -6,24 +6,51 @@ A systematic approach to software development from specifications to implementat
 
 ## 🚀 Quick Installation
 
+### Option 1: Slash Commands (Claude Code)
+
 **Install all commands directly into Claude Code:**
 
 ```bash
 cd /path/to/sage-dev
-./install-sage-commands.sh
+./sage-setup.sh
 ```
 
-Once installed, type `/` in Claude Code to see all 20 commands!
+Once installed, type `/` in Claude Code to see all 37 slash commands!
 
-📖 **See [INSTALLATION.md](INSTALLATION.md) for detailed installation guide and integration options.**
+### Option 2: Universal Skills (All Platforms)
+
+**Use Skills in Claude, ChatGPT, Gemini, or any LLM:**
+
+```bash
+cd /path/to/sage-dev
+./sage-skillify.sh
+
+# For Claude: Upload skills/*.zip to capabilities panel
+# For ChatGPT/Gemini: Upload skills/*.zip per conversation
+# See docs/SKILLS_GUIDE.md for complete instructions
+```
+
+📖 **See [docs/SKILLS_GUIDE.md](../docs/SKILLS_GUIDE.md) for cross-platform Skills installation.**
 
 ---
 
 ## 📋 Overview
 
-This workflow provides a structured methodology for analyzing requirements, validating concepts, planning implementation, and managing development through a series of purpose-built slash commands.
+Sage-Dev provides **two interaction models** for development workflows:
 
-**IMPORTANT:** Start with `/sage.workflow` to choose between Traditional (manual) or Ticket-Based (automated) workflows.
+### 1. **Slash Commands** (Claude Code - Explicit Control)
+Structured methodology using 37 purpose-built commands. You invoke commands explicitly for each workflow step. Best for Claude Code users who want explicit control.
+
+### 2. **Universal Skills** (All LLMs - Auto-Discovery)
+Portable expertise packages that auto-activate based on conversation context. Work across Claude, ChatGPT, Gemini. Best for cross-platform usage and natural interaction.
+
+**NEW: Skills Transform How You Use Sage-Dev**
+- ✅ No commands to memorize - Skills auto-activate when relevant
+- ✅ Works everywhere - Claude, ChatGPT, Gemini, any LLM
+- ✅ Composable - Multiple Skills stack automatically
+- ✅ Natural interaction - Just describe what you need
+
+**IMPORTANT:** Start with `/sage.workflow` (slash commands) or upload relevant Skills (Skills model) to choose your development approach.
 
 ```mermaid
 graph LR
@@ -57,7 +84,180 @@ graph LR
 
 ---
 
-## 🔀 Workflow Selection (START HERE)
+## ✨ Skills-Based Workflow (Cross-Platform)
+
+### What Are Skills?
+
+Skills are **auto-discoverable expertise packages** that activate based on conversation context. Instead of memorizing slash commands, you describe what you need and relevant Skills activate automatically.
+
+### Available Sage-Dev Skills
+
+| Skill | Auto-Activates When You Mention... | Equivalent Commands |
+|-------|-----------------------------------|---------------------|
+| **Sage Research Intelligence** | `research`, `market analysis`, `best practices` | `/sage.intel`, `/sage.enhance` |
+| **Sage Specification Engine** | `specification`, `requirements`, `architecture` | `/sage.specify`, `/sage.breakdown`, `/sage.blueprint` |
+| **Sage Implementation Planner** | `plan`, `tasks`, `implementation strategy` | `/sage.plan`, `/sage.tasks` |
+| **Sage Python Quality Suite** | `python code`, `typing`, `tests`, `coverage` | All Python enforcement agents |
+| **Sage Security Guard** | `security`, `secrets`, `credentials` | `sage.secret-scanner`, `sage.bs-check` |
+| **Sage Documentation Generator** | `documentation`, `SOP`, `docstring` | `/sage.update-doc`, `/sage.gen-sop`, `/sage.docify` |
+| **Sage Context Optimizer** | `context compression`, `token optimization` | `/sage.compact-context`, `/sage.offload-research` |
+| **Sage Ticket Manager** | `tickets`, `validation`, `GitHub sync` | `/sage.validate`, `/sage.sync`, `/sage.migrate` |
+
+### Skills Workflow Examples
+
+#### Example 1: Python Development (ChatGPT)
+
+```
+User: *uploads sage-python-quality-suite.zip + sage-security-guard.zip*
+
+User: "I need to write a user authentication function with password hashing"
+
+[Sage Python Quality Suite AUTO-ACTIVATES]
+[Sage Security Guard AUTO-ACTIVATES]
+
+ChatGPT Response:
+✓ Python 3.12 typing enforced
+✓ Google-style docstrings added
+✓ Test coverage provided (90%+)
+✓ No hardcoded secrets detected
+✓ No bullshit patterns
+
+from typing import Optional
+import secrets
+from hashlib import sha256
+
+def authenticate_user(username: str, password: str) -> tuple[bool, Optional[str]]:
+    """Authenticate user with secure password hashing.
+
+    Args:
+        username: User identifier
+        password: Plain text password
+
+    Returns:
+        Tuple of (success, error_message)
+
+    Raises:
+        ValueError: If credentials invalid
+    """
+    if not username or not password:
+        raise ValueError("Credentials required")
+
+    salt = secrets.token_hex(16)
+    hashed = sha256(f"{password}{salt}".encode()).hexdigest()
+    return (True, None)
+
+# Tests included
+def test_authenticate_user():
+    result, error = authenticate_user("user", "pass123")
+    assert result is True
+```
+
+**Skills Applied:**
+- Type hints on all functions
+- Docstrings with Args/Returns/Raises
+- Test coverage included
+- No hardcoded secrets
+- Fail-fast error handling
+
+#### Example 2: Feature Planning (Claude)
+
+```
+User: "I need to add OAuth authentication to my API"
+
+[Sage Research Intelligence AUTO-ACTIVATES]
+→ Researches OAuth 2.0 best practices, JWT patterns
+
+[Sage Specification Engine AUTO-ACTIVATES]
+→ Generates comprehensive spec:
+  - OAuth 2.0 authorization code flow
+  - Token generation and validation
+  - Refresh token rotation
+  - Security requirements
+
+[Sage Implementation Planner AUTO-ACTIVATES]
+→ Creates phased plan:
+  Phase 1: Core OAuth flow (4 hours)
+  Phase 2: Security hardening (2 hours)
+  Phase 3: Token refresh (2 hours)
+
+[Sage Security Guard AUTO-ACTIVATES]
+→ Highlights OAuth security considerations
+
+Result: Complete planning package without manual command invocation
+```
+
+#### Example 3: Documentation Task (Gemini)
+
+```
+User: *uploads sage-documentation-generator.zip*
+
+User: "Using this Skill, help me document the OAuth implementation process"
+
+[Sage Documentation Generator AUTO-ACTIVATES]
+
+Gemini Response:
+Generated:
+1. docs/sops/oauth-setup.md - Step-by-step setup guide
+2. docs/api/authentication.md - API documentation
+3. Inline docstrings for all functions
+4. Implementation plan captured in docs/specs/auth/plan.md
+```
+
+### Skills vs Slash Commands Comparison
+
+| Aspect | Slash Commands | Skills |
+|--------|---------------|--------|
+| **Invocation** | Manual `/sage.specify` | Auto-activates on `"specification"` |
+| **Platform** | Claude Code only | Claude, ChatGPT, Gemini, all LLMs |
+| **Memorization** | Must remember 37 commands | Natural language triggers |
+| **Composition** | Sequential, one at a time | Multiple Skills stack automatically |
+| **Control** | Explicit, deliberate | Contextual, automatic |
+| **Best For** | Claude Code workflows | Cross-platform, natural interaction |
+
+### When to Use Skills vs Slash Commands
+
+**Use Skills When:**
+- ✅ Working in ChatGPT, Gemini, or other LLMs
+- ✅ Want natural, conversation-driven workflow
+- ✅ Don't want to memorize commands
+- ✅ Need multiple expertise areas simultaneously
+- ✅ Prefer auto-discovery over explicit invocation
+
+**Use Slash Commands When:**
+- ✅ Using Claude Code exclusively
+- ✅ Want explicit control over each step
+- ✅ Need workflow orchestration (e.g., `/sage.stream`)
+- ✅ Prefer deliberate, sequential execution
+- ✅ Working in team requiring audit trail
+
+### Skills Installation Quick Reference
+
+**Claude:**
+```bash
+./sage-skillify.sh
+# Upload skills/*.zip to Claude capabilities panel
+# Skills persist across conversations
+```
+
+**ChatGPT:**
+```bash
+./sage-skillify.sh
+# Upload 2-3 relevant skills/*.zip per conversation
+# Re-upload each conversation
+```
+
+**Gemini:**
+```bash
+./sage-skillify.sh
+# Upload 1-2 skills/*.zip per conversation
+# Test thoroughly before relying on multi-skill composition
+```
+
+📖 **Complete Skills Guide:** [docs/SKILLS_GUIDE.md](../docs/SKILLS_GUIDE.md)
+
+---
+
+## 🔀 Workflow Selection (START HERE - Slash Commands)
 
 ### `/sage.workflow` - Choose Your Development Workflow
 

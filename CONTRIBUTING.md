@@ -10,8 +10,12 @@ Thank you for contributing to Sage-DEV! This guide explains how to contribute to
 
 1. Fork the repository
 2. Clone your fork: `git clone https://github.com/YOUR_USERNAME/sage-dev.git`
-3. Run setup: `./sage-setup.sh`
+3. **Choose your setup:**
+   - **Claude Code CLI:** Run `./sage-setup.sh` for slash commands
+   - **Other LLMs (ChatGPT, Gemini):** Run `./sage-skillify.sh` and upload skills/*.zip files
 4. Create feature branch: `git checkout -b feature/your-feature`
+
+**Note:** Skills provide the same capabilities as slash commands but work across all LLM platforms. See [docs/SKILLS_GUIDE.md](docs/SKILLS_GUIDE.md) for details.
 
 ## Contribution Workflow
 
