@@ -12,6 +12,7 @@ Development workflows enriched with collective wisdom and context engineering pr
 - 🤖 **Intelligent Agents** - Automated code quality enforcement
 - 📋 **Development Rules** - Typing, testing, security, and commit standards
 - ⚡ **Slash Commands** - Streamlined workflows for rapid development
+- 🎯 **Universal Skills** - Portable skills that work across all LLM platforms
 - 🔒 **Security-First** - Built-in secret scanning and validation
 - 🎯 **Configurable Enforcement** - STRICT, BALANCED, or PROTOTYPE modes
 
@@ -26,6 +27,43 @@ Development workflows enriched with collective wisdom and context engineering pr
 - 🧠 **Context Assembly Engine** - `/sage.implement` loads all 6 levels of documentation context
 - 📚 **Pattern Library** - Automatic code pattern extraction to `.sage/agent/examples/`
 - 🔗 **Complete Traceability** - Feature → Research → Spec → Plan → Implementation chain
+
+## 🎯 Universal Skills - NEW!
+
+Sage-Dev is now available as **portable Claude Skills** that work across **all LLM platforms** - Claude, ChatGPT, Gemini, and more!
+
+### Why Skills?
+
+- **Cross-Platform**: Use Sage-Dev in any AI tool, not just Claude Code
+- **Auto-Discovery**: Skills activate automatically based on conversation context - no commands to memorize
+- **Composable**: Multiple Skills stack together for comprehensive guidance
+- **Portable**: Download once, use everywhere
+
+### Available Skills (8)
+
+| Skill | Size | Purpose |
+|-------|------|---------|
+| **Sage Python Quality Suite** | 16 KB | Type enforcement, docstrings, test coverage, imports |
+| **Sage Security Guard** | 13 KB | Secret detection, no-bullshit code enforcement |
+| **Sage Research Intelligence** | 13 KB | Market research, competitive analysis, best practices |
+| **Sage Specification Engine** | 69 KB | Requirements analysis, technical breakdowns, blueprints |
+| **Sage Implementation Planner** | 8 KB | PRP plans, SMART tasks, phased execution |
+| **Sage Documentation Generator** | 14 KB | Docs, SOPs, docstrings, plan capture |
+| **Sage Context Optimizer** | 5 KB | Context compression (30%+ tokens), research delegation |
+| **Sage Ticket Manager** | 24 KB | Validation, GitHub sync, migration, estimation |
+
+### Quick Install (Any Platform)
+
+```bash
+# Generate Skills
+./sage-skillify.sh
+
+# For Claude: Upload skills/*.zip to capabilities panel
+# For ChatGPT/Gemini: Upload skills/*.zip per conversation
+# For Other LLMs: Upload and reference in prompts
+```
+
+📖 **[Complete Skills Guide](docs/SKILLS_GUIDE.md)** - Installation for all platforms, usage examples, best practices
 
 ## Quick Start
 
@@ -430,6 +468,16 @@ sage-dev/
 │   ├── javascript/             # JavaScript-specific
 │   └── typescript/             # TypeScript-specific
 │
+├── skills/                      # Universal Skills (Claude/ChatGPT/Gemini)
+│   ├── sage-python-quality-suite.zip
+│   ├── sage-security-guard.zip
+│   ├── sage-research-intelligence.zip
+│   ├── sage-specification-engine.zip
+│   ├── sage-implementation-planner.zip
+│   ├── sage-documentation-generator.zip
+│   ├── sage-context-optimizer.zip
+│   └── sage-ticket-manager.zip
+│
 ├── rules/                      # Development standards
 │   ├── typing-standards.md
 │   ├── test-standards.md
@@ -440,7 +488,8 @@ sage-dev/
 ├── docs/                        # Project documentation (v2.5+)
 │   ├── features/               # Feature requests (from /sage.init-feature)
 │   ├── research/               # Research outputs (from /sage.intel)
-│   └── specs/                  # Specifications and plans
+│   ├── specs/                  # Specifications and plans
+│   └── SKILLS_GUIDE.md         # Cross-platform Skills installation
 │
 ├── .sage/                      # Configuration & tooling state
 │   ├── config.json             # Language & enforcement config
@@ -474,15 +523,17 @@ sage-dev/
 ├── assets/                     # Project assets
 │   └── sage_dev_cover_image.png
 │
-├── sage-setup.sh               # Installation script
+├── sage-setup.sh               # Installation script (slash commands)
+├── sage-skillify.sh            # Skills generator (cross-platform)
 ├── AGENTS_AND_RULES.md         # Agent documentation
 └── README.md                   # This file
 ```
 
 ## Documentation
 
+- **[docs/SKILLS_GUIDE.md](docs/SKILLS_GUIDE.md)** - Universal Skills guide (Claude/ChatGPT/Gemini)
 - **[SAGE.WORKFLOW.md](commands/sage.workflow.md)** - Complete workflow guide
-- **[SAGE.COMMANDS.md](commands/SAGE.COMMANDS.md)** - Command reference (35 commands)
+- **[SAGE.COMMANDS.md](commands/SAGE.COMMANDS.md)** - Command reference (37 commands)
 - **[AGENTS_AND_RULES.md](AGENTS_AND_RULES.md)** - Agent and rule documentation
 - **[agents/LANGUAGES.md](agents/LANGUAGES.md)** - Multi-language support guide
 - **[.sage/README.md](.sage/README.md)** - Configuration guide
@@ -585,6 +636,22 @@ A: `cd sage-dev && git pull && ./sage-setup.sh [agent] [language]`
 **Q: Can I customize enforcement rules?**
 
 A: Yes! Edit files in `rules/` and `.sage/enforcement.json` to customize standards and thresholds.
+
+**Q: What are Skills and when should I use them?**
+
+A: Skills are portable expertise packages that work across all LLM platforms (Claude, ChatGPT, Gemini). Use Skills when working outside Claude Code CLI or when you prefer auto-discovery over slash commands. See [docs/SKILLS_GUIDE.md](docs/SKILLS_GUIDE.md).
+
+**Q: Do Skills work in ChatGPT/Gemini?**
+
+A: Yes! Skills work everywhere. Generate them with `./sage-skillify.sh` and upload the ZIP files to any LLM. Skills auto-activate based on conversation context.
+
+**Q: Can I use both Skills and slash commands?**
+
+A: Yes, but they serve different use cases. Use slash commands in Claude Code CLI for workflow orchestration (`/sage.stream`, `/sage.implement`). Use Skills in any LLM for domain expertise and quality guidance.
+
+**Q: How do Skills compare to slash commands?**
+
+A: Skills = cross-platform + auto-discovery + natural language. Slash commands = Claude Code only + explicit invocation + workflow automation. Skills focus on expertise, commands focus on orchestration.
 
 ## Support
 

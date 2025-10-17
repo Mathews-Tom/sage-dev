@@ -723,10 +723,10 @@ REMAINING=$((TOTAL_TICKETS - COMPLETED))
 TICKET_START_TIME=$(date +%s)
 
 echo ""
-echo "┌────────────────────────────────────────────────┐"
-echo "│  TICKET $CURRENT_POSITION/$TOTAL_TICKETS - $TICKET_ID"
-echo "│  $(printf '%-46s' "$TICKET_TITLE") │"
-echo "└────────────────────────────────────────────────┘"
+echo "┌────────────────────────────────────────────────────────┐"
+echo "│  TICKET $CURRENT_POSITION/$TOTAL_TICKETS - $TICKET_ID  │"
+echo "│  $(printf '%-46s' "$TICKET_TITLE")                     │"
+echo "└────────────────────────────────────────────────────────┘"
 echo ""
 echo "Details:"
 echo "  Type:     $TICKET_TYPE"

@@ -2,6 +2,20 @@
 
 Configuration and state files for sage-dev enforcement system.
 
+## 🎯 Universal Skills - Alternative Interaction Model
+
+**New in v2.6:** Sage-Dev is now available as portable Claude Skills that work across all LLM platforms (Claude, ChatGPT, Gemini). Skills provide the same expertise as slash commands but through natural language auto-discovery.
+
+**Quick Start:**
+```bash
+./sage-skillify.sh  # Generates skills/*.zip files
+# Upload to your LLM of choice
+```
+
+**Learn More:** See [docs/SKILLS_GUIDE.md](../docs/SKILLS_GUIDE.md) for installation and usage.
+
+---
+
 ## Files
 
 ### Configuration
