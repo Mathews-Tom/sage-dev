@@ -1,0 +1,67 @@
+name: Build and Release Skills
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  build-skills:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Generate Skills
+        run: |
+          chmod +x sage-skillify.sh
+          ./sage-skillify.sh
+
+      - name: List generated Skills
+        run: ls -lh skills/
+
+      - name: Create Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v1
+        with:
+          files: skills/*.zip
+          body: |
+            # Sage-Dev Skills Release ${{ github.ref_name }}
+
+            Portable Claude Skills for cross-platform development workflows.
+
+            ## 📦 Included Skills (8)
+
+            - **sage-python-quality-suite.zip** - Python type enforcement, docstrings, test coverage
+            - **sage-security-guard.zip** - Secret detection, no-bullshit code enforcement
+            - **sage-research-intelligence.zip** - Market research, competitive analysis
+            - **sage-specification-engine.zip** - Requirements analysis, technical breakdowns
+            - **sage-implementation-planner.zip** - PRP plans, SMART task breakdowns
+            - **sage-documentation-generator.zip** - Docs, SOPs, docstrings
+            - **sage-context-optimizer.zip** - Context compression, research delegation
+            - **sage-ticket-manager.zip** - Validation, GitHub sync, migration
+
+            ## 📖 Installation
+
+            See [SKILLS_GUIDE.md](https://github.com/Mathews-Tom/sage-dev/blob/main/docs/SKILLS_GUIDE.md) for installation instructions across Claude, ChatGPT, Gemini, and other platforms.
+
+            ## 🚀 Quick Start
+
+            **Claude:** Upload zips to capabilities panel
+            **ChatGPT/Gemini:** Upload zips per conversation
+            **Other LLMs:** Upload and reference in prompts
+
+            ## 📝 Changelog
+
+            Auto-generated from commands and agents source files.
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload Skills Artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: sage-dev-skills-${{ github.sha }}
+          path: skills/*.zip
+          retention-days: 90
