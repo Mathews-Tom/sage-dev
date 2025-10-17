@@ -4,8 +4,9 @@
 
 set -euo pipefail
 
-VERSION="1.0.0"
+VERSION="2.0.0"
 OUTPUT_DIR="skills"
+SKILLS_SRC_DIR="skills/skills-src"
 TEMP_DIR=".skillify-temp"
 
 # Colors for output
@@ -23,9 +24,40 @@ info() { echo -e "${BLUE}→${NC} $1"; }
 # Clean and create directories
 setup_dirs() {
     info "Setting up directory structure..."
-    rm -rf "$OUTPUT_DIR" "$TEMP_DIR"
-    mkdir -p "$OUTPUT_DIR" "$TEMP_DIR"
+    rm -rf "$TEMP_DIR"
+    mkdir -p "$OUTPUT_DIR/ai-development" "$TEMP_DIR"
     log "Directories created"
+}
+
+# Package skills from skills-src directory
+package_from_source() {
+    local source_dir="$1"
+    local output_subdir="$2"  # e.g., "ai-development" or ""
+
+    if [ ! -d "$source_dir" ]; then
+        return
+    fi
+
+    for skill_dir in "$source_dir"/*; do
+        if [ -d "$skill_dir" ] && [ -f "$skill_dir/Skill.md" ]; then
+            local skill_name=$(basename "$skill_dir")
+            info "Packaging $skill_name from source..."
+
+            # Copy to temp directory
+            cp -r "$skill_dir" "$TEMP_DIR/"
+
+            # Package
+            local output_path="$OUTPUT_DIR"
+            if [ -n "$output_subdir" ]; then
+                output_path="$OUTPUT_DIR/$output_subdir"
+                mkdir -p "$output_path"
+            fi
+
+            (cd "$TEMP_DIR" && zip -r "../$output_path/${skill_name}.zip" "$skill_name" -q)
+            rm -rf "$TEMP_DIR/$skill_name"
+            log "Packaged: $output_path/${skill_name}.zip"
+        fi
+    done
 }
 
 # Generate Skill.md with YAML frontmatter and markdown body
@@ -309,20 +341,35 @@ main() {
     info "Generating Utility Skills..."
     generate_ticket_manager
 
+    echo ""
+    info "Packaging AI Development Skills from source..."
+    package_from_source "$SKILLS_SRC_DIR/ai-development" "ai-development"
+
     # Cleanup
     rm -rf "$TEMP_DIR"
 
     echo ""
     echo "═══════════════════════════════════════════════════════"
-    log "Successfully generated $(ls -1 "$OUTPUT_DIR" | wc -l | tr -d ' ') Skills"
+
+    # Count skills
+    CORE_SKILLS=$(ls -1 "$OUTPUT_DIR"/*.zip 2>/dev/null | wc -l | tr -d ' ')
+    AI_SKILLS=$(ls -1 "$OUTPUT_DIR/ai-development"/*.zip 2>/dev/null | wc -l | tr -d ' ')
+    TOTAL_SKILLS=$((CORE_SKILLS + AI_SKILLS))
+
+    log "Successfully generated $TOTAL_SKILLS Skills ($CORE_SKILLS core + $AI_SKILLS AI development)"
     echo ""
-    echo "Output directory: $OUTPUT_DIR/"
-    ls -lh "$OUTPUT_DIR"
+    echo "Output directory structure:"
+    echo "  $OUTPUT_DIR/ (Core Skills)"
+    ls -lh "$OUTPUT_DIR"/*.zip 2>/dev/null | awk '{print "    " $9 " (" $5 ")"}'
+    echo ""
+    echo "  $OUTPUT_DIR/ai-development/ (AI Development Skills)"
+    ls -lh "$OUTPUT_DIR/ai-development"/*.zip 2>/dev/null | awk '{print "    " $9 " (" $5 ")"}'
     echo ""
     echo "Next steps:"
     echo "  1. Test Skills in Claude: Upload to Claude capabilities panel"
     echo "  2. Test cross-platform: Upload zips to ChatGPT/Gemini"
     echo "  3. Review installation guide: docs/SKILLS_GUIDE.md"
+    echo "  4. Review AI Skills guide: docs/AI_SKILLS_GUIDE.md"
     echo "═══════════════════════════════════════════════════════"
     echo ""
 }
