@@ -1,7 +1,7 @@
 ---
 allowed-tools: Bash(git:*), Bash(cat:*), Bash(jq:*), Bash(grep:*), Bash(test:*), Read, Write, Edit, SequentialThinking
 description: Execute ticket-based implementation following Ticket Clearance Methodology with automatic state management and test validation.
-argument-hint: '[ticket-id] (optional, defaults to next UNPROCESSED ticket)'
+argument-hint: '[ticket-id] [--compact] (optional ticket ID, --compact loads only targetFiles)'
 ---
 
 ## Role
@@ -16,6 +16,7 @@ Transform tickets into working code through systematic implementation:
 - **State Management**: Follow ticket state machine (UNPROCESSED → IN_PROGRESS → COMPLETED/DEFERRED)
 - **Branch Management**: Create and manage feature branches per ticket
 - **Code Implementation**: Generate code based on ticket context (spec, plan, breakdown)
+- **Compact Mode** (NEW v2.3.0): Optional `--compact` flag loads only targetFiles (60-80% less context)
 - **Test Creation**: Create and validate comprehensive tests
 - **Atomic Commits**: Commit changes during implementation with ticket ID references
 - **Dependency Validation**: Verify dependencies before starting work
@@ -118,13 +119,104 @@ EOF
 **Context Engineering: Load ALL relevant documentation before implementation**
 
 ```bash
-echo "📚 Assembling Implementation Context..."
-echo ""
+# ========================================
+# Check for Compact Mode (NEW v2.3.0)
+# ========================================
+COMPACT_MODE=false
+if [ "$2" = "--compact" ] || [ "$1" = "--compact" ]; then
+  COMPACT_MODE=true
+fi
 
-# ========================================
-# PRIORITY 1: Ticket Documentation (Required)
-# ========================================
-echo "Loading ticket context..."
+# Check if ticket has targetFiles
+TARGET_FILES_COUNT=$(echo $TICKET_DATA | jq -r '.targetFiles // [] | length')
+
+if [ "$COMPACT_MODE" = "true" ] && [ "$TARGET_FILES_COUNT" -gt 0 ]; then
+  echo "📦 Compact Mode: Loading only target files..."
+  echo ""
+  echo "Target files detected: $TARGET_FILES_COUNT"
+  echo ""
+
+  # Load targetFiles from ticket
+  TARGET_FILES=$(echo $TICKET_DATA | jq -r '.targetFiles[]')
+
+  # For each target file, load it
+  echo $TICKET_DATA | jq -r '.targetFiles[] | @json' | while read -r TARGET_FILE_JSON; do
+    FILE_PATH=$(echo $TARGET_FILE_JSON | jq -r '.path')
+    ACTION=$(echo $TARGET_FILE_JSON | jq -r '.action')
+    LINE_RANGE=$(echo $TARGET_FILE_JSON | jq -r '.lineRange // empty')
+    PURPOSE=$(echo $TARGET_FILE_JSON | jq -r '.purpose')
+
+    echo "📄 $FILE_PATH ($ACTION)"
+    echo "   Purpose: $PURPOSE"
+
+    if [ "$ACTION" = "modify" ] || [ "$ACTION" = "delete" ]; then
+      # File should exist
+      if [ -f "$FILE_PATH" ]; then
+        if [ -n "$LINE_RANGE" ]; then
+          START_LINE=$(echo $LINE_RANGE | cut -d'-' -f1)
+          END_LINE=$(echo $LINE_RANGE | cut -d'-' -f2)
+          echo "   Lines: $START_LINE-$END_LINE"
+          sed -n "${START_LINE},${END_LINE}p" "$FILE_PATH"
+        else
+          echo "   Full file:"
+          cat "$FILE_PATH"
+        fi
+      else
+        echo "   ⚠️  File not found (may need to search codebase)"
+      fi
+    elif [ "$ACTION" = "create" ]; then
+      echo "   Will create new file"
+    fi
+    echo ""
+  done
+
+  # Load minimal context: just ticket docs and .sage/context.md
+  echo "📚 Loading ticket documentation..."
+
+  SPEC_PATH=$(echo $TICKET_DATA | jq -r '.docs.spec')
+  PLAN_PATH=$(echo $TICKET_DATA | jq -r '.docs.plan')
+
+  test -f "$SPEC_PATH" && cat "$SPEC_PATH"
+  test -f "$PLAN_PATH" && cat "$PLAN_PATH"
+
+  # Load project context if available
+  if [ -f ".sage/context.md" ]; then
+    echo "📋 Loading project context..."
+    cat .sage/context.md
+  fi
+
+  echo ""
+  echo "═══════════════════════════════════════"
+  echo "   COMPACT CONTEXT ASSEMBLY COMPLETE"
+  echo "═══════════════════════════════════════"
+  echo ""
+  echo "Loaded:"
+  echo "  ✓ Target files: $TARGET_FILES_COUNT"
+  echo "  ✓ Ticket documentation"
+  echo "  ✓ Project context (.sage/context.md)"
+  echo ""
+  echo "Benefits: 60-80% less context, faster execution"
+  echo "═══════════════════════════════════════"
+  echo ""
+
+  # Skip to Step 4 (implementation)
+  # The rest of Step 3 is skipped in compact mode
+
+else
+  # Standard mode: load full context
+  if [ "$COMPACT_MODE" = "true" ]; then
+    echo "⚠️  Compact mode requested but no targetFiles found in ticket"
+    echo "   Falling back to standard context loading..."
+    echo ""
+  fi
+
+  echo "📚 Assembling Implementation Context..."
+  echo ""
+
+  # ========================================
+  # PRIORITY 1: Ticket Documentation (Required)
+  # ========================================
+  echo "Loading ticket context..."
 
 # Load ticket-linked documents
 SPEC_PATH=$(echo $TICKET_DATA | jq -r '.docs.spec')
@@ -296,18 +388,29 @@ echo ""
 echo "Ready for implementation with full context"
 echo "═══════════════════════════════════════"
 echo ""
+
+fi  # End of compact mode check
 ```
 
 **Key Actions:**
 
+**Compact Mode (--compact flag + targetFiles present):**
+- Load only targetFiles specified in ticket (60-80% less context)
+- Load ticket documentation (spec, plan)
+- Load project context (.sage/context.md)
+- Skip research, code examples, system docs (focused implementation)
+
+**Standard Mode (default):**
 - **Priority 1:** Load ticket documentation (spec, plan, breakdown, tasks)
 - **Priority 2:** Load research and intelligence for component
 - **Priority 3:** Load original feature requests
 - **Priority 4:** Load code examples and patterns from repository
 - **Priority 5:** Load system documentation (architecture, tech-stack, patterns)
 - **Priority 6:** Load project standards (CLAUDE.md)
-- Use SequentialThinking with ALL context to understand requirements
-- Identify files to create/modify based on comprehensive context
+
+**Both Modes:**
+- Use SequentialThinking with available context to understand requirements
+- Identify files to create/modify (from targetFiles or spec analysis)
 - Determine testing approach from research and patterns
 - Apply repository patterns and system conventions
 
@@ -427,7 +530,218 @@ uv run pytest --cov=src tests/
 - Ensure all tests pass before marking phase complete
 - Handle test failures with automatic fixes where possible
 
-### 9. Request User Confirmation
+### 9. Quality Gates (NEW v2.3.0)
+
+Run automated quality checks before marking ticket as COMPLETED. This catches 80% of issues automatically and enforces NO BULLSHIT CODE principles.
+
+```bash
+echo "🔍 Running Quality Gates..."
+echo ""
+
+GATE_FAILED=false
+CHANGED_FILES=$(git diff --name-only HEAD)
+
+# Detect primary language
+if echo "$CHANGED_FILES" | grep -q "\.py$"; then
+  PRIMARY_LANG="python"
+elif echo "$CHANGED_FILES" | grep -q "\.\(js\|ts\)$"; then
+  PRIMARY_LANG="javascript"
+else
+  PRIMARY_LANG="unknown"
+fi
+
+# ========================================
+# Gate 1: Linting
+# ========================================
+echo "Gate 1: Linting..."
+
+if [ "$PRIMARY_LANG" = "python" ]; then
+  if command -v ruff &> /dev/null; then
+    if ! uv run ruff check $CHANGED_FILES; then
+      echo "❌ Linting failed"
+      GATE_FAILED=true
+    else
+      echo "✓ Linting passed"
+    fi
+  else
+    echo "ℹ️  ruff not installed, skipping lint check"
+  fi
+elif [ "$PRIMARY_LANG" = "javascript" ]; then
+  if command -v eslint &> /dev/null; then
+    if ! npx eslint $CHANGED_FILES; then
+      echo "❌ Linting failed"
+      GATE_FAILED=true
+    else
+      echo "✓ Linting passed"
+    fi
+  else
+    echo "ℹ️  eslint not found, skipping lint check"
+  fi
+fi
+echo ""
+
+# ========================================
+# Gate 2: Type Checking
+# ========================================
+echo "Gate 2: Type Checking..."
+
+if [ "$PRIMARY_LANG" = "python" ]; then
+  if command -v mypy &> /dev/null; then
+    if ! uv run mypy $CHANGED_FILES; then
+      echo "❌ Type checking failed"
+      GATE_FAILED=true
+    else
+      echo "✓ Type checking passed"
+    fi
+  else
+    echo "ℹ️  mypy not installed, skipping type check"
+  fi
+elif [ "$PRIMARY_LANG" = "javascript" ]; then
+  if [ -f "tsconfig.json" ]; then
+    if ! npx tsc --noEmit; then
+      echo "❌ Type checking failed"
+      GATE_FAILED=true
+    else
+      echo "✓ Type checking passed"
+    fi
+  else
+    echo "ℹ️  No tsconfig.json, skipping type check"
+  fi
+fi
+echo ""
+
+# ========================================
+# Gate 3: Tests
+# ========================================
+echo "Gate 3: Test Suite..."
+
+if [ "$PRIMARY_LANG" = "python" ]; then
+  if ! uv run pytest tests/ -v; then
+    echo "❌ Tests failed"
+    GATE_FAILED=true
+  else
+    echo "✓ All tests passed"
+  fi
+elif [ "$PRIMARY_LANG" = "javascript" ]; then
+  if [ -f "package.json" ] && grep -q "jest" package.json; then
+    if ! npm test; then
+      echo "❌ Tests failed"
+      GATE_FAILED=true
+    else
+      echo "✓ All tests passed"
+    fi
+  else
+    echo "ℹ️  No test framework detected, skipping tests"
+  fi
+fi
+echo ""
+
+# ========================================
+# Gate 4: NO BULLSHIT CODE Check
+# ========================================
+echo "Gate 4: NO BULLSHIT CODE Check..."
+
+if [ -f ".claude/agents/bs-check.md" ] || [ -f ".claude/agents/sage.bs-check.md" ]; then
+  echo "Running bs-check agent on changed files..."
+
+  # Check for bullshit patterns
+  BULLSHIT_FOUND=false
+
+  for file in $CHANGED_FILES; do
+    # Check for fallbacks
+    if grep -q "except.*pass\|try.*except.*:" "$file" 2>/dev/null; then
+      echo "⚠️  $file: Error swallowing detected"
+      BULLSHIT_FOUND=true
+    fi
+
+    # Check for magic defaults
+    if grep -q "or \[\]\|or {}\|or ''" "$file" 2>/dev/null; then
+      echo "⚠️  $file: Magic defaults detected"
+      BULLSHIT_FOUND=true
+    fi
+
+    # Check for graceful degradation
+    if grep -q "graceful\|fallback" "$file" 2>/dev/null; then
+      echo "⚠️  $file: Graceful degradation pattern detected"
+      BULLSHIT_FOUND=true
+    fi
+  done
+
+  if [ "$BULLSHIT_FOUND" = "true" ]; then
+    echo "❌ NO BULLSHIT CODE check failed"
+    GATE_FAILED=true
+  else
+    echo "✓ NO BULLSHIT CODE check passed"
+  fi
+else
+  echo "ℹ️  bs-check agent not configured, skipping"
+fi
+echo ""
+
+# ========================================
+# Gate Results
+# ========================================
+if [ "$GATE_FAILED" = "true" ]; then
+  echo "═══════════════════════════════════════"
+  echo "    ❌ QUALITY GATES FAILED"
+  echo "═══════════════════════════════════════"
+  echo ""
+  echo "One or more quality gates failed."
+  echo ""
+  echo "Options:"
+  echo "  1. Fix issues and re-run /sage.implement"
+  echo "  2. Defer ticket for later (DEFERRED state)"
+  echo "  3. Override and continue (not recommended)"
+  echo ""
+  read -p "Action [1=fix/2=defer/3=override]: " ACTION
+
+  if [ "$ACTION" = "2" ]; then
+    echo "Deferring ticket..."
+    # Mark ticket as DEFERRED
+    cat .sage/tickets/index.json | jq '
+      .tickets |= map(
+        if .id == "'$TICKET_ID'" then
+          .state = "DEFERRED" |
+          .updated = "'$(date -u +%Y-%m-%dT%H:%M:%SZ)'" |
+          .deferredReason = "Quality gates failed"
+        else . end
+      )
+    ' > .sage/tickets/index.json.tmp && mv .sage/tickets/index.json.tmp .sage/tickets/index.json
+    exit 1
+  elif [ "$ACTION" = "3" ]; then
+    echo "⚠️  Overriding quality gates (not recommended)"
+    echo "Proceeding to user confirmation..."
+  else
+    echo "Please fix the issues and re-run /sage.implement"
+    exit 1
+  fi
+else
+  echo "═══════════════════════════════════════"
+  echo "    ✓ ALL QUALITY GATES PASSED"
+  echo "═══════════════════════════════════════"
+  echo ""
+fi
+```
+
+**Key Actions:**
+
+- **Gate 1 - Linting**: Run ruff (Python) or eslint (JavaScript/TypeScript)
+- **Gate 2 - Type Checking**: Run mypy (Python) or tsc (TypeScript)
+- **Gate 3 - Tests**: Run pytest (Python) or jest (JavaScript)
+- **Gate 4 - NO BULLSHIT CODE**: Check for forbidden patterns (fallbacks, mocks, error swallowing)
+- Fail ticket if any gate fails
+- Offer defer or override options
+- Enforce quality before marking COMPLETED
+
+**Benefits:**
+
+- Catches 80% of issues automatically (per ticket-enhancement.md analysis)
+- Enforces CLAUDE.md "NO BULLSHIT CODE" principles
+- Prevents broken code from being marked COMPLETED
+- Reduces review cycles
+- Maintains codebase quality
+
+### 10. Request User Confirmation
 
 **Confirmation Prompt:**
 
@@ -455,7 +769,7 @@ Confirm completion? [Y/n]
 - If user confirms → proceed to completion
 - If user rejects → ask for rollback or deferral
 
-### 10. Handle Confirmation Response
+### 11. Handle Confirmation Response
 
 **If User Confirms:**
 
@@ -486,7 +800,7 @@ git reset --hard [pre-implementation-commit]
 - Allow deferral for tickets needing more time
 - Record reason for deferral in ticket notes
 
-### 11. Mark Ticket COMPLETED
+### 12. Mark Ticket COMPLETED
 
 ```bash
 # Update ticket state
