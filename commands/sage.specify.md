@@ -1,6 +1,7 @@
 ---
-allowed-tools: Bash(ls:*), Bash(find:*), Bash(mkdir:*), Bash(cat:*), Bash(tee:*), WebSearch, SequentialThinking
+allowed-tools: Bash(ls:*), Bash(find:*), Bash(mkdir:*), Bash(cat:*), Bash(tee:*), Bash(gh:*), Bash(jq:*), WebSearch, SequentialThinking
 description: Generate structured specifications from docs folder into docs/specs/<component>/spec.md files.
+argument-hint: '[--github] (optional, creates GitHub Issues for epic tickets)'
 ---
 
 ## Role
@@ -112,7 +113,69 @@ Requirements analyst creating actionable software specifications.
    tee docs/specs/<component>/spec.md
    ```
 
-5. **Generate Epic Tickets**:
+5. **Target File Detection** (NEW v2.3.0):
+
+   Use `SequentialThinking` to analyze the spec and detect target files:
+
+   **Phase 1: Explicit Path References**
+   - Scan spec for file path patterns: `src/path/to/file.py`, `/api/endpoint`
+   - Extract all mentioned file paths
+   - Categorize by action: modify (existing files) vs create (new files)
+
+   **Phase 2: Component/Module Pattern Detection**
+   - "auth module" → `src/auth/*.py` or `lib/auth/*.js`
+   - "user service" → `src/services/user.py` or `services/user.ts`
+   - "API endpoint" → route definition files (e.g., `routes/api.py`, `app/routes.ts`)
+   - "database model" → model files (e.g., `models/user.py`, `db/schema.sql`)
+
+   **Phase 3: Test File Inference**
+   - For each target file, infer corresponding test file
+   - Naming conventions:
+     * Python: `test_*.py` (modify `src/auth/login.py` → `tests/test_auth.py`)
+     * JavaScript/TypeScript: `*.test.ts`, `*.spec.ts`
+     * Ruby: `*_spec.rb`
+   - Check if test files exist; mark as "create" if not
+
+   **Phase 4: Configuration File Inference**
+   - API changes → check `routes.py`, `urls.py`, `router.ts`, `api.config.js`
+   - Database changes → check `models.py`, `schema.sql`, `migrations/`
+   - New features → check main config files, environment files
+
+   **Phase 5: Line Range Estimation** (Optional)
+   - For "modify" actions, if spec mentions specific functionality
+   - Search target files for related code (e.g., function names, class names)
+   - Estimate line range based on current implementation
+   - Leave empty if unable to determine
+
+   **Output Format**:
+   ```json
+   [
+     {
+       "path": "src/auth/login.py",
+       "action": "modify",
+       "lineRange": "23-45",
+       "purpose": "Add rate limiting decorator"
+     },
+     {
+       "path": "src/middleware/rate_limit.py",
+       "action": "create",
+       "purpose": "Implement rate limiter"
+     },
+     {
+       "path": "tests/test_auth.py",
+       "action": "modify",
+       "lineRange": "100-120",
+       "purpose": "Add rate limit tests"
+     }
+   ]
+   ```
+
+   **Validation**:
+   - Verify "modify" paths exist in codebase
+   - Mark as "create" if path doesn't exist
+   - Use `.sage/context.md` for directory structure hints if available
+
+6. **Generate Epic Tickets with Target Files**:
 
    ```bash
    # Create tickets directory if not exists
@@ -126,7 +189,7 @@ Requirements analyst creating actionable software specifications.
    TICKET_NUMBER="001"
    TICKET_ID="${COMPONENT_ID}-${TICKET_NUMBER}"
 
-   # Generate ticket markdown
+   # Generate ticket markdown with target files
    tee .sage/tickets/${TICKET_ID}.md <<EOF
    # ${TICKET_ID}: [Component Name] Implementation
 
@@ -142,6 +205,13 @@ Requirements analyst creating actionable software specifications.
    - [ ] All non-functional requirements met
    - [ ] Tests passing
 
+   ## Target Files
+   [Auto-detected from spec analysis - Step 5]
+
+   - \`src/path/to/file.py\` (modify, lines X-Y): [Purpose]
+   - \`src/path/to/new_file.py\` (create): [Purpose]
+   - \`tests/test_file.py\` (modify): [Purpose]
+
    ## Dependencies
    - None (or list component dependencies)
 
@@ -152,12 +222,139 @@ Requirements analyst creating actionable software specifications.
    **Notes:** Generated from /specify command
    EOF
 
-   # Update index.json
-   # Add ticket entry with metadata
+   # Update index.json with target files
+   # Add ticket entry with metadata including targetFiles array:
+   # {
+   #   "id": "COMPONENT-001",
+   #   "title": "Component Implementation",
+   #   "type": "epic",
+   #   "state": "UNPROCESSED",
+   #   "priority": "P0",
+   #   "targetFiles": [
+   #     {"path": "src/...", "action": "modify", "lineRange": "X-Y", "purpose": "..."},
+   #     {"path": "tests/...", "action": "create", "purpose": "..."}
+   #   ],
+   #   "docs": {"spec": "docs/specs/component/spec.md"},
+   #   ...
+   # }
    ```
 
-6. **Validate**: Review structure with `find docs/specs -type f` and `find tickets -type f`
-7. **Summary**: List created specs, epic tickets, and highlight cross-dependencies
+7. **Create GitHub Issues** (NEW v2.3.0 - Optional):
+
+   **Only runs when `--github` flag is provided**
+
+   ```bash
+   # Check for --github flag
+   GITHUB_SYNC=false
+   if [ "$1" = "--github" ]; then
+     GITHUB_SYNC=true
+   fi
+
+   if [ "$GITHUB_SYNC" = "true" ]; then
+     echo ""
+     echo "🔄 Creating GitHub Issues for epic tickets..."
+     echo ""
+
+     # Verify gh CLI
+     if ! command -v gh &> /dev/null; then
+       echo "❌ GitHub CLI (gh) not found. Install with: brew install gh"
+       exit 1
+     fi
+
+     if ! gh auth status &> /dev/null; then
+       echo "❌ GitHub CLI not authenticated. Run: gh auth login"
+       exit 1
+     fi
+
+     # For each epic ticket created, create GitHub Issue
+     for TICKET_ID in $(cat .sage/tickets/index.json | jq -r '.tickets[] | select(.type == "epic") | .id'); do
+       echo "Creating GitHub Issue for $TICKET_ID..."
+
+       # Load ticket data
+       TICKET_JSON=$(cat .sage/tickets/index.json | jq ".tickets[] | select(.id == \"$TICKET_ID\")")
+
+       TITLE=$(echo $TICKET_JSON | jq -r '.title')
+       PRIORITY=$(echo $TICKET_JSON | jq -r '.priority')
+       DESCRIPTION=$(echo $TICKET_JSON | jq -r '.description // ""')
+       SPEC_PATH=$(echo $TICKET_JSON | jq -r '.docs.spec')
+
+       # Map priority to label
+       PRIORITY_LABEL=$(case $PRIORITY in
+         P0) echo "critical" ;;
+         P1) echo "high" ;;
+         P2) echo "medium" ;;
+         *) echo "medium" ;;
+       esac)
+
+       # Build issue body
+       ISSUE_BODY="**Type:** epic
+**Priority:** $PRIORITY
+
+## Description
+$DESCRIPTION
+
+See specification: \`$SPEC_PATH\`
+
+---
+*Generated by sage-dev v2.3.0*
+*Local Ticket ID: $TICKET_ID*"
+
+       # Create GitHub Issue
+       ISSUE_URL=$(gh issue create \
+         --title "[$TICKET_ID] $TITLE" \
+         --body "$ISSUE_BODY" \
+         --label "epic" \
+         --label "$PRIORITY_LABEL" \
+         --label "sage-dev" \
+         --json url -q .url)
+
+       # Extract issue number from URL
+       ISSUE_NUMBER=$(echo $ISSUE_URL | grep -o '[0-9]*$')
+
+       echo "  ✓ Created GitHub Issue #$ISSUE_NUMBER"
+       echo "    URL: $ISSUE_URL"
+
+       # Update ticket with GitHub metadata
+       cat .sage/tickets/index.json | jq "
+         .tickets |= map(
+           if .id == \"$TICKET_ID\" then
+             .github = {
+               issueNumber: $ISSUE_NUMBER,
+               issueUrl: \"$ISSUE_URL\",
+               labels: [\"epic\", \"$PRIORITY_LABEL\", \"sage-dev\"],
+               milestone: null,
+               assignees: []
+             } |
+             .updated = \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"
+           else . end
+         )
+       " > .sage/tickets/index.json.tmp && mv .sage/tickets/index.json.tmp .sage/tickets/index.json
+
+       echo ""
+     done
+
+     echo "✓ GitHub Issues created for all epic tickets"
+     echo ""
+   fi
+   ```
+
+   **Key Actions:**
+   - Check for `--github` flag
+   - Verify `gh` CLI installed and authenticated
+   - Create GitHub Issue for each epic ticket
+   - Map priority → labels (P0=critical, P1=high, P2=medium)
+   - Add "epic" and "sage-dev" labels
+   - Update ticket with GitHub metadata (issueNumber, issueUrl)
+   - Provide traceability with ticket ID in issue body
+
+8. **Validate**: Review structure with `find docs/specs -type f` and `find .sage/tickets -type f`
+
+9. **Summary**:
+   - List created specs with component names
+   - Show epic tickets with detected target files count
+   - Highlight cross-dependencies
+   - If `--github` flag used: show created GitHub Issues with numbers and URLs
+   - Note: Target files can be manually edited in ticket markdown or JSON if detection needs refinement
 
 ## Component Identification
 
@@ -183,6 +380,7 @@ Requirements analyst creating actionable software specifications.
 - **Priority**: Derived from spec importance (P0 for critical, P1/P2 for others)
 - **Dependencies**: Cross-component dependencies from spec
 - **Context**: Links back to `docs/specs/[component]/spec.md`
+- **Target Files** (NEW v2.3.0): Auto-detected files to create/modify, with actions and purposes
 
 **Integration with Workflow:**
 - Epic tickets serve as root nodes in ticket hierarchy
