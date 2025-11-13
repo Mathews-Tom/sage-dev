@@ -1,0 +1,27 @@
+{
+  "include": [
+    "**/*.py"
+  ],
+  "exclude": [
+    "**/node_modules",
+    "**/__pycache__",
+    "**/.*"
+  ],
+  "typeCheckingMode": "strict",
+  "reportMissingTypeStubs": false,
+  "reportImportCycles": "error",
+  "reportUnnecessaryIsInstance": "warning",
+  "reportUnnecessaryComparison": "warning",
+  "reportUnnecessaryCast": "warning",
+  "reportUninitializedInstanceVariable": "error",
+  "reportCallInDefaultInitializer": "error",
+  "reportUnnecessaryTypeIgnoreComment": "warning",
+  "reportDeprecated": "warning",
+  "reportMissingParameterType": "error",
+  "reportUnknownParameterType": "error",
+  "reportMissingTypeArgument": "error",
+  "reportUnknownArgumentType": "error",
+  "reportUnknownLambdaType": "error",
+  "reportUnknownVariableType": "error",
+  "reportUnknownMemberType": "error"
+}

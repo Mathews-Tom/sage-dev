@@ -107,6 +107,21 @@ async function executePyright(_filePath: string, code: string): Promise<PyrightO
 }
 
 /**
+ * Convert camelCase to kebab-case
+ *
+ * Converts Pyright's camelCase rule names to kebab-case format.
+ * Example: "reportUnknownParameterType" -> "report-unknown-parameter-type"
+ *
+ * @param str - camelCase string
+ * @returns kebab-case string
+ */
+function camelToKebab(str: string): string {
+  return str
+    .replace(/([a-z])([A-Z])/g, '$1-$2')
+    .toLowerCase();
+}
+
+/**
  * Convert Pyright Diagnostic to Violation
  *
  * Maps Pyright severity levels to our Violation severity enum.
@@ -124,8 +139,8 @@ function pyrightToViolation(diagnostic: PyrightDiagnostic, filePath: string): Vi
     information: 'info',
   };
 
-  // Detect rule from message patterns
-  let rule = diagnostic.rule || 'type-error';
+  // Convert Pyright's camelCase rule name to kebab-case
+  let rule = diagnostic.rule ? camelToKebab(diagnostic.rule) : 'type-error';
   let suggestion: string | undefined;
   let autoFixable = false;
 
