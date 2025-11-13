@@ -22,6 +22,7 @@ import {
   CallToolRequestSchema,
   ListToolsRequestSchema,
 } from '@modelcontextprotocol/sdk/types.js';
+import { typeEnforcer } from '../agents/type-enforcer.js';
 
 /**
  * MCP Server Information
@@ -64,9 +65,36 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
 
   return {
     tools: [
-      // Agents will be registered here in subsequent tickets:
-      // - MCP-005: sage_type_enforcer
-      // - MCP-009: sage_doc_validator, sage_test_coverage, sage_security_scanner
+      {
+        name: 'sage_type_enforcer',
+        description: 'Validates Python 3.12 type annotations using Pyright. Detects missing return types, deprecated typing imports, and inappropriate Any usage.',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            filePath: {
+              type: 'string',
+              description: 'Absolute file path',
+            },
+            code: {
+              type: 'string',
+              description: 'Python code to validate',
+            },
+            standards: {
+              type: 'object',
+              description: 'Type checking standards (optional)',
+              properties: {
+                enforceReturnTypes: { type: 'boolean' },
+                allowAny: { type: 'boolean' },
+                pythonVersion: { type: 'string' },
+                deprecatedImports: { type: 'array', items: { type: 'string' } },
+                builtinGenerics: { type: 'boolean' },
+              },
+            },
+          },
+          required: ['filePath', 'code'],
+        },
+      },
+      // MCP-009: sage_doc_validator, sage_test_coverage, sage_security_scanner
     ],
   };
 });
@@ -84,23 +112,40 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
  * @returns Tool execution result with violations
  */
 server.setRequestHandler(CallToolRequestSchema, async (request) => {
-  const { name, arguments: _args } = request.params;
+  const { name, arguments: args } = request.params;
 
-  // Agent execution will be implemented in MCP-005+
-  // switch (name) {
-  //   case 'sage_type_enforcer':
-  //     return await typeEnforcer(_args);
-  //   case 'sage_doc_validator':
-  //     return await docValidator(_args);
-  //   case 'sage_test_coverage':
-  //     return await testCoverage(_args);
-  //   case 'sage_security_scanner':
-  //     return await securityScanner(_args);
-  //   default:
-  //     throw new Error(`Unknown tool: ${name}`);
-  // }
-
-  throw new Error(`Tool not yet implemented: ${name}`);
+  try {
+    switch (name) {
+      case 'sage_type_enforcer': {
+        const result = await typeEnforcer(args);
+        return {
+          content: [
+            {
+              type: 'text',
+              text: `Found ${result.summary.errors} errors, ${result.summary.warnings} warnings`,
+            },
+            {
+              type: 'text',
+              text: JSON.stringify(result, null, 2),
+            },
+          ],
+        };
+      }
+      // MCP-009: sage_doc_validator, sage_test_coverage, sage_security_scanner
+      default:
+        throw new Error(`Unknown tool: ${name}`);
+    }
+  } catch (error) {
+    return {
+      content: [
+        {
+          type: 'text',
+          text: `Error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        },
+      ],
+      isError: true,
+    };
+  }
 });
 
 /**
