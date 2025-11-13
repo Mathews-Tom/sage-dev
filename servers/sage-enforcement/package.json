@@ -1,0 +1,52 @@
+{
+  "name": "@sage-dev/enforcement-server",
+  "version": "1.0.0",
+  "description": "MCP server for Sage-Dev enforcement agents (type checking, documentation, testing, security)",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "tsc --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:unit": "vitest run --dir tests/unit",
+    "test:integration": "vitest run --dir tests/integration",
+    "coverage": "vitest run --coverage",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src/**/*.ts",
+    "format": "prettier --write src/**/*.ts",
+    "benchmark": "node scripts/benchmark.js"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "code-quality",
+    "enforcement",
+    "type-checking",
+    "documentation",
+    "testing",
+    "security"
+  ],
+  "author": "Sage-Dev Team",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.4",
+    "zod": "^3.22.4",
+    "isolated-vm": "^5.0.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.5",
+    "@typescript-eslint/eslint-plugin": "^6.19.0",
+    "@typescript-eslint/parser": "^6.19.0",
+    "eslint": "^8.56.0",
+    "prettier": "^3.2.4",
+    "typescript": "^5.3.3",
+    "vitest": "^1.2.1",
+    "@vitest/coverage-v8": "^1.2.1"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
