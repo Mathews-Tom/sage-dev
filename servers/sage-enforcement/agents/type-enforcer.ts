@@ -1,32 +1,11 @@
-/**
- * Type Enforcer Agent
- *
- * Validates Python 3.12 type annotations using Pyright static analysis.
- * Detects missing return types, deprecated typing imports, and inappropriate Any usage.
- *
- * Performance: 3-5x faster than mypy
- * Standards: PEP 585 (built-in generics), PEP 604 (union syntax), PEP 698 (override)
- *
- * @see https://github.com/microsoft/pyright - Pyright documentation
- */
-
-import { spawn } from 'child_process';
-import { writeFileSync, unlinkSync } from 'fs';
-import { tmpdir } from 'os';
-import { join } from 'path';
-import {
-  TypeCheckInputSchema,
-  AgentResultSchema,
-  ViolationSchema,
-  type TypeCheckInput,
-  type AgentResult,
-  type Violation,
-} from '../schemas/index.js';
+import { executePyright, createSandboxConfig } from '../utils/sandbox.js';
+import { validatePath, getProjectRoot, isPythonFile } from '../utils/validation.js';
+import { isDeprecatedImport, getBuiltinReplacement, TYPING_RULES } from '../rules/typing-standards.js';
+import type { AgentResult, TypeEnforcerInput, Violation } from '../schemas/index.js';
+import { TypeEnforcerInputSchema } from '../schemas/index.js';
 
 /**
- * Pyright Diagnostic from JSON Output
- *
- * Structure returned by `pyright --outputjson`
+ * Pyright diagnostic from JSON output
  */
 interface PyrightDiagnostic {
   file: string;
@@ -39,6 +18,9 @@ interface PyrightDiagnostic {
   rule?: string;
 }
 
+/**
+ * Pyright JSON output format
+ */
 interface PyrightOutput {
   version: string;
   time: string;
@@ -48,223 +30,164 @@ interface PyrightOutput {
     errorCount: number;
     warningCount: number;
     informationCount: number;
-    timeInSec: number;
   };
 }
 
 /**
- * Execute Pyright Type Checker
- *
- * Spawns Pyright subprocess with --outputjson flag and parses results.
- *
- * @param filePath - Absolute path to Python file
- * @param code - Python code to analyze
- * @returns Pyright output with diagnostics
+ * Type enforcer agent - validates Python type annotations using Pyright
+ * Enforces Python 3.12 typing standards and detects deprecated typing imports
  */
-async function executePyright(_filePath: string, code: string): Promise<PyrightOutput> {
-  // Write code to temporary file (Pyright requires a file on disk)
-  const tempFile = join(tmpdir(), `sage-enforcement-${Date.now()}.py`);
-  writeFileSync(tempFile, code, 'utf-8');
+export class TypeEnforcer {
+  private projectRoot: string;
 
-  try {
-    return await new Promise((resolve, reject) => {
-      const pyright = spawn('pyright', ['--outputjson', tempFile]);
+  constructor(projectRoot?: string) {
+    this.projectRoot = projectRoot || getProjectRoot();
+  }
 
-      let stdout = '';
-      let stderr = '';
+  /**
+   * Validates input parameters
+   * @param input - Type enforcer input
+   * @throws Error if validation fails
+   */
+  private validateInput(input: TypeEnforcerInput): void {
+    const result = TypeEnforcerInputSchema.safeParse(input);
 
-      pyright.stdout.on('data', (data) => {
-        stdout += data.toString();
-      });
+    if (!result.success) {
+      throw new Error(`Invalid input: ${result.error.message}`);
+    }
 
-      pyright.stderr.on('data', (data) => {
-        stderr += data.toString();
-      });
+    if (!isPythonFile(input.filePath)) {
+      throw new Error(`Not a Python file: ${input.filePath}`);
+    }
 
-      pyright.on('close', (_code) => {
-        // Pyright returns non-zero exit code if violations found
-        // This is expected, not an error
-        try {
-          const output = JSON.parse(stdout) as PyrightOutput;
-          resolve(output);
-        } catch (error) {
-          reject(new Error(`Failed to parse Pyright output: ${stderr || stdout}`));
-        }
-      });
-
-      pyright.on('error', (error) => {
-        reject(new Error(`Failed to spawn Pyright: ${error.message}`));
-      });
-    });
-  } finally {
-    // Cleanup temporary file
-    try {
-      unlinkSync(tempFile);
-    } catch {
-      // Ignore cleanup errors
+    const validatedPath = validatePath(input.filePath, this.projectRoot);
+    if (!validatedPath) {
+      throw new Error(`Invalid file path: ${input.filePath}`);
     }
   }
-}
 
-/**
- * Convert camelCase to kebab-case
- *
- * Converts Pyright's camelCase rule names to kebab-case format.
- * Example: "reportUnknownParameterType" -> "report-unknown-parameter-type"
- *
- * @param str - camelCase string
- * @returns kebab-case string
- */
-function camelToKebab(str: string): string {
-  return str
-    .replace(/([a-z])([A-Z])/g, '$1-$2')
-    .toLowerCase();
-}
+  /**
+   * Detects deprecated typing imports in code
+   * @param code - Python source code
+   * @returns Array of violations for deprecated imports
+   */
+  private detectDeprecatedImports(code: string, filePath: string): Violation[] {
+    const violations: Violation[] = [];
+    const lines = code.split('\n');
 
-/**
- * Convert Pyright Diagnostic to Violation
- *
- * Maps Pyright severity levels to our Violation severity enum.
- * Adds auto-fix suggestions for common type violations.
- *
- * @param diagnostic - Pyright diagnostic
- * @param filePath - Original file path (not temp file)
- * @returns Violation object
- */
-function pyrightToViolation(diagnostic: PyrightDiagnostic, filePath: string): Violation {
-  // Map Pyright severity to our enum
-  const severityMap: Record<string, 'error' | 'warning' | 'info'> = {
-    error: 'error',
-    warning: 'warning',
-    information: 'info',
-  };
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      const importMatch = line.match(/from\s+typing\s+import\s+(.+)/);
 
-  // Convert Pyright's camelCase rule name to kebab-case
-  let rule = diagnostic.rule ? camelToKebab(diagnostic.rule) : 'type-error';
-  let suggestion: string | undefined;
-  let autoFixable = false;
+      if (!importMatch) continue;
 
-  const message = diagnostic.message;
+      const imports = importMatch[1].split(',').map(s => s.trim());
 
-  // Missing return type annotation
-  if (message.includes('missing return type annotation')) {
-    rule = 'missing-return-type';
-    suggestion = 'Add return type annotation: -> <type>';
-    autoFixable = true;
-  }
-  // Deprecated typing imports
-  else if (message.includes('List') && message.includes('deprecated')) {
-    rule = 'deprecated-typing-list';
-    suggestion = 'Use built-in list[] instead of typing.List[]';
-    autoFixable = true;
-  } else if (message.includes('Dict') && message.includes('deprecated')) {
-    rule = 'deprecated-typing-dict';
-    suggestion = 'Use built-in dict[] instead of typing.Dict[]';
-    autoFixable = true;
-  } else if (message.includes('Optional') && message.includes('deprecated')) {
-    rule = 'deprecated-typing-optional';
-    suggestion = 'Use | None instead of typing.Optional[]';
-    autoFixable = true;
-  } else if (message.includes('Union') && message.includes('deprecated')) {
-    rule = 'deprecated-typing-union';
-    suggestion = 'Use | instead of typing.Union[]';
-    autoFixable = true;
-  }
-  // Inappropriate Any usage
-  else if (message.includes('Any') || message.includes('type "Any"')) {
-    rule = 'inappropriate-any';
-    suggestion = 'Replace Any with a more specific type';
-    autoFixable = false;
+      for (const importName of imports) {
+        const cleanImport = importName.replace(/\s+as\s+.+/, '').trim();
+
+        if (isDeprecatedImport(cleanImport)) {
+          const replacement = getBuiltinReplacement(cleanImport);
+          const rule = TYPING_RULES.find(r => r.id === `no-legacy-${cleanImport.toLowerCase()}`);
+
+          violations.push({
+            file: filePath,
+            line: i + 1,
+            column: line.indexOf(cleanImport),
+            severity: 'error',
+            rule: rule?.id || 'no-legacy-typing',
+            message: `Deprecated import: typing.${cleanImport}. Use ${replacement} instead.`,
+            suggestion: replacement ? `Replace typing.${cleanImport} with ${replacement}` : undefined,
+            autoFixable: true,
+          });
+        }
+      }
+    }
+
+    return violations;
   }
 
-  return ViolationSchema.parse({
-    file: filePath,
-    line: diagnostic.range.start.line + 1, // Pyright uses 0-indexed, we use 1-indexed
-    column: diagnostic.range.start.character,
-    severity: severityMap[diagnostic.severity] || 'error',
-    rule,
-    message,
-    suggestion,
-    autoFixable,
-  });
-}
+  /**
+   * Converts Pyright diagnostic to Violation
+   * @param diagnostic - Pyright diagnostic
+   * @returns Violation object
+   */
+  private convertDiagnostic(diagnostic: PyrightDiagnostic): Violation {
+    const severity = diagnostic.severity === 'error' ? 'error' : 
+                     diagnostic.severity === 'warning' ? 'warning' : 'info';
 
-/**
- * Type Enforcer Agent
- *
- * Validates Python 3.12 type annotations using Pyright.
- * Returns top 10 error violations (filtered in agent, not context).
- *
- * Example usage:
- * ```typescript
- * const result = await typeEnforcer({
- *   filePath: '/path/to/file.py',
- *   code: 'def foo(x: int): return x * 2',
- *   standards: { enforceReturnTypes: true }
- * });
- * ```
- *
- * @param input - Type check parameters
- * @returns Agent result with violations
- */
-export async function typeEnforcer(input: unknown): Promise<AgentResult> {
-  const startTime = Date.now();
-
-  // Validate input with Zod schema
-  const validated = TypeCheckInputSchema.parse(input) as TypeCheckInput;
-
-  try {
-    // Execute Pyright
-    const pyrightOutput = await executePyright(validated.filePath, validated.code);
-
-    // Convert Pyright diagnostics to Violations
-    const allViolations = pyrightOutput.generalDiagnostics.map((diagnostic) =>
-      pyrightToViolation(diagnostic, validated.filePath)
-    );
-
-    // Filter to errors only (top 10)
-    const errorViolations = allViolations
-      .filter((v) => v.severity === 'error')
-      .slice(0, 10);
-
-    // Filter to warnings (top 10)
-    const warningViolations = allViolations
-      .filter((v) => v.severity === 'warning')
-      .slice(0, 10);
-
-    // Combine: errors first, then warnings
-    const violations = [...errorViolations, ...warningViolations];
-
-    // Calculate execution time
-    const executionTime = Date.now() - startTime;
-
-    // Estimate tokens used (rough approximation)
-    const tokensUsed = violations.length * 50; // ~50 tokens per violation
-
-    // Build result
-    const result: AgentResult = {
-      agent: 'type-enforcer',
-      executionTime,
-      tokensUsed,
-      violations,
-      summary: {
-        errors: pyrightOutput.summary.errorCount,
-        warnings: pyrightOutput.summary.warningCount,
-        info: pyrightOutput.summary.informationCount,
-      },
+    return {
+      file: diagnostic.file,
+      line: diagnostic.range.start.line + 1,
+      column: diagnostic.range.start.character,
+      severity,
+      rule: diagnostic.rule || 'type-error',
+      message: diagnostic.message,
+      autoFixable: false,
     };
+  }
 
-    return AgentResultSchema.parse(result);
-  } catch (error) {
-    // Handle Pyright execution errors
-    if (error instanceof Error) {
-      if (error.message.includes('Failed to spawn Pyright')) {
-        throw new Error(
-          'Pyright not found. Install with: npm install -g pyright'
-        );
+  /**
+   * Executes type enforcement for a Python file
+   * @param input - Type enforcer input
+   * @returns Agent result with violations
+   */
+  async execute(input: TypeEnforcerInput): Promise<AgentResult> {
+    this.validateInput(input);
+
+    const violations: Violation[] = [];
+
+    // Step 1: Check for deprecated typing imports
+    const deprecatedImports = this.detectDeprecatedImports(input.code, input.filePath);
+    violations.push(...deprecatedImports);
+
+    // Step 2: Run Pyright type checker
+    try {
+      const sandboxConfig = createSandboxConfig({
+        timeoutMs: 15000, // 15 seconds for type checking
+        workingDirectory: this.projectRoot,
+      });
+
+      const result = await executePyright(input.filePath, sandboxConfig);
+
+      if (result.stdout) {
+        const pyrightOutput: PyrightOutput = JSON.parse(result.stdout);
+
+        // Convert Pyright diagnostics to violations
+        for (const diagnostic of pyrightOutput.generalDiagnostics) {
+          violations.push(this.convertDiagnostic(diagnostic));
+        }
+      }
+
+      if (result.stderr && result.exitCode !== 0) {
+        throw new Error(`Pyright execution failed: ${result.stderr}`);
+      }
+    } catch (error) {
+      if (error instanceof Error) {
+        throw new Error(`Type enforcement failed: ${error.message}`);
       }
       throw error;
     }
-    throw new Error('Unknown error during type checking');
+
+    // Calculate summary
+    const summary = {
+      errors: violations.filter(v => v.severity === 'error').length,
+      warnings: violations.filter(v => v.severity === 'warning').length,
+      info: violations.filter(v => v.severity === 'info').length,
+    };
+
+    return {
+      violations,
+      summary,
+    };
   }
+}
+
+/**
+ * Factory function to create type enforcer instance
+ * @param projectRoot - Optional project root directory
+ * @returns Type enforcer instance
+ */
+export function createTypeEnforcer(projectRoot?: string): TypeEnforcer {
+  return new TypeEnforcer(projectRoot);
 }

@@ -1,375 +1,166 @@
-/**
- * Agent Discovery System
- *
- * Filesystem-based progressive tool discovery with on-demand loading.
- * Achieves token reduction through selective agent loading and session caching.
- *
- * Performance:
- * - <100ms discovery latency (cached)
- * - <500ms discovery latency (cold start)
- * - Loads 1-2 agents per file (not all 4)
- *
- * @see https://modelcontextprotocol.io/ - MCP Specification
- */
-
-import { readdirSync } from 'fs';
-import { extname, basename } from 'path';
-import type { AgentResult } from './schemas/index.js';
+import { extname } from 'path';
 
 /**
- * Agent Function Type
- *
- * Standard agent function signature: takes unknown input, returns AgentResult.
- */
-export type AgentFunction = (input: unknown) => Promise<AgentResult>;
-
-/**
- * Agent Metadata
- *
- * Describes an enforcement agent with its capabilities and constraints.
+ * Agent metadata
  */
 export interface AgentMetadata {
-  /** Agent identifier (e.g., "type-enforcer") */
   name: string;
-
-  /** Display name for UI */
-  displayName: string;
-
-  /** Agent description */
   description: string;
-
-  /** File extensions this agent supports (e.g., [".py", ".pyi"]) */
-  supportedExtensions: string[];
-
-  /** Agent execution function (lazy-loaded) */
-  execute?: AgentFunction;
+  applicableFileTypes: string[];
+  modulePath: string;
 }
 
 /**
- * File Type to Agent Mapping
- *
- * Maps file extensions to applicable agents.
- * This is the core of selective loading - only relevant agents are loaded per file type.
+ * Agent instance with execute method
  */
-const FILE_TYPE_AGENTS: Record<string, string[]> = {
-  '.py': ['type-enforcer', 'doc-validator', 'test-coverage', 'security-scanner'],
-  '.pyi': ['type-enforcer', 'doc-validator'],
-  '.js': ['security-scanner'],
-  '.ts': ['security-scanner'],
-  '.jsx': ['security-scanner'],
-  '.tsx': ['security-scanner'],
-};
+export interface Agent {
+  execute(input: unknown): Promise<unknown>;
+}
 
 /**
- * Agent Metadata Registry
- *
- * Comprehensive metadata for all available agents.
+ * Agent cache for session-based caching
  */
-const AGENT_REGISTRY: Record<string, AgentMetadata> = {
-  'type-enforcer': {
+const agentCache = new Map<string, Agent>();
+
+/**
+ * Available agent metadata registry
+ */
+const AGENT_REGISTRY: AgentMetadata[] = [
+  {
     name: 'type-enforcer',
-    displayName: 'Type Enforcer',
-    description: 'Validates Python 3.12 type annotations using Pyright',
-    supportedExtensions: ['.py', '.pyi'],
+    description: 'Python 3.12 type checking via Pyright',
+    applicableFileTypes: ['.py'],
+    modulePath: './agents/type-enforcer.js',
   },
-  'doc-validator': {
+  {
     name: 'doc-validator',
-    displayName: 'Documentation Validator',
-    description: 'Validates Google-style docstrings for Python functions and classes',
-    supportedExtensions: ['.py', '.pyi'],
+    description: 'Python docstring validation (Google-style)',
+    applicableFileTypes: ['.py'],
+    modulePath: './agents/doc-validator.js',
   },
-  'test-coverage': {
+  {
     name: 'test-coverage',
-    displayName: 'Test Coverage',
-    description: 'Validates test coverage using pytest-cov',
-    supportedExtensions: ['.py'],
+    description: 'Pytest coverage enforcement',
+    applicableFileTypes: ['.py'],
+    modulePath: './agents/test-coverage.js',
   },
-  'security-scanner': {
+  {
     name: 'security-scanner',
-    displayName: 'Security Scanner',
-    description: 'Scans for OWASP Top 10 vulnerabilities and hardcoded secrets',
-    supportedExtensions: ['.py', '.js', '.ts', '.jsx', '.tsx'],
+    description: 'Security vulnerability and secret detection',
+    applicableFileTypes: ['.py', '.ts', '.js', '.tsx', '.jsx'],
+    modulePath: './agents/security-scanner.js',
   },
-};
+];
 
 /**
- * Session-Based Agent Cache
- *
- * Caches loaded agents per session to avoid redundant imports.
- * Map<agentName, AgentMetadata with execute function>
+ * Discovers available enforcement agents
+ * @returns Array of agent metadata
  */
-const agentCache = new Map<string, AgentMetadata>();
-
-/**
- * Performance Tracking
- *
- * Tracks discovery latency for performance monitoring.
- */
-interface PerformanceMetrics {
-  cacheHits: number;
-  cacheMisses: number;
-  totalDiscoveryTime: number;
-  avgDiscoveryTime: number;
+export function discoverAgents(): AgentMetadata[] {
+  return [...AGENT_REGISTRY];
 }
 
-const performanceMetrics: PerformanceMetrics = {
-  cacheHits: 0,
-  cacheMisses: 0,
-  totalDiscoveryTime: 0,
-  avgDiscoveryTime: 0,
-};
-
 /**
- * Get Applicable Agents for File Path
- *
- * Returns list of agent names applicable to the given file based on extension.
- * This implements selective loading - only relevant agents are returned.
- *
- * @param filePath - Absolute or relative file path
- * @returns Array of applicable agent names
- *
- * @example
- * ```typescript
- * const agents = getApplicableAgents('src/auth.py');
- * // Returns: ['type-enforcer', 'doc-validator', 'test-coverage', 'security-scanner']
- *
- * const agents = getApplicableAgents('src/utils.ts');
- * // Returns: ['security-scanner']
- * ```
+ * Gets applicable agents for a file type
+ * @param filePath - File path to check
+ * @returns Array of agent names applicable to file type
  */
 export function getApplicableAgents(filePath: string): string[] {
-  const ext = extname(filePath);
+  const ext = extname(filePath).toLowerCase();
+  const applicableAgents: string[] = [];
 
-  // Return agents for this file type
-  return FILE_TYPE_AGENTS[ext] || [];
-}
-
-/**
- * Discover Available Agents from Filesystem
- *
- * Scans `servers/sage-enforcement/agents/` directory for agent files.
- * Returns list of discovered agent names (without lazy loading).
- *
- * @returns Array of agent names found in filesystem
- *
- * @example
- * ```typescript
- * const agents = discoverAgents();
- * // Returns: ['type-enforcer', 'doc-validator', 'test-coverage', 'security-scanner']
- * ```
- */
-export function discoverAgents(): string[] {
-  const startTime = performance.now();
-
-  try {
-    // Scan agents directory
-    const agentsDir = new URL('./agents/', import.meta.url).pathname;
-    const files = readdirSync(agentsDir);
-
-    // Extract agent names from filenames (e.g., "type-enforcer.ts" → "type-enforcer")
-    const agentNames = files
-      .filter((file) => file.endsWith('.ts') && !file.endsWith('.test.ts'))
-      .map((file) => basename(file, '.ts'));
-
-    const discoveryTime = performance.now() - startTime;
-    performanceMetrics.totalDiscoveryTime += discoveryTime;
-
-    // Log discovery latency
-    console.error(`Agent discovery: ${agentNames.length} agents found in ${discoveryTime.toFixed(2)}ms`);
-
-    return agentNames;
-  } catch (error) {
-    console.error('Agent discovery failed:', error instanceof Error ? error.message : 'Unknown error');
-    return [];
+  for (const agent of AGENT_REGISTRY) {
+    if (agent.applicableFileTypes.includes(ext)) {
+      applicableAgents.push(agent.name);
+    }
   }
+
+  return applicableAgents;
 }
 
 /**
- * Get Agent with Lazy Loading
- *
- * Retrieves agent metadata and lazy-loads execution function if needed.
- * Uses session-based cache to avoid redundant imports.
- *
- * @param agentName - Agent identifier (e.g., "type-enforcer")
- * @returns Agent metadata with execute function
- *
- * @throws Error if agent not found or import fails
- *
- * @example
- * ```typescript
- * const agent = await getAgent('type-enforcer');
- * const result = await agent.execute({ filePath: 'auth.py', code: '...' });
- * ```
+ * Gets agent metadata by name
+ * @param agentName - Agent name
+ * @returns Agent metadata or undefined if not found
  */
-export async function getAgent(agentName: string): Promise<AgentMetadata> {
-  const startTime = performance.now();
+export function getAgentMetadata(agentName: string): AgentMetadata | undefined {
+  return AGENT_REGISTRY.find(agent => agent.name === agentName);
+}
 
+/**
+ * Loads an agent dynamically by name
+ * Uses session-based caching to avoid reloading agents
+ * @param agentName - Agent name to load
+ * @returns Agent instance
+ * @throws Error if agent not found or loading fails
+ */
+export async function getAgent(agentName: string): Promise<Agent> {
   // Check cache first
   if (agentCache.has(agentName)) {
-    performanceMetrics.cacheHits++;
-    const discoveryTime = performance.now() - startTime;
-    console.error(`Agent cache hit: ${agentName} (${discoveryTime.toFixed(2)}ms)`);
-
-    return agentCache.get(agentName)!;
+    const cached = agentCache.get(agentName);
+    if (cached) return cached;
   }
 
-  // Cache miss - load agent
-  performanceMetrics.cacheMisses++;
-
-  // Get metadata from registry
-  const metadata = AGENT_REGISTRY[agentName];
+  // Find agent metadata
+  const metadata = getAgentMetadata(agentName);
   if (!metadata) {
     throw new Error(`Agent not found: ${agentName}`);
   }
 
+  // Load agent module dynamically
   try {
-    // Lazy-load agent execution function
-    // Using static imports to work with Vite/Vitest bundler
-    let agentModule: Record<string, AgentFunction>;
+    const module = await import(metadata.modulePath);
 
-    switch (agentName) {
-      case 'type-enforcer':
-        agentModule = await import('./agents/type-enforcer.js');
-        break;
-      case 'doc-validator':
-        agentModule = await import('./agents/doc-validator.js');
-        break;
-      case 'test-coverage':
-        agentModule = await import('./agents/test-coverage.js');
-        break;
-      case 'security-scanner':
-        agentModule = await import('./agents/security-scanner.js');
-        break;
-      default:
-        throw new Error(`Unknown agent: ${agentName}`);
+    // Get factory function (e.g., createTypeEnforcer)
+    const factoryName = `create${agentName
+      .split('-')
+      .map(part => part.charAt(0).toUpperCase() + part.slice(1))
+      .join('')}`;
+
+    const factory = module[factoryName];
+
+    if (typeof factory !== 'function') {
+      throw new Error(`Factory function ${factoryName} not found in ${metadata.modulePath}`);
     }
 
-    // Convention: agent exports main function with same name as file
-    // e.g., type-enforcer.ts exports typeEnforcer()
-    const executeFunctionName = agentName.replace(/-([a-z])/g, (_, letter) => letter.toUpperCase());
-
-    if (!agentModule[executeFunctionName]) {
-      throw new Error(
-        `Agent module ${agentName} does not export expected function: ${executeFunctionName}`
-      );
-    }
-
-    // Create agent with execute function
-    const agent: AgentMetadata = {
-      ...metadata,
-      execute: agentModule[executeFunctionName] as AgentFunction,
-    };
+    // Create agent instance
+    const agent = factory();
 
     // Cache for session
     agentCache.set(agentName, agent);
 
-    const discoveryTime = performance.now() - startTime;
-    performanceMetrics.totalDiscoveryTime += discoveryTime;
-    performanceMetrics.avgDiscoveryTime =
-      performanceMetrics.totalDiscoveryTime /
-      (performanceMetrics.cacheHits + performanceMetrics.cacheMisses);
-
-    console.error(`Agent loaded: ${agentName} (${discoveryTime.toFixed(2)}ms)`);
-
     return agent;
   } catch (error) {
-    throw new Error(
-      `Failed to load agent ${agentName}: ${error instanceof Error ? error.message : 'Unknown error'}`
-    );
+    if (error instanceof Error) {
+      throw new Error(`Failed to load agent ${agentName}: ${error.message}`);
+    }
+    throw error;
   }
 }
 
 /**
- * Load Agents for File
- *
- * Convenience function to get all applicable agents for a file and lazy-load them.
- * This is the primary entry point for enforcement operations.
- *
- * @param filePath - Absolute or relative file path
- * @returns Array of loaded agents with execute functions
- *
- * @example
- * ```typescript
- * const agents = await loadAgentsForFile('src/auth.py');
- * for (const agent of agents) {
- *   const result = await agent.execute({ filePath: 'src/auth.py', code: '...' });
- *   console.log(result);
- * }
- * ```
+ * Loads all applicable agents for a file
+ * @param filePath - File path
+ * @returns Array of agent instances
  */
-export async function loadAgentsForFile(filePath: string): Promise<AgentMetadata[]> {
-  const startTime = performance.now();
-
-  // Get applicable agent names
+export async function loadAgentsForFile(filePath: string): Promise<Agent[]> {
   const agentNames = getApplicableAgents(filePath);
 
-  // Lazy-load all applicable agents
-  const agents = await Promise.all(agentNames.map((name) => getAgent(name)));
-
-  const totalTime = performance.now() - startTime;
-  console.error(
-    `Loaded ${agents.length} agents for ${filePath} in ${totalTime.toFixed(2)}ms`
-  );
-
-  return agents;
+  return Promise.all(agentNames.map(name => getAgent(name)));
 }
 
 /**
- * Get Performance Metrics
- *
- * Returns performance metrics for discovery operations.
- *
- * @returns Performance metrics object
- *
- * @example
- * ```typescript
- * const metrics = getPerformanceMetrics();
- * console.log(`Cache hit rate: ${(metrics.cacheHits / (metrics.cacheHits + metrics.cacheMisses) * 100).toFixed(1)}%`);
- * ```
- */
-export function getPerformanceMetrics(): Readonly<PerformanceMetrics> {
-  return { ...performanceMetrics };
-}
-
-/**
- * Clear Agent Cache
- *
- * Clears session-based agent cache and resets performance metrics.
- * Useful for testing or forcing re-import.
- *
- * @example
- * ```typescript
- * clearAgentCache();
- * // All subsequent getAgent() calls will re-import agents
- * ```
+ * Clears agent cache
+ * Useful for testing or session cleanup
  */
 export function clearAgentCache(): void {
   agentCache.clear();
-
-  // Reset performance metrics
-  performanceMetrics.cacheHits = 0;
-  performanceMetrics.cacheMisses = 0;
-  performanceMetrics.totalDiscoveryTime = 0;
-  performanceMetrics.avgDiscoveryTime = 0;
-
-  console.error('Agent cache cleared');
 }
 
 /**
- * Get Agent Registry
- *
- * Returns full agent metadata registry for introspection.
- *
- * @returns Agent registry object
- *
- * @example
- * ```typescript
- * const registry = getAgentRegistry();
- * for (const [name, metadata] of Object.entries(registry)) {
- *   console.log(`${metadata.displayName}: ${metadata.description}`);
- * }
- * ```
+ * Gets count of cached agents
+ * @returns Number of cached agents
  */
-export function getAgentRegistry(): Readonly<Record<string, AgentMetadata>> {
-  return { ...AGENT_REGISTRY };
+export function getCachedAgentCount(): number {
+  return agentCache.size;
 }

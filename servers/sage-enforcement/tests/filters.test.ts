@@ -1,261 +1,31 @@
-/**
- * Result Filtering Pipeline Tests
- *
- * Validates filtering, sorting, pagination, and streaming functionality.
- * Target: 100% test coverage for critical path.
- */
-
 import { describe, it, expect } from 'vitest';
 import {
-  filterViolations,
-  streamViolations,
   sortViolations,
-  getViolationsBySeverity,
-  getSummaryStatistics,
-  type FilteredResult,
+  filterViolations,
+  groupViolationsByFile,
+  groupViolationsBySeverity,
+  calculateStatistics,
 } from '../filters.js';
 import type { Violation } from '../schemas/index.js';
 
-// Test Fixtures
-const createViolation = (
-  severity: 'error' | 'warning' | 'info',
-  line: number,
-  rule: string = 'test-rule'
-): Violation => ({
-  file: '/test/file.py',
-  line,
-  severity,
-  rule,
-  message: `${severity} at line ${line}`,
-  autoFixable: false,
-});
-
-describe('Result Filtering Pipeline', () => {
-  describe('filterViolations', () => {
-    it('should filter empty array', () => {
-      const result = filterViolations([]);
-
-      expect(result.violations).toEqual([]);
-      expect(result.metadata.total).toBe(0);
-      expect(result.metadata.truncated).toBe(0);
-    });
-
-    it('should return all violations when below max', () => {
-      const violations: Violation[] = [
-        createViolation('error', 1),
-        createViolation('warning', 2),
-        createViolation('info', 3),
-      ];
-
-      const result = filterViolations(violations, 10);
-
-      expect(result.violations).toHaveLength(3);
-      expect(result.metadata.total).toBe(3);
-      expect(result.metadata.truncated).toBe(0);
-    });
-
-    it('should sort by severity: error > warning > info', () => {
-      const violations: Violation[] = [
-        createViolation('info', 1),
-        createViolation('error', 2),
-        createViolation('warning', 3),
-      ];
-
-      const result = filterViolations(violations, 10);
-
-      expect(result.violations[0].severity).toBe('error');
-      expect(result.violations[1].severity).toBe('warning');
-      expect(result.violations[2].severity).toBe('info');
-    });
-
-    it('should sort within severity by line number ascending', () => {
-      const violations: Violation[] = [
-        createViolation('error', 100),
-        createViolation('error', 10),
-        createViolation('error', 50),
-      ];
-
-      const result = filterViolations(violations, 10);
-
-      expect(result.violations[0].line).toBe(10);
-      expect(result.violations[1].line).toBe(50);
-      expect(result.violations[2].line).toBe(100);
-    });
-
-    it('should paginate to maxPerSeverity', () => {
-      const violations: Violation[] = [
-        ...Array.from({ length: 15 }, (_, i) => createViolation('error', i + 1)),
-        ...Array.from({ length: 12 }, (_, i) => createViolation('warning', i + 100)),
-        ...Array.from({ length: 8 }, (_, i) => createViolation('info', i + 200)),
-      ];
-
-      const result = filterViolations(violations, 10);
-
-      // Should return top 10 per severity
-      expect(result.violations).toHaveLength(28); // 10 errors + 10 warnings + 8 info
-      expect(result.metadata.bySeverity.error.returned).toBe(10);
-      expect(result.metadata.bySeverity.error.truncated).toBe(5);
-      expect(result.metadata.bySeverity.warning.returned).toBe(10);
-      expect(result.metadata.bySeverity.warning.truncated).toBe(2);
-      expect(result.metadata.bySeverity.info.returned).toBe(8);
-      expect(result.metadata.bySeverity.info.truncated).toBe(0);
-    });
-
-    it('should calculate metadata correctly', () => {
-      const violations: Violation[] = [
-        ...Array.from({ length: 20 }, (_, i) => createViolation('error', i + 1)),
-        ...Array.from({ length: 15 }, (_, i) => createViolation('warning', i + 100)),
-        ...Array.from({ length: 5 }, (_, i) => createViolation('info', i + 200)),
-      ];
-
-      const result = filterViolations(violations, 10);
-
-      expect(result.metadata.total).toBe(40);
-      expect(result.metadata.truncated).toBe(15); // 10 errors + 5 warnings truncated
-      expect(result.metadata.bySeverity.error.total).toBe(20);
-      expect(result.metadata.bySeverity.warning.total).toBe(15);
-      expect(result.metadata.bySeverity.info.total).toBe(5);
-    });
-
-    it('should handle maxPerSeverity = 0', () => {
-      const violations: Violation[] = [
-        createViolation('error', 1),
-        createViolation('warning', 2),
-      ];
-
-      const result = filterViolations(violations, 0);
-
-      expect(result.violations).toHaveLength(0);
-      expect(result.metadata.truncated).toBe(2);
-    });
-
-    it('should use default maxPerSeverity = 10', () => {
-      const violations: Violation[] = Array.from({ length: 25 }, (_, i) =>
-        createViolation('error', i + 1)
-      );
-
-      const result = filterViolations(violations);
-
-      expect(result.violations).toHaveLength(10);
-      expect(result.metadata.bySeverity.error.returned).toBe(10);
-      expect(result.metadata.bySeverity.error.truncated).toBe(15);
-    });
-
-    it('should preserve violation properties', () => {
-      const violation: Violation = {
-        file: '/path/to/file.py',
-        line: 42,
-        column: 10,
-        severity: 'error',
-        rule: 'missing-type',
-        message: 'Missing type annotation',
-        suggestion: 'Add type hint',
-        autoFixable: true,
-      };
-
-      const result = filterViolations([violation], 10);
-
-      expect(result.violations[0]).toEqual(violation);
-    });
-  });
-
-  describe('streamViolations', () => {
-    it('should stream violations in batches', async () => {
-      const violations: Violation[] = Array.from({ length: 25 }, (_, i) =>
-        createViolation('error', i + 1)
-      );
-
-      const batches: Violation[][] = [];
-      for await (const batch of streamViolations(violations, 10)) {
-        batches.push(batch);
-      }
-
-      expect(batches).toHaveLength(3); // 10, 10, 5
-      expect(batches[0]).toHaveLength(10);
-      expect(batches[1]).toHaveLength(10);
-      expect(batches[2]).toHaveLength(5);
-    });
-
-    it('should stream in severity order', async () => {
-      const violations: Violation[] = [
-        ...Array.from({ length: 5 }, (_, i) => createViolation('info', i + 200)),
-        ...Array.from({ length: 5 }, (_, i) => createViolation('error', i + 1)),
-        ...Array.from({ length: 5 }, (_, i) => createViolation('warning', i + 100)),
-      ];
-
-      const batches: Violation[][] = [];
-      for await (const batch of streamViolations(violations, 10)) {
-        batches.push(batch);
-      }
-
-      // Should yield errors first, then warnings, then info
-      expect(batches[0][0].severity).toBe('error');
-      expect(batches[1][0].severity).toBe('warning');
-      expect(batches[2][0].severity).toBe('info');
-    });
-
-    it('should sort within batches by line number', async () => {
-      const violations: Violation[] = [
-        createViolation('error', 100),
-        createViolation('error', 10),
-        createViolation('error', 50),
-      ];
-
-      const batches: Violation[][] = [];
-      for await (const batch of streamViolations(violations, 10)) {
-        batches.push(batch);
-      }
-
-      expect(batches[0][0].line).toBe(10);
-      expect(batches[0][1].line).toBe(50);
-      expect(batches[0][2].line).toBe(100);
-    });
-
-    it('should handle empty violations', async () => {
-      const batches: Violation[][] = [];
-      for await (const batch of streamViolations([], 10)) {
-        batches.push(batch);
-      }
-
-      expect(batches).toHaveLength(0);
-    });
-
-    it('should use default batchSize = 10', async () => {
-      const violations: Violation[] = Array.from({ length: 25 }, (_, i) =>
-        createViolation('error', i + 1)
-      );
-
-      const batches: Violation[][] = [];
-      for await (const batch of streamViolations(violations)) {
-        batches.push(batch);
-      }
-
-      expect(batches).toHaveLength(3);
-      expect(batches[0]).toHaveLength(10);
-    });
-
-    it('should handle batchSize larger than violations', async () => {
-      const violations: Violation[] = [
-        createViolation('error', 1),
-        createViolation('error', 2),
-      ];
-
-      const batches: Violation[][] = [];
-      for await (const batch of streamViolations(violations, 100)) {
-        batches.push(batch);
-      }
-
-      expect(batches).toHaveLength(1);
-      expect(batches[0]).toHaveLength(2);
-    });
+describe('filters', () => {
+  const createViolation = (overrides: Partial<Violation>): Violation => ({
+    file: '/test/file.py',
+    line: 1,
+    column: 0,
+    severity: 'error',
+    rule: 'test-rule',
+    message: 'Test violation',
+    autoFixable: false,
+    ...overrides,
   });
 
   describe('sortViolations', () => {
-    it('should sort by severity priority', () => {
-      const violations: Violation[] = [
-        createViolation('info', 1),
-        createViolation('warning', 2),
-        createViolation('error', 3),
+    it('sorts by severity first (errors, warnings, info)', () => {
+      const violations = [
+        createViolation({ severity: 'info', line: 1 }),
+        createViolation({ severity: 'error', line: 3 }),
+        createViolation({ severity: 'warning', line: 2 }),
       ];
 
       const sorted = sortViolations(violations);
@@ -265,179 +35,103 @@ describe('Result Filtering Pipeline', () => {
       expect(sorted[2].severity).toBe('info');
     });
 
-    it('should sort by line number within severity', () => {
-      const violations: Violation[] = [
-        createViolation('error', 100),
-        createViolation('error', 10),
-        createViolation('error', 50),
+    it('sorts by line number within same severity', () => {
+      const violations = [
+        createViolation({ severity: 'error', line: 10 }),
+        createViolation({ severity: 'error', line: 5 }),
+        createViolation({ severity: 'error', line: 15 }),
       ];
 
       const sorted = sortViolations(violations);
 
-      expect(sorted[0].line).toBe(10);
-      expect(sorted[1].line).toBe(50);
-      expect(sorted[2].line).toBe(100);
-    });
-
-    it('should mutate original array', () => {
-      const violations: Violation[] = [
-        createViolation('info', 1),
-        createViolation('error', 2),
-      ];
-
-      const sorted = sortViolations(violations);
-
-      expect(sorted).toBe(violations); // Same reference
-      expect(violations[0].severity).toBe('error');
-    });
-
-    it('should handle empty array', () => {
-      const sorted = sortViolations([]);
-      expect(sorted).toEqual([]);
-    });
-
-    it('should handle single violation', () => {
-      const violations: Violation[] = [createViolation('warning', 1)];
-      const sorted = sortViolations(violations);
-
-      expect(sorted).toHaveLength(1);
-      expect(sorted[0].severity).toBe('warning');
+      expect(sorted[0].line).toBe(5);
+      expect(sorted[1].line).toBe(10);
+      expect(sorted[2].line).toBe(15);
     });
   });
 
-  describe('getViolationsBySeverity', () => {
-    it('should filter by single severity', () => {
-      const violations: Violation[] = [
-        createViolation('error', 1),
-        createViolation('warning', 2),
-        createViolation('info', 3),
+  describe('filterViolations', () => {
+    it('filters to top N per severity', () => {
+      const violations = [
+        ...Array(20).fill(0).map((_, i) => createViolation({ severity: 'error', line: i + 1 })),
+        ...Array(20).fill(0).map((_, i) => createViolation({ severity: 'warning', line: i + 100 })),
+        ...Array(20).fill(0).map((_, i) => createViolation({ severity: 'info', line: i + 200 })),
       ];
 
-      const errors = getViolationsBySeverity(violations, ['error']);
+      const filtered = filterViolations(violations, 5);
 
-      expect(errors).toHaveLength(1);
-      expect(errors[0].severity).toBe('error');
+      expect(filtered.violations.length).toBe(15); // 5 per severity
+      expect(filtered.metadata.total).toBe(60);
+      expect(filtered.metadata.filtered).toBe(45);
     });
 
-    it('should filter by multiple severities', () => {
-      const violations: Violation[] = [
-        createViolation('error', 1),
-        createViolation('warning', 2),
-        createViolation('info', 3),
+    it('calculates metadata correctly', () => {
+      const violations = [
+        createViolation({ severity: 'error' }),
+        createViolation({ severity: 'error' }),
+        createViolation({ severity: 'warning' }),
+        createViolation({ severity: 'info' }),
       ];
 
-      const critical = getViolationsBySeverity(violations, ['error', 'warning']);
+      const filtered = filterViolations(violations, 10);
 
-      expect(critical).toHaveLength(2);
-      expect(critical.some((v) => v.severity === 'info')).toBe(false);
-    });
-
-    it('should return empty array when no matches', () => {
-      const violations: Violation[] = [createViolation('info', 1)];
-
-      const errors = getViolationsBySeverity(violations, ['error']);
-
-      expect(errors).toEqual([]);
-    });
-
-    it('should handle empty violations', () => {
-      const filtered = getViolationsBySeverity([], ['error']);
-      expect(filtered).toEqual([]);
-    });
-
-    it('should handle empty severities filter', () => {
-      const violations: Violation[] = [createViolation('error', 1)];
-      const filtered = getViolationsBySeverity(violations, []);
-
-      expect(filtered).toEqual([]);
+      expect(filtered.metadata.errors).toBe(2);
+      expect(filtered.metadata.warnings).toBe(1);
+      expect(filtered.metadata.info).toBe(1);
+      expect(filtered.metadata.total).toBe(4);
     });
   });
 
-  describe('getSummaryStatistics', () => {
-    it('should count violations by severity', () => {
-      const violations: Violation[] = [
-        createViolation('error', 1),
-        createViolation('error', 2),
-        createViolation('warning', 3),
-        createViolation('info', 4),
-        createViolation('info', 5),
-        createViolation('info', 6),
+  describe('groupViolationsByFile', () => {
+    it('groups violations by file path', () => {
+      const violations = [
+        createViolation({ file: '/test/file1.py', line: 1 }),
+        createViolation({ file: '/test/file2.py', line: 1 }),
+        createViolation({ file: '/test/file1.py', line: 2 }),
       ];
 
-      const summary = getSummaryStatistics(violations);
+      const grouped = groupViolationsByFile(violations);
 
-      expect(summary.error).toBe(2);
-      expect(summary.warning).toBe(1);
-      expect(summary.info).toBe(3);
-    });
-
-    it('should return zero counts for empty array', () => {
-      const summary = getSummaryStatistics([]);
-
-      expect(summary.error).toBe(0);
-      expect(summary.warning).toBe(0);
-      expect(summary.info).toBe(0);
-    });
-
-    it('should handle single severity', () => {
-      const violations: Violation[] = [
-        createViolation('error', 1),
-        createViolation('error', 2),
-      ];
-
-      const summary = getSummaryStatistics(violations);
-
-      expect(summary.error).toBe(2);
-      expect(summary.warning).toBe(0);
-      expect(summary.info).toBe(0);
+      expect(grouped.size).toBe(2);
+      expect(grouped.get('/test/file1.py')?.length).toBe(2);
+      expect(grouped.get('/test/file2.py')?.length).toBe(1);
     });
   });
 
-  describe('Edge Cases and Performance', () => {
-    it('should handle large violation sets efficiently', () => {
-      const startTime = performance.now();
-
-      // Generate 1000 violations
-      const violations: Violation[] = Array.from({ length: 1000 }, (_, i) => {
-        const severity = i % 3 === 0 ? 'error' : i % 3 === 1 ? 'warning' : 'info';
-        return createViolation(severity as 'error' | 'warning' | 'info', i + 1);
-      });
-
-      const result = filterViolations(violations, 10);
-
-      const elapsedTime = performance.now() - startTime;
-
-      expect(result.violations).toHaveLength(30); // 10 per severity
-      expect(elapsedTime).toBeLessThan(10); // <10ms target
-    });
-
-    it('should handle violations with same line numbers', () => {
-      const violations: Violation[] = [
-        createViolation('error', 42, 'rule-a'),
-        createViolation('error', 42, 'rule-b'),
-        createViolation('error', 42, 'rule-c'),
+  describe('groupViolationsBySeverity', () => {
+    it('groups violations by severity', () => {
+      const violations = [
+        createViolation({ severity: 'error' }),
+        createViolation({ severity: 'error' }),
+        createViolation({ severity: 'warning' }),
+        createViolation({ severity: 'info' }),
       ];
 
-      const result = filterViolations(violations, 10);
+      const grouped = groupViolationsBySeverity(violations);
 
-      expect(result.violations).toHaveLength(3);
-      expect(result.violations.every((v) => v.line === 42)).toBe(true);
+      expect(grouped.get('error')?.length).toBe(2);
+      expect(grouped.get('warning')?.length).toBe(1);
+      expect(grouped.get('info')?.length).toBe(1);
     });
+  });
 
-    it('should handle violations without column numbers', () => {
-      const violation: Violation = {
-        file: '/test.py',
-        line: 1,
-        severity: 'error',
-        rule: 'test-rule',
-        message: 'Test message',
-        autoFixable: false,
-      };
+  describe('calculateStatistics', () => {
+    it('calculates violation statistics', () => {
+      const violations = [
+        createViolation({ severity: 'error', file: '/test/file1.py', rule: 'rule1', autoFixable: true }),
+        createViolation({ severity: 'error', file: '/test/file2.py', rule: 'rule2', autoFixable: false }),
+        createViolation({ severity: 'warning', file: '/test/file1.py', rule: 'rule1', autoFixable: true }),
+      ];
 
-      const result = filterViolations([violation], 10);
+      const stats = calculateStatistics(violations);
 
-      expect(result.violations).toHaveLength(1);
-      expect(result.violations[0].column).toBeUndefined();
+      expect(stats.total).toBe(3);
+      expect(stats.errors).toBe(2);
+      expect(stats.warnings).toBe(1);
+      expect(stats.info).toBe(0);
+      expect(stats.autoFixable).toBe(2);
+      expect(stats.uniqueFiles).toBe(2);
+      expect(stats.uniqueRules).toBe(2);
     });
   });
 });

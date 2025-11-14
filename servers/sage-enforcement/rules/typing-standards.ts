@@ -1,292 +1,172 @@
 /**
- * Python 3.12 Typing Standards
- *
- * Defines type annotation standards conforming to:
- * - PEP 585: Type Hinting Generics In Standard Collections (built-in generics)
- * - PEP 604: Allow writing union types as X | Y (union syntax)
- * - PEP 698: Override decorator for static typing
- *
- * Configurable strictness levels: strict, moderate, lenient
- * Supports allow/deny lists for project-specific patterns
- *
- * @see https://peps.python.org/pep-0585/ - PEP 585
- * @see https://peps.python.org/pep-0604/ - PEP 604
- * @see https://peps.python.org/pep-0698/ - PEP 698
+ * Python 3.12 typing standards and rules
+ * Enforces modern type annotation practices
  */
 
 /**
- * Typing Standards Configuration
- *
- * Defines which type annotation rules to enforce during validation.
+ * Deprecated typing imports that should be replaced with built-in generics
  */
-export interface TypingStandards {
-  /** Require explicit return type annotations on all functions */
-  enforceReturnTypes: boolean;
-
-  /** Allow usage of typing.Any (strict mode disallows) */
-  allowAny: boolean;
-
-  /** Target Python version for type checking */
-  pythonVersion: string;
-
-  /** List of deprecated typing imports to flag (PEP 585) */
-  deprecatedImports: string[];
-
-  /** Require built-in generics (list, dict) instead of typing.List, typing.Dict */
-  builtinGenerics: boolean;
-
-  /** Patterns explicitly allowed (bypass rules) */
-  allowList?: string[];
-
-  /** Patterns explicitly denied (always flag) */
-  denyList?: string[];
-}
-
-/**
- * Strictness Levels
- *
- * Predefined configurations for different enforcement levels.
- */
-export type StrictnessLevel = 'strict' | 'moderate' | 'lenient';
-
-/**
- * Deprecated Typing Imports (PEP 585)
- *
- * These typing module imports should be replaced with built-in equivalents:
- * - typing.List → list
- * - typing.Dict → dict
- * - typing.Tuple → tuple
- * - typing.Set → set
- * - typing.FrozenSet → frozenset
- * - typing.Optional[X] → X | None (PEP 604)
- * - typing.Union[X, Y] → X | Y (PEP 604)
- */
-const DEPRECATED_TYPING_IMPORTS = [
-  'typing.List',
-  'typing.Dict',
-  'typing.Tuple',
-  'typing.Set',
-  'typing.FrozenSet',
-  'typing.Optional',
-  'typing.Union',
+export const DEPRECATED_TYPING_IMPORTS = [
+  'List',
+  'Dict',
+  'Set',
+  'FrozenSet',
+  'Tuple',
+  'Optional',
+  'Union',
 ] as const;
 
 /**
- * Built-In Generic Types (PEP 585)
- *
- * Python 3.9+ supports using these built-in types directly as generics.
- * No need to import from typing module.
+ * Built-in generic replacements for deprecated typing imports
  */
-const BUILTIN_GENERICS = [
-  'list',
-  'dict',
-  'tuple',
-  'set',
-  'frozenset',
+export const BUILTIN_GENERIC_REPLACEMENTS: Record<string, string> = {
+  'List': 'list',
+  'Dict': 'dict',
+  'Set': 'set',
+  'FrozenSet': 'frozenset',
+  'Tuple': 'tuple',
+  'Optional': '| None',
+  'Union': '|',
+};
+
+/**
+ * Typing imports that should be retained from typing module
+ */
+export const ALLOWED_TYPING_IMPORTS = [
+  'Any',
+  'Callable',
+  'Awaitable',
+  'Coroutine',
+  'Literal',
+  'LiteralString',
+  'TypeVar',
+  'ParamSpec',
+  'TypeVarTuple',
+  'Unpack',
+  'Protocol',
+  'TypedDict',
+  'Final',
+  'ClassVar',
+  'Never',
+  'NoReturn',
+  'TypeGuard',
+  'TypeIs',
+  'TypeAlias',
+  'Self',
+  'overload',
+  'override',
+  'dataclass_transform',
+  'TYPE_CHECKING',
+  'get_origin',
+  'get_args',
 ] as const;
 
 /**
- * Strict Typing Standards
- *
- * Enforces all type annotation rules:
- * - Require return types on all functions
- * - Disallow typing.Any usage
- * - Require built-in generics
- * - Flag all deprecated typing imports
- * - Target Python 3.12
- *
- * Recommended for: production code, libraries, critical systems
+ * Minimum Python version for built-in generics
  */
-export const STRICT_STANDARDS: TypingStandards = {
-  enforceReturnTypes: true,
-  allowAny: false,
-  pythonVersion: '3.12',
-  deprecatedImports: [...DEPRECATED_TYPING_IMPORTS],
-  builtinGenerics: true,
-  allowList: [],
-  denyList: ['Any'],
-};
+export const MIN_PYTHON_VERSION_FOR_BUILTINS = '3.9';
 
 /**
- * Moderate Typing Standards
- *
- * Balanced enforcement:
- * - Require return types on public functions
- * - Allow typing.Any for dynamic cases
- * - Require built-in generics
- * - Flag deprecated typing imports
- * - Target Python 3.12
- *
- * Recommended for: most projects, internal tools, prototypes
+ * Minimum Python version for | union syntax
  */
-export const MODERATE_STANDARDS: TypingStandards = {
-  enforceReturnTypes: true,
-  allowAny: true,
-  pythonVersion: '3.12',
-  deprecatedImports: [...DEPRECATED_TYPING_IMPORTS],
-  builtinGenerics: true,
-  allowList: ['Any'],
-  denyList: [],
-};
+export const MIN_PYTHON_VERSION_FOR_UNION_SYNTAX = '3.10';
 
 /**
- * Lenient Typing Standards
- *
- * Minimal enforcement:
- * - Suggest return types but don't require
- * - Allow typing.Any usage
- * - Allow both built-in and typing module generics
- * - Only flag Union and Optional (PEP 604 replacements)
- * - Target Python 3.10+ (minimum for | union syntax)
- *
- * Recommended for: legacy code, exploratory work, gradual migration
+ * Type annotation rules
  */
-export const LENIENT_STANDARDS: TypingStandards = {
-  enforceReturnTypes: false,
-  allowAny: true,
-  pythonVersion: '3.10',
-  deprecatedImports: [
-    'typing.Optional',
-    'typing.Union',
-  ],
-  builtinGenerics: false,
-  allowList: ['Any', 'List', 'Dict', 'Tuple', 'Set'],
-  denyList: [],
-};
-
-/**
- * Default Typing Standards
- *
- * Defaults to MODERATE_STANDARDS for balanced enforcement.
- * Override with STRICT_STANDARDS or LENIENT_STANDARDS as needed.
- */
-export const DEFAULT_STANDARDS: TypingStandards = MODERATE_STANDARDS;
-
-/**
- * TYPING_STANDARDS Object
- *
- * Main export providing access to all standard configurations.
- *
- * Usage:
- * ```typescript
- * import { TYPING_STANDARDS } from './rules/typing-standards.js';
- *
- * const standards = TYPING_STANDARDS.strict;
- * const result = await typeEnforcer({
- *   filePath: '/path/to/file.py',
- *   code: pythonCode,
- *   standards
- * });
- * ```
- */
-export const TYPING_STANDARDS = {
-  strict: STRICT_STANDARDS,
-  moderate: MODERATE_STANDARDS,
-  lenient: LENIENT_STANDARDS,
-  default: DEFAULT_STANDARDS,
-} as const;
-
-/**
- * Get Typing Standards by Level
- *
- * Helper function to retrieve standards by strictness level.
- *
- * @param level - Strictness level (strict, moderate, lenient)
- * @returns Typing standards configuration
- *
- * @example
- * ```typescript
- * const standards = getTypingStandards('strict');
- * // Returns STRICT_STANDARDS
- * ```
- */
-export function getTypingStandards(level: StrictnessLevel): TypingStandards {
-  switch (level) {
-    case 'strict':
-      return STRICT_STANDARDS;
-    case 'moderate':
-      return MODERATE_STANDARDS;
-    case 'lenient':
-      return LENIENT_STANDARDS;
-    default:
-      throw new Error(`Invalid strictness level: ${level}`);
-  }
+export interface TypingRule {
+  id: string;
+  description: string;
+  severity: 'error' | 'warning' | 'info';
+  autoFixable: boolean;
 }
 
 /**
- * Create Custom Typing Standards
- *
- * Factory function to create custom standards by extending a base level.
- *
- * @param base - Base strictness level to extend
- * @param overrides - Custom overrides to apply
- * @returns Custom typing standards configuration
- *
- * @example
- * ```typescript
- * const customStandards = createCustomStandards('moderate', {
- *   allowAny: false,
- *   allowList: ['mypy_extensions.TypedDict']
- * });
- * ```
+ * All typing enforcement rules
  */
-export function createCustomStandards(
-  base: StrictnessLevel,
-  overrides: Partial<TypingStandards>
-): TypingStandards {
-  const baseStandards = getTypingStandards(base);
-  return {
-    ...baseStandards,
-    ...overrides,
-  };
+export const TYPING_RULES: TypingRule[] = [
+  {
+    id: 'no-legacy-list',
+    description: 'Use built-in list[T] instead of typing.List[T]',
+    severity: 'error',
+    autoFixable: true,
+  },
+  {
+    id: 'no-legacy-dict',
+    description: 'Use built-in dict[K, V] instead of typing.Dict[K, V]',
+    severity: 'error',
+    autoFixable: true,
+  },
+  {
+    id: 'no-legacy-optional',
+    description: 'Use | None instead of typing.Optional[T]',
+    severity: 'error',
+    autoFixable: true,
+  },
+  {
+    id: 'no-legacy-union',
+    description: 'Use | syntax instead of typing.Union[T1, T2]',
+    severity: 'error',
+    autoFixable: true,
+  },
+  {
+    id: 'require-return-type',
+    description: 'All functions must have return type annotations',
+    severity: 'error',
+    autoFixable: false,
+  },
+  {
+    id: 'require-param-type',
+    description: 'All function parameters must have type annotations',
+    severity: 'error',
+    autoFixable: false,
+  },
+  {
+    id: 'no-any-type',
+    description: 'Avoid using Any type; use specific types instead',
+    severity: 'warning',
+    autoFixable: false,
+  },
+  {
+    id: 'use-self-type',
+    description: 'Use typing.Self for fluent interface return types',
+    severity: 'info',
+    autoFixable: true,
+  },
+];
+
+/**
+ * Checks if a typing import is deprecated
+ * @param importName - Import name to check
+ * @returns True if import is deprecated
+ */
+export function isDeprecatedImport(importName: string): boolean {
+  return DEPRECATED_TYPING_IMPORTS.includes(importName as typeof DEPRECATED_TYPING_IMPORTS[number]);
 }
 
 /**
- * Validate Typing Standards
- *
- * Ensures standards configuration is valid and consistent.
- *
- * @param standards - Standards to validate
- * @throws Error if standards are invalid
- *
- * @example
- * ```typescript
- * validateTypingStandards(STRICT_STANDARDS); // OK
- * validateTypingStandards({ pythonVersion: '2.7' }); // Throws
- * ```
+ * Gets the built-in generic replacement for a deprecated import
+ * @param deprecatedImport - Deprecated import name
+ * @returns Built-in generic replacement
  */
-export function validateTypingStandards(standards: Partial<TypingStandards>): void {
-  // Validate Python version
-  if (standards.pythonVersion) {
-    const version = parseFloat(standards.pythonVersion);
-    if (version < 3.10) {
-      throw new Error(
-        `Python version ${standards.pythonVersion} does not support PEP 604 (| union syntax). Minimum: 3.10`
-      );
-    }
-    if (version < 3.12) {
-      console.warn(
-        `Python version ${standards.pythonVersion} has limited PEP 698 support. Recommended: 3.12+`
-      );
-    }
-  }
-
-  // Validate consistency: if denyList contains 'Any', allowAny should be false
-  if (standards.denyList?.includes('Any') && standards.allowAny === true) {
-    throw new Error(
-      'Inconsistent configuration: denyList contains "Any" but allowAny is true'
-    );
-  }
-
-  // Validate consistency: if allowList contains 'Any', allowAny should be true
-  if (standards.allowList?.includes('Any') && standards.allowAny === false) {
-    console.warn(
-      'Inconsistent configuration: allowList contains "Any" but allowAny is false. Consider setting allowAny to true.'
-    );
-  }
+export function getBuiltinReplacement(deprecatedImport: string): string | undefined {
+  return BUILTIN_GENERIC_REPLACEMENTS[deprecatedImport];
 }
 
 /**
- * Export Constants for Testing and Reference
+ * Checks if a typing import is allowed
+ * @param importName - Import name to check
+ * @returns True if import is allowed
  */
-export { DEPRECATED_TYPING_IMPORTS, BUILTIN_GENERICS };
+export function isAllowedImport(importName: string): boolean {
+  return ALLOWED_TYPING_IMPORTS.includes(importName as typeof ALLOWED_TYPING_IMPORTS[number]);
+}
+
+/**
+ * Gets a typing rule by ID
+ * @param ruleId - Rule identifier
+ * @returns Typing rule or undefined if not found
+ */
+export function getTypingRule(ruleId: string): TypingRule | undefined {
+  return TYPING_RULES.find(rule => rule.id === ruleId);
+}

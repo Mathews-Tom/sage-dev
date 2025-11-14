@@ -1,50 +1,52 @@
 {
   "name": "@sage-dev/enforcement-server",
   "version": "1.0.0",
-  "description": "MCP server for Sage-Dev enforcement agents (type checking, documentation, testing, security)",
+  "description": "MCP server for Sage-Dev code enforcement agents",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "bin": {
+    "sage-enforcement-server": "dist/index.js"
+  },
   "scripts": {
     "build": "tsc",
-    "start": "node dist/index.js",
     "dev": "tsc --watch",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:unit": "vitest run --dir tests/unit",
-    "test:integration": "vitest run --dir tests/integration",
+    "test:unit": "vitest run --grep=\"unit\"",
+    "test:integration": "vitest run --grep=\"integration\"",
     "coverage": "vitest run --coverage",
     "typecheck": "tsc --noEmit",
-    "lint": "eslint src/**/*.ts",
-    "format": "prettier --write src/**/*.ts",
-    "benchmark": "node scripts/benchmark.js"
+    "lint": "eslint . --ext .ts",
+    "format": "prettier --write \"**/*.{ts,json,md}\"",
+    "benchmark": "vitest bench",
+    "start": "node dist/index.js"
   },
   "keywords": [
     "mcp",
     "model-context-protocol",
-    "code-quality",
-    "enforcement",
+    "code-enforcement",
+    "python",
     "type-checking",
-    "documentation",
-    "testing",
+    "linting",
     "security"
   ],
   "author": "Sage-Dev Team",
   "license": "MIT",
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.0.4",
-    "zod": "^3.22.4",
-    "isolated-vm": "^5.0.1"
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "zod": "^3.22.4"
   },
   "devDependencies": {
-    "@types/node": "^20.11.5",
-    "@typescript-eslint/eslint-plugin": "^6.19.0",
-    "@typescript-eslint/parser": "^6.19.0",
+    "@types/node": "^20.10.0",
+    "@typescript-eslint/eslint-plugin": "^6.15.0",
+    "@typescript-eslint/parser": "^6.15.0",
+    "@vitest/coverage-v8": "^1.1.0",
     "eslint": "^8.56.0",
-    "prettier": "^3.2.4",
+    "eslint-config-airbnb-typescript": "^17.1.0",
+    "prettier": "^3.1.1",
     "typescript": "^5.3.3",
-    "vitest": "^1.2.1",
-    "@vitest/coverage-v8": "^1.2.1"
+    "vitest": "^1.1.0"
   },
   "engines": {
     "node": ">=18.0.0"

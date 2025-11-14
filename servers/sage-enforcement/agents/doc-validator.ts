@@ -1,425 +1,293 @@
-/**
- * Documentation Validator Agent
- *
- * Validates Google-style docstrings for Python functions and classes.
- * Detects missing Args, Returns, and Raises sections.
- *
- * Standards: Google Python Style Guide
- * Method: AST parsing via Python subprocess
- *
- * @see https://google.github.io/styleguide/pyguide.html#38-comments-and-docstrings
- */
-
-import { spawn } from 'child_process';
-import { writeFileSync, unlinkSync } from 'fs';
-import { tmpdir } from 'os';
-import { join } from 'path';
-import {
-  DocValidationInputSchema,
-  AgentResultSchema,
-  ViolationSchema,
-  type DocValidationInput,
-  type AgentResult,
-  type Violation,
-} from '../schemas/index.js';
+import { validatePath, getProjectRoot, isPythonFile } from '../utils/validation.js';
+import type { AgentResult, DocValidatorInput, Violation } from '../schemas/index.js';
+import { DocValidatorInputSchema } from '../schemas/index.js';
 
 /**
- * Docstring Analysis Result from Python AST Parser
- *
- * Structure returned by our Python AST analysis script
+ * Python function/class definition pattern
  */
-interface DocstringAnalysis {
-  file: string;
-  functions: Array<{
-    name: string;
-    line: number;
-    params: string[];
-    returns: boolean;
-    raises: string[];
-    docstring: {
-      exists: boolean;
-      hasArgs: boolean;
-      hasReturns: boolean;
-      hasRaises: boolean;
-      documentedParams: string[];
-      missingParams: string[];
-    };
-  }>;
-  classes: Array<{
-    name: string;
-    line: number;
-    docstring: {
-      exists: boolean;
-    };
-  }>;
+interface FunctionDefinition {
+  name: string;
+  line: number;
+  type: 'function' | 'class' | 'method';
+  hasDocstring: boolean;
+  docstring?: string;
 }
 
 /**
- * Python AST Parser Script
- *
- * Embedded Python script to analyze docstrings using AST module.
- * This avoids external dependencies and keeps the agent self-contained.
+ * Doc validator agent - validates Python docstring completeness and quality
+ * Enforces Google-style docstrings with proper argument, return, and exception documentation
  */
-const PYTHON_AST_PARSER = `
-import ast
-import sys
-import json
+export class DocValidator {
+  private projectRoot: string;
 
-def analyze_docstring(docstring, params, returns_value):
-    """Analyze a Google-style docstring for completeness."""
-    if not docstring:
-        return {
-            "exists": False,
-            "hasArgs": False,
-            "hasReturns": False,
-            "hasRaises": False,
-            "documentedParams": [],
-            "missingParams": params
-        }
+  constructor(projectRoot?: string) {
+    this.projectRoot = projectRoot || getProjectRoot();
+  }
 
-    has_args = "Args:" in docstring
-    has_returns = "Returns:" in docstring
-    has_raises = "Raises:" in docstring
+  /**
+   * Validates input parameters
+   * @param input - Doc validator input
+   * @throws Error if validation fails
+   */
+  private validateInput(input: DocValidatorInput): void {
+    const result = DocValidatorInputSchema.safeParse(input);
 
-    # Extract documented parameters
-    documented_params = []
-    if has_args:
-        lines = docstring.split("\\n")
-        in_args = False
-        for line in lines:
-            if "Args:" in line:
-                in_args = True
-                continue
-            if in_args:
-                if line.strip() and line.strip()[0].isalpha():
-                    param_name = line.strip().split(":")[0].strip().split()[0]
-                    documented_params.append(param_name)
-                elif not line.strip() or line.strip().startswith(("Returns:", "Raises:")):
-                    break
-
-    missing_params = [p for p in params if p not in documented_params and p != 'self' and p != 'cls']
-
-    return {
-        "exists": True,
-        "hasArgs": has_args,
-        "hasReturns": has_returns,
-        "hasRaises": has_raises,
-        "documentedParams": documented_params,
-        "missingParams": missing_params
+    if (!result.success) {
+      throw new Error(`Invalid input: ${result.error.message}`);
     }
 
-def analyze_file(code):
-    """Analyze Python file for docstring compliance."""
-    try:
-        tree = ast.parse(code)
-    except SyntaxError as e:
-        return {
-            "error": f"Syntax error: {e}",
-            "functions": [],
-            "classes": []
-        }
-
-    functions = []
-    classes = []
-
-    for node in ast.walk(tree):
-        if isinstance(node, ast.FunctionDef):
-            docstring = ast.get_docstring(node)
-            params = [arg.arg for arg in node.args.args]
-            returns_value = any(isinstance(n, ast.Return) and n.value is not None for n in ast.walk(node))
-
-            doc_analysis = analyze_docstring(docstring, params, returns_value)
-
-            functions.append({
-                "name": node.name,
-                "line": node.lineno,
-                "params": params,
-                "returns": returns_value,
-                "raises": [],
-                "docstring": doc_analysis
-            })
-
-        elif isinstance(node, ast.ClassDef):
-            docstring = ast.get_docstring(node)
-            classes.append({
-                "name": node.name,
-                "line": node.lineno,
-                "docstring": {
-                    "exists": docstring is not None
-                }
-            })
-
-    return {
-        "file": sys.argv[1] if len(sys.argv) > 1 else "unknown",
-        "functions": functions,
-        "classes": classes
+    if (!isPythonFile(input.filePath)) {
+      throw new Error(`Not a Python file: ${input.filePath}`);
     }
 
-if __name__ == "__main__":
-    code = sys.stdin.read()
-    result = analyze_file(code)
-    print(json.dumps(result))
-`;
-
-/**
- * Execute Python AST Parser
- *
- * Spawns Python subprocess with embedded AST analysis script.
- *
- * @param filePath - Absolute path to Python file
- * @param code - Python code to analyze
- * @returns Docstring analysis results
- */
-async function executePythonParser(filePath: string, code: string): Promise<DocstringAnalysis> {
-  // Write Python parser script to temporary file
-  const parserScript = join(tmpdir(), `sage-doc-parser-${Date.now()}.py`);
-  writeFileSync(parserScript, PYTHON_AST_PARSER, 'utf-8');
-
-  try {
-    return await new Promise((resolve, reject) => {
-      const python = spawn('python3', [parserScript, filePath]);
-
-      let stdout = '';
-      let stderr = '';
-
-      // Feed code via stdin
-      python.stdin.write(code);
-      python.stdin.end();
-
-      python.stdout.on('data', (data) => {
-        stdout += data.toString();
-      });
-
-      python.stderr.on('data', (data) => {
-        stderr += data.toString();
-      });
-
-      python.on('close', (code) => {
-        if (code !== 0) {
-          reject(new Error(`Python parser failed: ${stderr}`));
-          return;
-        }
-
-        try {
-          const result = JSON.parse(stdout) as DocstringAnalysis;
-          resolve(result);
-        } catch (error) {
-          reject(new Error(`Failed to parse Python output: ${stderr || stdout}`));
-        }
-      });
-
-      python.on('error', (error) => {
-        reject(new Error(`Failed to spawn Python: ${error.message}`));
-      });
-    });
-  } finally {
-    // Cleanup temporary script
-    try {
-      unlinkSync(parserScript);
-    } catch {
-      // Ignore cleanup errors
+    const validatedPath = validatePath(input.filePath, this.projectRoot);
+    if (!validatedPath) {
+      throw new Error(`Invalid file path: ${input.filePath}`);
     }
   }
-}
 
-/**
- * Convert Analysis Result to Violations
- *
- * Transforms AST analysis results into structured violations.
- *
- * @param analysis - Docstring analysis from Python
- * @param filePath - Original file path
- * @returns Array of violations
- */
-function analysisToViolations(analysis: DocstringAnalysis, filePath: string): Violation[] {
-  const violations: Violation[] = [];
+  /**
+   * Extracts function and class definitions from Python code
+   * @param code - Python source code
+   * @returns Array of function/class definitions
+   */
+  private extractDefinitions(code: string): FunctionDefinition[] {
+    const definitions: FunctionDefinition[] = [];
+    const lines = code.split('\n');
 
-  // Check if analysis had errors
-  if ('error' in analysis) {
-    violations.push(
-      ViolationSchema.parse({
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+
+      // Match function definitions
+      const functionMatch = line.match(/^\s*def\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*\(/);
+      if (functionMatch) {
+        const name = functionMatch[1];
+
+        // Skip private methods (starting with _) except __init__
+        if (name.startsWith('_') && name !== '__init__') {
+          continue;
+        }
+
+        // Check for docstring on next non-empty line
+        let hasDocstring = false;
+        let docstring: string | undefined;
+
+        for (let j = i + 1; j < lines.length && j < i + 5; j++) {
+          const nextLine = lines[j].trim();
+          if (nextLine === '') continue;
+
+          if (nextLine.startsWith('"""') || nextLine.startsWith("'''")) {
+            hasDocstring = true;
+            docstring = nextLine;
+            break;
+          }
+          break;
+        }
+
+        definitions.push({
+          name,
+          line: i + 1,
+          type: line.match(/^\s{4,}def/) ? 'method' : 'function',
+          hasDocstring,
+          docstring,
+        });
+      }
+
+      // Match class definitions
+      const classMatch = line.match(/^\s*class\s+([a-zA-Z_][a-zA-Z0-9_]*)/);
+      if (classMatch) {
+        const name = classMatch[1];
+
+        // Check for docstring on next non-empty line
+        let hasDocstring = false;
+        let docstring: string | undefined;
+
+        for (let j = i + 1; j < lines.length && j < i + 5; j++) {
+          const nextLine = lines[j].trim();
+          if (nextLine === '') continue;
+
+          if (nextLine.startsWith('"""') || nextLine.startsWith("'''")) {
+            hasDocstring = true;
+            docstring = nextLine;
+            break;
+          }
+          break;
+        }
+
+        definitions.push({
+          name,
+          line: i + 1,
+          type: 'class',
+          hasDocstring,
+          docstring,
+        });
+      }
+    }
+
+    return definitions;
+  }
+
+  /**
+   * Validates docstring quality (Google-style)
+   * @param definition - Function/class definition
+   * @param code - Full source code
+   * @returns Array of violations
+   */
+  private validateDocstring(definition: FunctionDefinition, code: string, filePath: string): Violation[] {
+    const violations: Violation[] = [];
+
+    // Check if docstring exists
+    if (!definition.hasDocstring) {
+      violations.push({
         file: filePath,
-        line: 1,
+        line: definition.line,
         column: 0,
         severity: 'error',
-        rule: 'syntax-error',
-        message: (analysis as unknown as { error: string }).error,
-        suggestion: 'Fix syntax errors before docstring validation',
+        rule: 'require-docstring',
+        message: `${definition.type} '${definition.name}' missing docstring`,
+        suggestion: 'Add Google-style docstring with description, Args, Returns, and Raises sections',
         autoFixable: false,
-      })
-    );
+      });
+      return violations;
+    }
+
+    // For functions/methods, check for Args and Returns sections
+    if (definition.type === 'function' || definition.type === 'method') {
+      const lines = code.split('\n');
+      const functionLine = lines[definition.line - 1];
+
+      // Check if function has parameters (excluding self/cls)
+      const paramsMatch = functionLine.match(/\(([^)]+)\)/);
+      if (paramsMatch) {
+        const params = paramsMatch[1]
+          .split(',')
+          .map(p => p.trim().split(':')[0].trim())
+          .filter(p => p !== 'self' && p !== 'cls' && p !== '');
+
+        if (params.length > 0) {
+          // Check for Args section in docstring
+          const docstringLines = this.getFullDocstring(code, definition.line);
+          const hasArgsSection = docstringLines.some(line => line.trim() === 'Args:');
+
+          if (!hasArgsSection) {
+            violations.push({
+              file: filePath,
+              line: definition.line,
+              column: 0,
+              severity: 'warning',
+              rule: 'require-args-section',
+              message: `${definition.type} '${definition.name}' missing Args section in docstring`,
+              suggestion: 'Add Args section documenting all parameters',
+              autoFixable: false,
+            });
+          }
+        }
+      }
+
+      // Check for Returns section (skip __init__ and methods with -> None)
+      if (definition.name !== '__init__') {
+        const hasReturnAnnotation = functionLine.includes('->') && !functionLine.includes('-> None');
+        const docstringLines = this.getFullDocstring(code, definition.line);
+        const hasReturnsSection = docstringLines.some(line => line.trim() === 'Returns:');
+
+        if (hasReturnAnnotation && !hasReturnsSection) {
+          violations.push({
+            file: filePath,
+            line: definition.line,
+            column: 0,
+            severity: 'warning',
+            rule: 'require-returns-section',
+            message: `${definition.type} '${definition.name}' missing Returns section in docstring`,
+            suggestion: 'Add Returns section documenting return value',
+            autoFixable: false,
+          });
+        }
+      }
+    }
+
     return violations;
   }
 
-  // Check functions
-  for (const func of analysis.functions) {
-    const { name, line, params, returns, docstring } = func;
+  /**
+   * Extracts full docstring for a definition
+   * @param code - Full source code
+   * @param startLine - Line number where definition starts
+   * @returns Docstring lines
+   */
+  private getFullDocstring(code: string, startLine: number): string[] {
+    const lines = code.split('\n');
+    const docstringLines: string[] = [];
+    let inDocstring = false;
+    let quoteType = '';
 
-    // Missing docstring entirely
-    if (!docstring.exists) {
-      violations.push(
-        ViolationSchema.parse({
-          file: filePath,
-          line,
-          column: 0,
-          severity: 'error',
-          rule: 'missing-docstring',
-          message: `Function '${name}' missing docstring`,
-          suggestion: `Add Google-style docstring to function '${name}'`,
-          autoFixable: false,
-        })
-      );
-      continue;
+    for (let i = startLine; i < lines.length && i < startLine + 50; i++) {
+      const line = lines[i];
+
+      if (!inDocstring) {
+        if (line.includes('"""')) {
+          inDocstring = true;
+          quoteType = '"""';
+          docstringLines.push(line);
+          if (line.indexOf('"""') !== line.lastIndexOf('"""')) {
+            break; // Single-line docstring
+          }
+        } else if (line.includes("'''")) {
+          inDocstring = true;
+          quoteType = "'''";
+          docstringLines.push(line);
+          if (line.indexOf("'''") !== line.lastIndexOf("'''")) {
+            break; // Single-line docstring
+          }
+        }
+      } else {
+        docstringLines.push(line);
+        if (line.includes(quoteType)) {
+          break;
+        }
+      }
     }
 
-    // Missing Args section when function has parameters
-    const hasParams = params.length > 0 && params.some(p => p !== 'self' && p !== 'cls');
-    if (hasParams && !docstring.hasArgs) {
-      violations.push(
-        ViolationSchema.parse({
-          file: filePath,
-          line,
-          column: 0,
-          severity: 'warning',
-          rule: 'missing-args-section',
-          message: `Function '${name}' missing Args section in docstring`,
-          suggestion: `Add 'Args:' section documenting parameters: ${params.filter(p => p !== 'self' && p !== 'cls').join(', ')}`,
-          autoFixable: false,
-        })
-      );
-    }
-
-    // Missing Returns section when function returns a value
-    if (returns && !docstring.hasReturns) {
-      violations.push(
-        ViolationSchema.parse({
-          file: filePath,
-          line,
-          column: 0,
-          severity: 'warning',
-          rule: 'missing-returns-section',
-          message: `Function '${name}' missing Returns section in docstring`,
-          suggestion: `Add 'Returns:' section describing return value`,
-          autoFixable: false,
-        })
-      );
-    }
-
-    // Undocumented parameters
-    if (docstring.missingParams.length > 0) {
-      violations.push(
-        ViolationSchema.parse({
-          file: filePath,
-          line,
-          column: 0,
-          severity: 'warning',
-          rule: 'incomplete-args',
-          message: `Function '${name}' has undocumented parameters: ${docstring.missingParams.join(', ')}`,
-          suggestion: `Document all parameters in Args section`,
-          autoFixable: false,
-        })
-      );
-    }
+    return docstringLines;
   }
 
-  // Check classes
-  for (const cls of analysis.classes) {
-    if (!cls.docstring.exists) {
-      violations.push(
-        ViolationSchema.parse({
-          file: filePath,
-          line: cls.line,
-          column: 0,
-          severity: 'warning',
-          rule: 'missing-class-docstring',
-          message: `Class '${cls.name}' missing docstring`,
-          suggestion: `Add Google-style docstring to class '${cls.name}'`,
-          autoFixable: false,
-        })
-      );
-    }
-  }
+  /**
+   * Executes doc validation for a Python file
+   * @param input - Doc validator input
+   * @returns Agent result with violations
+   */
+  async execute(input: DocValidatorInput): Promise<AgentResult> {
+    this.validateInput(input);
 
-  return violations;
+    const violations: Violation[] = [];
+
+    // Extract function and class definitions
+    const definitions = this.extractDefinitions(input.code);
+
+    // Validate each definition's docstring
+    for (const definition of definitions) {
+      const defViolations = this.validateDocstring(definition, input.code, input.filePath);
+      violations.push(...defViolations);
+    }
+
+    // Calculate summary
+    const summary = {
+      errors: violations.filter(v => v.severity === 'error').length,
+      warnings: violations.filter(v => v.severity === 'warning').length,
+      info: violations.filter(v => v.severity === 'info').length,
+    };
+
+    return {
+      violations,
+      summary,
+    };
+  }
 }
 
 /**
- * Documentation Validator Agent
- *
- * Validates Google-style docstrings using Python AST parsing.
- * Returns top 10 error violations, then warnings (filtered in agent).
- *
- * Example usage:
- * ```typescript
- * const result = await docValidator({
- *   filePath: '/path/to/file.py',
- *   code: 'def foo(x, y):\n    return x + y'
- * });
- * ```
- *
- * @param input - Documentation validation parameters
- * @returns Agent result with violations
+ * Factory function to create doc validator instance
+ * @param projectRoot - Optional project root directory
+ * @returns Doc validator instance
  */
-export async function docValidator(input: unknown): Promise<AgentResult> {
-  const startTime = Date.now();
-
-  // Validate input with Zod schema
-  const validated = DocValidationInputSchema.parse(input) as DocValidationInput;
-
-  try {
-    // Execute Python AST parser
-    const analysis = await executePythonParser(validated.filePath, validated.code);
-
-    // Convert analysis to violations
-    const allViolations = analysisToViolations(analysis, validated.filePath);
-
-    // Filter to errors only (top 10)
-    const errorViolations = allViolations
-      .filter((v) => v.severity === 'error')
-      .slice(0, 10);
-
-    // Filter to warnings (top 10)
-    const warningViolations = allViolations
-      .filter((v) => v.severity === 'warning')
-      .slice(0, 10);
-
-    // Combine: errors first, then warnings
-    const violations = [...errorViolations, ...warningViolations];
-
-    // Calculate execution time
-    const executionTime = Date.now() - startTime;
-
-    // Estimate tokens used
-    const tokensUsed = violations.length * 50;
-
-    // Count violations by severity
-    const errors = allViolations.filter((v) => v.severity === 'error').length;
-    const warnings = allViolations.filter((v) => v.severity === 'warning').length;
-    const info = allViolations.filter((v) => v.severity === 'info').length;
-
-    // Build result
-    const result: AgentResult = {
-      agent: 'doc-validator',
-      executionTime,
-      tokensUsed,
-      violations,
-      summary: {
-        errors,
-        warnings,
-        info,
-      },
-    };
-
-    return AgentResultSchema.parse(result);
-  } catch (error) {
-    if (error instanceof Error) {
-      if (error.message.includes('Failed to spawn Python')) {
-        throw new Error(
-          'Python 3 not found. Ensure python3 is installed and in PATH'
-        );
-      }
-      throw error;
-    }
-    throw new Error('Unknown error during docstring validation');
-  }
+export function createDocValidator(projectRoot?: string): DocValidator {
+  return new DocValidator(projectRoot);
 }
