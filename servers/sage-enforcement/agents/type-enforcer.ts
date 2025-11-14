@@ -1,8 +1,8 @@
 import { executePyright, createSandboxConfig } from '../utils/sandbox.js';
 import { validatePath, getProjectRoot, isPythonFile } from '../utils/validation.js';
 import { isDeprecatedImport, getBuiltinReplacement, TYPING_RULES } from '../rules/typing-standards.js';
-import type { AgentResult, TypeEnforcerInput, Violation } from '../schemas/index.js';
-import { TypeEnforcerInputSchema } from '../schemas/index.js';
+import type { AgentResult, TypeEnforcerInput, Violation } from '../schemas/type-enforcer.js';
+import { TypeEnforcerInputSchema } from '../schemas/type-enforcer.js';
 
 /**
  * Pyright diagnostic from JSON output

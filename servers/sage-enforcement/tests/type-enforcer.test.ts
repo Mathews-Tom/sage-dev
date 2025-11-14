@@ -3,9 +3,9 @@ import { readFileSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { createTypeEnforcer, TypeEnforcer } from '../agents/type-enforcer.js';
-import { TypeEnforcerInputSchema } from '../schemas/index.js';
+import { TypeEnforcerInputSchema } from '../schemas/type-enforcer.js';
 import { getProjectRoot } from '../utils/validation.js';
-import type { TypeEnforcerInput, AgentResult } from '../schemas/index.js';
+import type { TypeEnforcerInput, AgentResult } from '../schemas/type-enforcer.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
