@@ -23,6 +23,9 @@ Phase 2 successfully implements context-aware pattern extraction and progressive
 | CACHE-018 | sage.init Integration | ✅ Complete | AST-based extraction in initialization, CLI tool |
 | CACHE-012 | sage.specify Integration | ✅ Complete | Pattern-aware spec generation, markdown formatter |
 | CACHE-013 | sage.implement Integration | ✅ Complete | Progressive loading during implementation, pattern compliance |
+| CACHE-015 | sage.intel Integration | ✅ Complete | Research caching with TTL, query deduplication |
+| CACHE-016 | sage.plan Integration | ✅ Complete | Pattern-aware architecture planning, confidence scoring |
+| CACHE-017 | sage.tasks Integration | ✅ Complete | Pattern-based complexity estimation, estimate buffers |
 
 ## Performance Metrics
 
@@ -159,31 +162,39 @@ servers/
    - Pattern compliance checklist for implementations
    - Token reduction tracking
 
+4. **CACHE-015**: sage.intel Integration ✅
+   - Research caching with 24-hour TTL
+   - Query deduplication via MD5 hashing
+   - Cache statistics tracking (hits/misses/hit rate)
+   - Automatic cache index management
+
+5. **CACHE-016**: sage.plan Integration ✅
+   - Pattern-aware architecture planning
+   - Load patterns with confidence scores and language detection
+   - Apply naming conventions, testing framework, module patterns
+   - Type safety and error handling requirements
+
+6. **CACHE-017**: sage.tasks Integration ✅
+   - Pattern-based complexity estimation
+   - Confidence-driven estimate buffers (1.1x-1.5x)
+   - Testing framework detection for test estimates
+   - Conservative defaults when patterns unavailable
+
 ### Remaining Work
 
-1. **CACHE-015**: sage.intel Integration
-   - Cache research results from web searches
-   - Deduplicate and organize research outputs
-   - Progressive loading for research context
-
-2. **CACHE-016**: sage.plan Integration
-   - Load patterns for architecture planning
-   - Context-aware dependency analysis
-   - Pattern-informed technical decisions
-
-3. **CACHE-017**: sage.tasks Integration
-   - Pattern-aware task breakdown
-   - Estimate complexity based on pattern adherence
-   - Target files detection from patterns
-
-4. **Performance Optimization**
+1. **Performance Optimization**
    - Add pattern caching to avoid repeated AST parsing
    - Implement parallel file analysis for large repositories
 
-5. **Enhanced Context Detection**
+2. **Enhanced Context Detection**
    - Add support for more file types (Go, Rust, Java)
    - Improve feature detection accuracy
    - Add semantic analysis for better pattern matching
+
+3. **Phase 3 Features**
+   - Cache invalidation strategies
+   - Remote pattern storage
+   - Pattern sharing across projects
 
 ## Commits
 
@@ -193,6 +204,9 @@ servers/
 4. `feat(init): integrate AST-based pattern extraction into sage.init (#CACHE-018)`
 5. `feat(specify): integrate pattern-aware specification generation (#CACHE-012)`
 6. `feat(implement): integrate progressive pattern loading (#CACHE-013)`
+7. `feat(intel): integrate research caching for WebSearch results (#CACHE-015)`
+8. `feat(plan): integrate pattern-aware architecture planning (#CACHE-016)`
+9. `feat(tasks): integrate pattern-based complexity estimation (#CACHE-017)`
 
 ## Conclusion
 
