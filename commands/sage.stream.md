@@ -29,6 +29,7 @@ EXECUTION_MODE="interactive"  # Default
 DRY_RUN=false
 PARALLEL_MODE=false
 PARALLEL_WORKERS="1"
+EXPLAIN_TICKET=""
 
 for arg in "$@"; do
   case $arg in
@@ -55,6 +56,16 @@ for arg in "$@"; do
     --parallel)
       PARALLEL_MODE=true
       PARALLEL_WORKERS="auto"
+      ;;
+    --explain)
+      EXECUTION_MODE="explain"
+      # Next argument should be ticket ID
+      ;;
+    *)
+      # Capture ticket ID for --explain mode
+      if [ "$EXECUTION_MODE" = "explain" ] && [ -z "$EXPLAIN_TICKET" ]; then
+        EXPLAIN_TICKET="$arg"
+      fi
       ;;
   esac
 done
@@ -135,9 +146,138 @@ elif [ "$EXECUTION_MODE" = "auto" ]; then
   fi
 elif [ "$EXECUTION_MODE" = "dry-run" ]; then
   echo "DRY RUN MODE: Preview only, no changes will be made"
+elif [ "$EXECUTION_MODE" = "explain" ]; then
+  echo "EXPLAIN MODE: Analyzing ticket dependencies"
+  if [ -z "$EXPLAIN_TICKET" ]; then
+    echo "ERROR: --explain requires a ticket ID"
+    echo "Usage: /stream --explain TICKET-001"
+    exit 1
+  fi
 fi
 echo "================================================"
 echo ""
+
+# Handle --explain mode (READY-006)
+if [ "$EXECUTION_MODE" = "explain" ]; then
+  # Load ticket data
+  test -f .sage/tickets/index.json || {
+    echo "ERROR: Ticket system not found"
+    exit 1
+  }
+
+  TICKET_INDEX=$(cat .sage/tickets/index.json)
+  TICKET_DATA=$(echo "$TICKET_INDEX" | jq ".tickets[] | select(.id == \"$EXPLAIN_TICKET\")")
+
+  if [ -z "$TICKET_DATA" ] || [ "$TICKET_DATA" = "null" ]; then
+    echo "ERROR: Ticket '$EXPLAIN_TICKET' not found"
+    exit 1
+  fi
+
+  TICKET_TITLE=$(echo "$TICKET_DATA" | jq -r '.title')
+  TICKET_STATE=$(echo "$TICKET_DATA" | jq -r '.state')
+  TICKET_PRIORITY=$(echo "$TICKET_DATA" | jq -r '.priority // "P2"')
+  TICKET_DEPS=$(echo "$TICKET_DATA" | jq -r '.dependencies // []')
+
+  echo "┌────────────────────────────────────────────────┐"
+  echo "│              TICKET DEPENDENCY ANALYSIS        │"
+  echo "└────────────────────────────────────────────────┘"
+  echo ""
+  echo "📋 Ticket: $EXPLAIN_TICKET - $TICKET_TITLE"
+  echo "   State: $TICKET_STATE"
+  echo "   Priority: $TICKET_PRIORITY"
+  echo ""
+
+  # Check if ticket is ready
+  DEP_COUNT=$(echo "$TICKET_DEPS" | jq 'length')
+
+  if [ "$TICKET_STATE" != "UNPROCESSED" ]; then
+    echo "ℹ️  Status: Not in queue (state is $TICKET_STATE)"
+    if [ "$TICKET_STATE" = "COMPLETED" ]; then
+      echo "   This ticket has already been completed."
+    elif [ "$TICKET_STATE" = "DEFERRED" ]; then
+      echo "   This ticket has been deferred."
+    elif [ "$TICKET_STATE" = "IN_PROGRESS" ]; then
+      echo "   This ticket is currently being processed."
+    fi
+  elif [ "$DEP_COUNT" -eq 0 ]; then
+    echo "✅ Status: READY"
+    echo "   No dependencies - can be executed immediately."
+  else
+    # Check each dependency
+    BLOCKED=false
+    BLOCKING_DEPS=""
+    SATISFIED_DEPS=""
+
+    for dep in $(echo "$TICKET_DEPS" | jq -r '.[]'); do
+      DEP_STATE=$(echo "$TICKET_INDEX" | jq -r ".tickets[] | select(.id == \"$dep\") | .state")
+      if [ "$DEP_STATE" = "COMPLETED" ]; then
+        SATISFIED_DEPS="$SATISFIED_DEPS\n  ✅ $dep (COMPLETED)"
+      else
+        BLOCKED=true
+        BLOCKING_DEPS="$BLOCKING_DEPS\n  ❌ $dep ($DEP_STATE)"
+      fi
+    done
+
+    if [ "$BLOCKED" = true ]; then
+      echo "⏸️  Status: BLOCKED"
+      echo ""
+      echo "Blocking Dependencies:"
+      echo -e "$BLOCKING_DEPS"
+      echo ""
+      echo "Satisfied Dependencies:"
+      if [ -z "$SATISFIED_DEPS" ]; then
+        echo "  None"
+      else
+        echo -e "$SATISFIED_DEPS"
+      fi
+      echo ""
+
+      # Show dependency chain
+      echo "📊 Dependency Chain:"
+      echo ""
+
+      # Build chain recursively (simplified - shows immediate blockers)
+      for dep in $(echo "$TICKET_DEPS" | jq -r '.[]'); do
+        DEP_STATE=$(echo "$TICKET_INDEX" | jq -r ".tickets[] | select(.id == \"$dep\") | .state")
+        if [ "$DEP_STATE" != "COMPLETED" ]; then
+          DEP_TITLE=$(echo "$TICKET_INDEX" | jq -r ".tickets[] | select(.id == \"$dep\") | .title")
+          DEP_DEPS=$(echo "$TICKET_INDEX" | jq -r ".tickets[] | select(.id == \"$dep\") | .dependencies // []")
+          DEP_DEP_COUNT=$(echo "$DEP_DEPS" | jq 'length')
+
+          echo "  $dep ($DEP_STATE) - $DEP_TITLE"
+
+          if [ "$DEP_DEP_COUNT" -gt 0 ]; then
+            for subdep in $(echo "$DEP_DEPS" | jq -r '.[]'); do
+              SUBDEP_STATE=$(echo "$TICKET_INDEX" | jq -r ".tickets[] | select(.id == \"$subdep\") | .state")
+              if [ "$SUBDEP_STATE" != "COMPLETED" ]; then
+                echo "    └─ $subdep ($SUBDEP_STATE)"
+              fi
+            done
+          fi
+        fi
+      done
+      echo ""
+
+      echo "🔧 To unblock $EXPLAIN_TICKET:"
+      STEP=1
+      for dep in $(echo "$TICKET_DEPS" | jq -r '.[]'); do
+        DEP_STATE=$(echo "$TICKET_INDEX" | jq -r ".tickets[] | select(.id == \"$dep\") | .state")
+        if [ "$DEP_STATE" != "COMPLETED" ]; then
+          echo "  $STEP. Complete $dep"
+          STEP=$((STEP + 1))
+        fi
+      done
+    else
+      echo "✅ Status: READY"
+      echo "   All dependencies satisfied."
+      echo ""
+      echo "Satisfied Dependencies:"
+      echo -e "$SATISFIED_DEPS"
+    fi
+  fi
+  echo ""
+  exit 0
+fi
 ```
 
 ### 1. Initialize Cycle
@@ -184,6 +324,186 @@ echo "  IN_PROGRESS:      $IN_PROGRESS"
 echo "  UNPROCESSED:      $UNPROCESSED"
 echo "  DEFERRED:         $DEFERRED"
 echo ""
+
+# Ready-Work Status Report (READY-005)
+echo "📊 Dependency-Aware Queue Status:"
+echo ""
+
+# Performance Optimization (READY-008): Pre-compute completed ticket IDs
+COMPLETED_IDS=$(echo "$TICKET_INDEX" | jq -r '[.tickets[] | select(.state == "COMPLETED") | .id] | @json')
+
+# Find ready tickets (UNPROCESSED with satisfied dependencies) - O(n) complexity
+READY_TICKETS=$(echo "$TICKET_INDEX" | jq -r --argjson completed "$COMPLETED_IDS" '
+  [.tickets[] |
+   select(.state == "UNPROCESSED") |
+   select(
+     if .dependencies and (.dependencies | length > 0) then
+       .dependencies | all(. as $d | $completed | contains([$d]))
+     else true end
+   )] | sort_by(.priority // "P2") | .[].id
+')
+READY_COUNT=$(echo "$READY_TICKETS" | grep -c . || echo 0)
+
+# Find blocked tickets (UNPROCESSED with unsatisfied dependencies) - Optimized O(n)
+BLOCKED_INFO=$(echo "$TICKET_INDEX" | jq -r --argjson completed "$COMPLETED_IDS" '
+  .tickets[] |
+  select(.state == "UNPROCESSED") |
+  select(
+    .dependencies and (.dependencies | length > 0) and
+    (.dependencies | all(. as $d | $completed | contains([$d])) | not)
+  ) |
+  .id as $id |
+  .title as $title |
+  .dependencies |
+  map(select(. as $d | $completed | contains([$d]) | not)) |
+  "\($id) - \($title)\n    Blocked by: \(join(", "))"
+')
+BLOCKED_COUNT=$(echo "$BLOCKED_INFO" | grep -c "^[A-Z]" || echo 0)
+
+if [ "$READY_COUNT" -gt 0 ]; then
+  echo "✅ Ready to Execute ($READY_COUNT):"
+  echo "$READY_TICKETS" | head -10 | while read ticket_id; do
+    TICKET_TITLE=$(echo "$TICKET_INDEX" | jq -r ".tickets[] | select(.id == \"$ticket_id\") | .title")
+    TICKET_PRIORITY=$(echo "$TICKET_INDEX" | jq -r ".tickets[] | select(.id == \"$ticket_id\") | .priority // \"P2\"")
+    echo "  ✓ $ticket_id ($TICKET_PRIORITY) - $TICKET_TITLE"
+  done
+  if [ "$READY_COUNT" -gt 10 ]; then
+    echo "  ... and $((READY_COUNT - 10)) more"
+  fi
+else
+  echo "✅ Ready to Execute: None"
+fi
+echo ""
+
+if [ "$BLOCKED_COUNT" -gt 0 ]; then
+  echo "⏸️  Blocked ($BLOCKED_COUNT):"
+  echo "$BLOCKED_INFO" | head -20
+  if [ "$BLOCKED_COUNT" -gt 5 ]; then
+    echo "  ... and $((BLOCKED_COUNT - 5)) more blocked tickets"
+  fi
+else
+  echo "⏸️  Blocked: None"
+fi
+echo ""
+
+if [ "$READY_COUNT" -eq 0 ] && [ "$UNPROCESSED" -gt 0 ]; then
+  echo "⚠️  WARNING: No ready work available!"
+  echo "All $UNPROCESSED unprocessed tickets are blocked by dependencies."
+  echo "Run '/sage.stream --explain <ticket-id>' to see blocking chains."
+  echo ""
+fi
+
+# Dry-Run Execution Plan (READY-007)
+if [ "$DRY_RUN" = "true" ]; then
+  echo "🔍 EXECUTION PLAN (DRY RUN)"
+  echo "════════════════════════════════════════════════"
+  echo ""
+
+  # Build execution batches based on dependencies
+  BATCH_NUM=1
+  PROCESSED_IDS=""
+  REMAINING_TICKETS=$(echo "$TICKET_INDEX" | jq -r '[.tickets[] | select(.state == "UNPROCESSED") | .id] | join(" ")')
+
+  while [ -n "$REMAINING_TICKETS" ]; do
+    # Find tickets that are ready (all deps satisfied or in PROCESSED_IDS)
+    BATCH_TICKETS=""
+
+    for ticket_id in $REMAINING_TICKETS; do
+      DEPS=$(echo "$TICKET_INDEX" | jq -r ".tickets[] | select(.id == \"$ticket_id\") | .dependencies // [] | .[]" 2>/dev/null)
+      IS_READY=true
+
+      if [ -n "$DEPS" ]; then
+        for dep in $DEPS; do
+          DEP_STATE=$(echo "$TICKET_INDEX" | jq -r ".tickets[] | select(.id == \"$dep\") | .state")
+          # Check if dep is completed or in our processed list
+          if [ "$DEP_STATE" != "COMPLETED" ]; then
+            if ! echo "$PROCESSED_IDS" | grep -q "$dep"; then
+              IS_READY=false
+              break
+            fi
+          fi
+        done
+      fi
+
+      if [ "$IS_READY" = "true" ]; then
+        BATCH_TICKETS="$BATCH_TICKETS $ticket_id"
+      fi
+    done
+
+    if [ -z "$BATCH_TICKETS" ]; then
+      # No more ready tickets - remaining are blocked
+      break
+    fi
+
+    # Display batch
+    BATCH_COUNT=$(echo "$BATCH_TICKETS" | wc -w | tr -d ' ')
+    if [ "$BATCH_COUNT" -gt 1 ]; then
+      echo "Batch $BATCH_NUM (Parallel possible: $BATCH_COUNT independent tickets):"
+    else
+      echo "Batch $BATCH_NUM (Sequential):"
+    fi
+
+    TICKET_NUM=1
+    for ticket_id in $BATCH_TICKETS; do
+      TICKET_TITLE=$(echo "$TICKET_INDEX" | jq -r ".tickets[] | select(.id == \"$ticket_id\") | .title")
+      TICKET_PRIORITY=$(echo "$TICKET_INDEX" | jq -r ".tickets[] | select(.id == \"$ticket_id\") | .priority // \"P2\"")
+      DEPS=$(echo "$TICKET_INDEX" | jq -r ".tickets[] | select(.id == \"$ticket_id\") | .dependencies // [] | join(\", \")")
+
+      if [ -n "$DEPS" ]; then
+        echo "  $TICKET_NUM. $ticket_id ($TICKET_PRIORITY) - $TICKET_TITLE"
+        echo "     └─ Depends on: $DEPS"
+      else
+        echo "  $TICKET_NUM. $ticket_id ($TICKET_PRIORITY) - $TICKET_TITLE"
+      fi
+
+      TICKET_NUM=$((TICKET_NUM + 1))
+      PROCESSED_IDS="$PROCESSED_IDS $ticket_id"
+    done
+    echo ""
+
+    # Remove processed tickets from remaining
+    NEW_REMAINING=""
+    for ticket_id in $REMAINING_TICKETS; do
+      if ! echo "$BATCH_TICKETS" | grep -q "$ticket_id"; then
+        NEW_REMAINING="$NEW_REMAINING $ticket_id"
+      fi
+    done
+    REMAINING_TICKETS=$(echo "$NEW_REMAINING" | xargs)
+
+    BATCH_NUM=$((BATCH_NUM + 1))
+  done
+
+  # Show any remaining blocked tickets
+  if [ -n "$REMAINING_TICKETS" ]; then
+    REMAINING_COUNT=$(echo "$REMAINING_TICKETS" | wc -w | tr -d ' ')
+    echo "⚠️  Blocked Tickets ($REMAINING_COUNT):"
+    for ticket_id in $REMAINING_TICKETS; do
+      TICKET_TITLE=$(echo "$TICKET_INDEX" | jq -r ".tickets[] | select(.id == \"$ticket_id\") | .title")
+      DEPS=$(echo "$TICKET_INDEX" | jq -r ".tickets[] | select(.id == \"$ticket_id\") | .dependencies // [] | join(\", \")")
+      echo "  ⏸️  $ticket_id - $TICKET_TITLE"
+      echo "     Blocked by: $DEPS"
+    done
+    echo ""
+  fi
+
+  TOTAL_BATCHES=$((BATCH_NUM - 1))
+  TOTAL_PLANNED=$(echo "$PROCESSED_IDS" | wc -w | tr -d ' ')
+  echo "════════════════════════════════════════════════"
+  echo "Total: $TOTAL_PLANNED tickets in $TOTAL_BATCHES batches"
+  echo "Mode: $EXECUTION_MODE"
+  if [ -n "$REMAINING_TICKETS" ]; then
+    REMAINING_COUNT=$(echo "$REMAINING_TICKETS" | wc -w | tr -d ' ')
+    echo "Blocked: $REMAINING_COUNT tickets (dependency resolution needed)"
+  fi
+  echo ""
+  echo "No tickets will be executed (dry-run mode)."
+  echo ""
+
+  # Exit after showing plan in pure dry-run mode
+  if [ "$EXECUTION_MODE" = "dry-run" ]; then
+    exit 0
+  fi
+fi
 
 # Calculate ETA if we have historical data (Issue 3.2)
 if [ -f .sage/stream-velocity.log ]; then
@@ -640,14 +960,14 @@ if [ "$EXECUTION_MODE" = "semi-auto" ]; then
 # Sequential mode: Select single ticket
 elif [ "$PARALLEL_MODE" = "false" ]; then
   # Query for UNPROCESSED tickets with satisfied dependencies
-  SELECTED_TICKET_ID=$(cat .sage/tickets/index.json | jq -r '
+  # Performance Optimization (READY-008): Pre-compute completed IDs for O(n) query
+  COMPLETED_LIST=$(cat .sage/tickets/index.json | jq -r '[.tickets[] | select(.state == "COMPLETED") | .id] | @json')
+  SELECTED_TICKET_ID=$(cat .sage/tickets/index.json | jq -r --argjson completed "$COMPLETED_LIST" '
     .tickets[] |
     select(.state == "UNPROCESSED") |
     select(
-      if .dependencies then
-        all(.dependencies[]; . as $dep |
-          any($index.tickets[]; .id == $dep and .state == "COMPLETED")
-        )
+      if .dependencies and (.dependencies | length > 0) then
+        .dependencies | all(. as $dep | $completed | contains([$dep]))
       else true end
     ) |
     .id
@@ -1519,6 +1839,61 @@ mv /tmp/tickets-final.json .sage/tickets/index.json
 
 echo "✓ Ticket state updated: $OUTCOME"
 echo ""
+
+# Dynamic Re-Evaluation (READY-004)
+if [ "$OUTCOME" = "COMPLETED" ]; then
+  echo "🔄 Re-evaluating ticket queue..."
+  echo ""
+
+  # Reload ticket index
+  UPDATED_INDEX=$(cat .sage/tickets/index.json)
+
+  # Performance Optimization (READY-008): Pre-compute completed IDs for O(n) queries
+  UPDATED_COMPLETED=$(echo "$UPDATED_INDEX" | jq -r '[.tickets[] | select(.state == "COMPLETED") | .id] | @json')
+
+  # Find tickets that were unblocked by this completion - Optimized O(n)
+  UNBLOCKED_TICKETS=$(echo "$UPDATED_INDEX" | jq -r --arg completed_id "$TICKET_ID" --argjson completed "$UPDATED_COMPLETED" '
+    .tickets[] |
+    select(.state == "UNPROCESSED") |
+    select(.dependencies != null) |
+    select(.dependencies | contains([$completed_id])) |
+    select(.dependencies | all(. as $d | $completed | contains([$d]))) |
+    .id
+  ')
+
+  if [ -n "$UNBLOCKED_TICKETS" ]; then
+    UNBLOCKED_COUNT=$(echo "$UNBLOCKED_TICKETS" | wc -l | tr -d ' ')
+    echo "✅ Tickets unblocked by $TICKET_ID completion ($UNBLOCKED_COUNT):"
+    echo "$UNBLOCKED_TICKETS" | while read unblocked_id; do
+      UNBLOCKED_TITLE=$(echo "$UPDATED_INDEX" | jq -r ".tickets[] | select(.id == \"$unblocked_id\") | .title")
+      echo "  → $unblocked_id - $UNBLOCKED_TITLE"
+    done
+    echo ""
+  fi
+
+  # Update ready-work count - Optimized O(n)
+  NEW_READY_COUNT=$(echo "$UPDATED_INDEX" | jq -r --argjson completed "$UPDATED_COMPLETED" '
+    [.tickets[] |
+     select(.state == "UNPROCESSED") |
+     select(
+       if .dependencies and (.dependencies | length > 0) then
+         .dependencies | all(. as $d | $completed | contains([$d]))
+       else true end
+     )] | length
+  ')
+
+  NEW_UNPROCESSED=$(echo "$UPDATED_INDEX" | jq '[.tickets[] | select(.state == "UNPROCESSED")] | length')
+  NEW_BLOCKED=$((NEW_UNPROCESSED - NEW_READY_COUNT))
+
+  echo "📊 Updated Queue Status:"
+  echo "  Ready to execute: $NEW_READY_COUNT tickets"
+  echo "  Still blocked:    $NEW_BLOCKED tickets"
+  echo ""
+
+  # Log re-evaluation to dependency log
+  mkdir -p .sage
+  echo "$(date -u +%Y-%m-%dT%H:%M:%SZ) | READY_QUERY | Completed $TICKET_ID → Unblocked: ${UNBLOCKED_TICKETS:-none}" >> .sage/ready-work.log
+fi
 ```
 
 **Outcome Handling:**

@@ -1,5 +1,5 @@
 ---
-allowed-tools: Bash(git:*), Bash(cat:*), Bash(jq:*), Bash(grep:*), Bash(test:*), Bash(node:*), Bash(npx:*), Read, Write, Edit, SequentialThinking
+allowed-tools: Bash(git:*), Bash(cat:*), Bash(jq:*), Bash(grep:*), Bash(test:*), Bash(node:*), Bash(npx:*), Bash(fd:*), Bash(which:*), Read, Write, Edit, SequentialThinking, SlashCommand(/sage.skill:*)
 description: Execute ticket-based implementation following Ticket Clearance Methodology with automatic state management and test validation.
 argument-hint: '[ticket-id] [--compact] (optional ticket ID, --compact loads only targetFiles)'
 ---
@@ -88,6 +88,92 @@ TICKET_DATA=$(cat .sage/tickets/index.json | jq ".tickets[] | select(.id == \"$T
 - Filter by satisfied dependencies (all dependencies COMPLETED)
 - Sort by priority (P0 > P1 > P2)
 - Validate ticket exists and is actionable
+
+### 1.5 Skill Suggestion (Optional)
+
+After loading the ticket, suggest relevant skills based on ticket type.
+
+```bash
+# Extract ticket type from ID or title
+TICKET_TYPE=$(echo "$TICKET_ID" | grep -oE '^[A-Z]+' | head -1)
+
+# Map ticket type/content to relevant skills
+SUGGESTED_SKILLS=""
+
+# Determine skill suggestions based on ticket characteristics
+if echo "$TICKET_DATA" | jq -r '.title' | grep -iq "test\|coverage\|tdd"; then
+  SUGGESTED_SKILLS="tdd-workflow"
+elif echo "$TICKET_DATA" | jq -r '.title' | grep -iq "bug\|fix\|error\|debug"; then
+  SUGGESTED_SKILLS="systematic-debugging"
+elif echo "$TICKET_DATA" | jq -r '.title' | grep -iq "refactor\|clean\|improve"; then
+  SUGGESTED_SKILLS="safe-refactoring-checklist"
+elif echo "$TICKET_DATA" | jq -r '.title' | grep -iq "review\|pr\|merge"; then
+  SUGGESTED_SKILLS="code-review-checklist"
+else
+  # Default suggestions for story/epic tickets
+  SUGGESTED_SKILLS="tdd-workflow safe-refactoring-checklist"
+fi
+
+# Check if skills exist in library
+if [ -d ".sage/agent/skills" ] && [ -n "$SUGGESTED_SKILLS" ]; then
+  echo ""
+  echo "🎯 Suggested Skills for this ticket:"
+  echo ""
+
+  SKILL_NUM=1
+  AVAILABLE_SKILLS=""
+
+  for SKILL in $SUGGESTED_SKILLS; do
+    SKILL_FILE=$(fd -t f "${SKILL}.md" .sage/agent/skills/ 2>/dev/null | head -1)
+    if [ -n "$SKILL_FILE" ]; then
+      # Extract skill purpose
+      PURPOSE=$(grep -A 3 "^## Purpose" "$SKILL_FILE" | head -4 | tail -1 | sed 's/\*\*When to use:\*\*//' | head -c 60)
+      echo "  $SKILL_NUM. $SKILL"
+      echo "     $PURPOSE..."
+      AVAILABLE_SKILLS="$AVAILABLE_SKILLS $SKILL"
+      SKILL_NUM=$((SKILL_NUM + 1))
+    fi
+  done
+
+  if [ -n "$AVAILABLE_SKILLS" ]; then
+    echo ""
+    echo "Apply skill? (enter number, or 'none' to skip):"
+    read -r SKILL_CHOICE
+
+    if [ "$SKILL_CHOICE" != "none" ] && [ "$SKILL_CHOICE" != "" ]; then
+      # Get selected skill name
+      SELECTED_SKILL=$(echo "$AVAILABLE_SKILLS" | tr ' ' '\n' | sed -n "${SKILL_CHOICE}p")
+      if [ -n "$SELECTED_SKILL" ]; then
+        echo ""
+        echo "📚 Applying skill: $SELECTED_SKILL"
+
+        # Apply skill with prerequisite validation
+        # This displays the skill and validates prerequisites
+        /sage.skill "$SELECTED_SKILL" --apply
+
+        # Log skill application in ticket notes
+        echo "Applied skill: $SELECTED_SKILL" >> .sage/tickets/${TICKET_ID}-notes.md
+      fi
+    else
+      echo "Skipping skill application."
+    fi
+  fi
+fi
+```
+
+**Key Actions:**
+
+- Analyze ticket type from ID prefix or title keywords
+- Map ticket characteristics to relevant skills:
+  - Bug/fix/error tickets → `systematic-debugging`
+  - Test/coverage tickets → `tdd-workflow`
+  - Refactor/clean tickets → `safe-refactoring-checklist`
+  - Review/PR tickets → `code-review-checklist`
+  - General story/epic → `tdd-workflow`, `safe-refactoring-checklist`
+- Display available skills with brief descriptions
+- Allow user to select skill or skip
+- Apply selected skill with `/sage.skill --apply`
+- Log skill application in ticket notes
 
 ### 2. Mark Ticket IN_PROGRESS
 
