@@ -2,30 +2,39 @@
 
 ![Sage-DEV Cover Image](assets/sage_dev_cover_image.jpg)
 
-**Version 2.5** - Context engineering with research-driven development
+**Version 2.6** - MCP Server Infrastructure & Automated Workflows
 
-Development workflows enriched with collective wisdom and context engineering principles. Claude commands that incorporate best practices, research-backed recommendations, and battle-tested patterns. Features comprehensive context assembly, pattern extraction, and research-driven specifications.
+Development workflows enriched with collective wisdom and context engineering principles. Claude commands that incorporate best practices, research-backed recommendations, and battle-tested patterns. Features MCP server infrastructure for pattern extraction (60-80% token reduction), semi-auto execution mode (3-5× faster), and comprehensive context assembly with progressive loading.
 
 ## Features
 
+- 🔌 **MCP Server Infrastructure** - Pattern extraction, research caching, code enforcement
+- ⚡ **Automated Workflows** - Interactive, semi-auto, auto, and parallel execution modes
 - 🌐 **Multi-Language Support** - Python, JavaScript, TypeScript (more coming soon)
 - 🤖 **Intelligent Agents** - Automated code quality enforcement
 - 📋 **Development Rules** - Typing, testing, security, and commit standards
-- ⚡ **Slash Commands** - Streamlined workflows for rapid development
 - 🎯 **Universal Skills** - Portable skills that work across all LLM platforms
 - 🔒 **Security-First** - Built-in secret scanning and validation
 - 🎯 **Configurable Enforcement** - STRICT, BALANCED, or PROTOTYPE modes
+- 📉 **Token Optimization** - 60-80% reduction through progressive pattern loading
 
-## What's New in v2.5
+## What's New in v2.6
 
-- 🧬 **Context Engineering Integration** - Comprehensive context assembly from coleam00/context-engineering-intro principles
-- 🚀 **New Initialization Flow** - `/sage.init` for repository analysis and pattern extraction
+- 🔌 **MCP Server Infrastructure** - Pattern extraction, research caching, and code enforcement via Model Context Protocol
+- ⚡ **Semi-Auto Execution Mode** - Component-level confirmations with 3-5× speedup over interactive mode
+- 📉 **60-80% Token Reduction** - Progressive pattern loading with context-aware filtering
+- 🧪 **Comprehensive Test Suites** - 89 tests for MCP servers, integration tests for all workflows
+- 🎯 **Pattern-Aware Development** - AST-based analysis for TypeScript and Python
+- 🔄 **Resume Support** - Batch validation and session recovery for interrupted executions
+- 📊 **Velocity Tracking** - Automated estimation with confidence-driven buffers
+
+### Also from v2.5
+
+- 🧬 **Context Engineering** - Comprehensive context assembly from coleam00/context-engineering-intro
+- 🚀 **Initialization Flow** - `/sage.init` for repository analysis and pattern extraction
 - 📋 **Feature Request System** - `/sage.init-feature` for structured feature documentation
-- 🔬 **Research-Driven Development** - Enhanced `/sage.intel` with feature-focused research mode
-- 📊 **PRP Format Plans** - Product Requirements Prompt format in `/sage.plan` with full traceability
-- 🎯 **Priority-Based Discovery** - `/sage.specify` uses research → features → docs priority
-- 🧠 **Context Assembly Engine** - `/sage.implement` loads all 6 levels of documentation context
-- 📚 **Pattern Library** - Automatic code pattern extraction to `.sage/agent/examples/`
+- 🔬 **Research-Driven Development** - Enhanced `/sage.intel` with research caching
+- 📊 **PRP Format Plans** - Product Requirements Prompt format with full traceability
 - 🔗 **Complete Traceability** - Feature → Research → Spec → Plan → Implementation chain
 
 ## 🎯 Universal Skills - NEW!
@@ -110,7 +119,16 @@ Your selection is saved to `.sage/config.json` and determines which enforcement 
 /sage.workflow     # Choose Traditional vs Ticket-Based workflow
 ```
 
-### 5. Start Developing with Context Engineering
+### 5. (Optional) Setup MCP Servers
+
+```bash
+cd servers/sage-context-optimizer && npm install && npm run build && cd ..
+cd servers/sage-research && npm install && npm run build && cd ..
+```
+
+Configure `~/.claude/mcp_servers.json` for advanced pattern extraction and research caching.
+
+### 6. Start Developing with Context Engineering
 
 **Research-Driven Feature Development:**
 
@@ -123,14 +141,14 @@ Your selection is saved to `.sage/config.json` and determines which enforcement 
 /sage.implement                           # Execute with full context assembly
 ```
 
-**Or use Traditional/Ticket-Based workflows:**
+**Or use Automated Ticket-Based workflows:**
 
 ```bash
 /sage.specify      # Generate specifications from docs
 /sage.plan         # Create implementation plans
 /sage.tasks        # Break down into SMART tasks
-/sage.enforce      # Run enforcement pipeline
-/sage.stream       # Automated ticket execution
+/sage.migrate      # Convert to ticket system
+/sage.stream --semi-auto  # 3-5× faster automated execution
 ```
 
 ## Supported Languages
@@ -478,6 +496,23 @@ sage-dev/
 │   ├── sage-context-optimizer.zip
 │   └── sage-ticket-manager.zip
 │
+├── servers/                     # MCP Server Infrastructure (v2.6+)
+│   ├── sage-context-optimizer/  # Pattern extraction & progressive loading
+│   │   ├── index.ts            # MCP server entry point
+│   │   ├── progressive-loader.ts
+│   │   ├── pattern-extractor-*.ts
+│   │   ├── schemas/            # Zod validation schemas
+│   │   └── tests/              # 89 tests (vitest)
+│   │
+│   ├── sage-research/           # Research caching (24h TTL)
+│   │   ├── index.ts            # MCP server entry point
+│   │   ├── cache-manager.ts    # LRU cache, 100MB limit
+│   │   └── tests/
+│   │
+│   └── sage-enforcement/        # Code quality enforcement
+│       ├── index.ts            # HTTP API server
+│       └── tests/
+│
 ├── rules/                      # Development standards
 │   ├── typing-standards.md
 │   ├── test-standards.md
@@ -531,13 +566,21 @@ sage-dev/
 
 ## Documentation
 
-- **[docs/SKILLS_GUIDE.md](docs/SKILLS_GUIDE.md)** - Universal Skills guide (Claude/ChatGPT/Gemini)
-- **[SAGE.WORKFLOW.md](commands/sage.workflow.md)** - Complete workflow guide
+### Getting Started
+- **[docs/INSTALLATION.md](docs/INSTALLATION.md)** - Complete installation & setup guide
+- **[docs/WORKFLOWS.md](docs/WORKFLOWS.md)** - All workflow scenarios (Interactive, Semi-Auto, Auto, Parallel)
+- **[docs/MCP_SETUP.md](docs/MCP_SETUP.md)** - MCP server configuration and usage
+
+### Reference
 - **[SAGE.COMMANDS.md](commands/SAGE.COMMANDS.md)** - Command reference (37 commands)
 - **[AGENTS_AND_RULES.md](AGENTS_AND_RULES.md)** - Agent and rule documentation
 - **[agents/LANGUAGES.md](agents/LANGUAGES.md)** - Multi-language support guide
+
+### Advanced
+- **[docs/SKILLS_GUIDE.md](docs/SKILLS_GUIDE.md)** - Universal Skills guide (Claude/ChatGPT/Gemini)
 - **[.sage/README.md](.sage/README.md)** - Configuration guide
 - **[.sage/agent/README.md](.sage/agent/README.md)** - Agent documentation system
+- **[docs/mcp/phase-2-results.md](docs/mcp/phase-2-results.md)** - MCP implementation details
 
 ## Development Workflows
 
@@ -636,6 +679,18 @@ A: `cd sage-dev && git pull && ./sage-setup.sh [agent] [language]`
 **Q: Can I customize enforcement rules?**
 
 A: Yes! Edit files in `rules/` and `.sage/enforcement.json` to customize standards and thresholds.
+
+**Q: What are MCP servers and do I need them?**
+
+A: MCP (Model Context Protocol) servers provide advanced features like pattern extraction (60-80% token reduction) and research caching. They're optional but recommended for large projects. See [docs/MCP_SETUP.md](docs/MCP_SETUP.md).
+
+**Q: What's the difference between execution modes (interactive, semi-auto, auto)?**
+
+A: Interactive confirms every step. Semi-auto confirms per component (3-5× faster). Auto runs without confirmations (5-10× faster). Parallel uses multiple agents (10-20× faster). See [docs/WORKFLOWS.md](docs/WORKFLOWS.md).
+
+**Q: How do I setup MCP servers?**
+
+A: `cd servers/sage-context-optimizer && npm install && npm run build`. Then configure `~/.claude/mcp_servers.json`. Full guide: [docs/MCP_SETUP.md](docs/MCP_SETUP.md).
 
 **Q: What are Skills and when should I use them?**
 
