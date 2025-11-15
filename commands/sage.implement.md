@@ -1,7 +1,7 @@
 ---
-allowed-tools: Bash(git:*), Bash(cat:*), Bash(jq:*), Bash(grep:*), Bash(test:*), Read, Write, Edit, SequentialThinking
+allowed-tools: Bash(git:*), Bash(cat:*), Bash(jq:*), Bash(grep:*), Bash(test:*), Bash(node:*), Bash(npx:*), Read, Write, Edit, SequentialThinking
 description: Execute ticket-based implementation following Ticket Clearance Methodology with automatic state management and test validation.
-argument-hint: '[ticket-id] (optional, defaults to next UNPROCESSED ticket)'
+argument-hint: '[ticket-id] [--compact] (optional ticket ID, --compact loads only targetFiles)'
 ---
 
 ## Role
@@ -192,37 +192,109 @@ echo ""
 # ========================================
 echo "Loading code patterns..."
 
-# Detect primary language from existing codebase
-PRIMARY_LANG=$(find . -name "*.py" -not -path "*/venv/*" -not -path "*/.venv/*" | head -1 && echo "python" || \
-               find . -name "*.js" -not -path "*/node_modules/*" | head -1 && echo "javascript" || \
-               find . -name "*.go" | head -1 && echo "go" || \
-               echo "unknown")
+# Extract target files from ticket for context-aware pattern loading
+TARGET_FILES=$(echo $TICKET_DATA | jq -r '.targetFiles[]? // empty')
 
-if [ "$PRIMARY_LANG" != "unknown" ] && [ -d ".sage/agent/examples/$PRIMARY_LANG" ]; then
-  echo "  Primary language: $PRIMARY_LANG"
+# Use progressive loader if MCP server is available
+PATTERNS_DIR=".sage/agent/examples"
+if [ -d "servers/sage-context-optimizer/dist" ] && [ -f "$PATTERNS_DIR/repository-patterns.ts" ]; then
+  echo "  Using progressive pattern loader..."
 
-  # List available pattern categories
-  PATTERN_CATEGORIES=$(find .sage/agent/examples/$PRIMARY_LANG -type d -mindepth 1 -maxdepth 1 2>/dev/null)
+  # Determine loading level based on ticket complexity
+  TICKET_PRIORITY=$(echo $TICKET_DATA | jq -r '.priority // "P1"')
+  case "$TICKET_PRIORITY" in
+    "P0") LOADING_LEVEL="extended" ;;
+    "P1") LOADING_LEVEL="core" ;;
+    *)    LOADING_LEVEL="critical" ;;
+  esac
 
-  if [ -n "$PATTERN_CATEGORIES" ]; then
-    echo "  Available patterns:"
-    echo "$PATTERN_CATEGORIES" | while read PATTERN_DIR; do
-      CATEGORY=$(basename "$PATTERN_DIR")
-      PATTERN_COUNT=$(find "$PATTERN_DIR" -type f -name "*.md" | wc -l)
-      echo "    - $CATEGORY ($PATTERN_COUNT patterns)"
+  echo "  Loading level: $LOADING_LEVEL (based on priority: $TICKET_PRIORITY)"
 
-      # Load relevant patterns for this component
-      find "$PATTERN_DIR" -type f -name "*.md" | head -3 | while read PATTERN_FILE; do
-        echo "      Loading: $(basename $PATTERN_FILE)"
-        cat "$PATTERN_FILE"
-      done
-    done
-    echo "✓ Code patterns loaded"
+  # Load patterns for first target file or component entry point
+  if [ -n "$TARGET_FILES" ]; then
+    CONTEXT_FILE=$(echo "$TARGET_FILES" | head -1)
   else
-    echo "ℹ️  No code patterns found"
+    CONTEXT_FILE="src/${COMPONENT}/index.ts"
+  fi
+
+  # Get pattern summary for implementation
+  cd servers/sage-context-optimizer
+  PATTERN_JSON=$(node -e "
+    import { ProgressiveLoader } from './dist/progressive-loader.js';
+    const loader = new ProgressiveLoader({ patternsDir: '../../$PATTERNS_DIR' });
+    loader.loadForContext('../../$CONTEXT_FILE', '$LOADING_LEVEL')
+      .then(result => {
+        console.log(JSON.stringify({
+          context: result.context,
+          patterns: result.patterns,
+          tokenCount: result.tokenCount,
+          reduction: result.reductionPercentage
+        }, null, 2));
+      })
+      .catch(err => console.error('Pattern loading error:', err.message));
+  " 2>/dev/null)
+  cd ../..
+
+  if [ -n "$PATTERN_JSON" ]; then
+    echo "  ✓ Context-aware patterns loaded"
+    echo "    File type: $(echo "$PATTERN_JSON" | jq -r '.context.fileType')"
+    echo "    Feature: $(echo "$PATTERN_JSON" | jq -r '.context.feature')"
+    echo "    Domain: $(echo "$PATTERN_JSON" | jq -r '.context.domain')"
+    echo "    Token reduction: $(echo "$PATTERN_JSON" | jq -r '.reduction')%"
+    echo ""
+
+    # Store patterns for implementation step
+    LOADED_PATTERNS="$PATTERN_JSON"
+
+    # Also get formatted markdown summary for reference
+    PATTERN_SUMMARY=$(node servers/sage-context-optimizer/dist/format-patterns-for-spec.js \
+        --dir "$PATTERNS_DIR" --format markdown 2>/dev/null)
+
+    if [ -n "$PATTERN_SUMMARY" ]; then
+      echo "  Pattern requirements to follow:"
+      echo "$PATTERN_SUMMARY" | head -30
+    fi
+  else
+    echo "  ⚠️  Failed to load patterns progressively, using static patterns"
+    LOADED_PATTERNS=""
   fi
 else
-  echo "ℹ️  No code examples available (run /sage.init to extract patterns)"
+  # Fallback: Load static patterns if progressive loader not available
+  echo "  Progressive loader not available, using static patterns..."
+
+  # Detect primary language from existing codebase
+  PRIMARY_LANG=$(find . -name "*.py" -not -path "*/venv/*" -not -path "*/.venv/*" | head -1 && echo "python" || \
+                 find . -name "*.js" -not -path "*/node_modules/*" | head -1 && echo "javascript" || \
+                 find . -name "*.go" | head -1 && echo "go" || \
+                 echo "unknown")
+
+  if [ "$PRIMARY_LANG" != "unknown" ] && [ -d "$PATTERNS_DIR/$PRIMARY_LANG" ]; then
+    echo "  Primary language: $PRIMARY_LANG"
+
+    # List available pattern categories
+    PATTERN_CATEGORIES=$(find "$PATTERNS_DIR/$PRIMARY_LANG" -type d -mindepth 1 -maxdepth 1 2>/dev/null)
+
+    if [ -n "$PATTERN_CATEGORIES" ]; then
+      echo "  Available patterns:"
+      echo "$PATTERN_CATEGORIES" | while read PATTERN_DIR; do
+        CATEGORY=$(basename "$PATTERN_DIR")
+        PATTERN_COUNT=$(find "$PATTERN_DIR" -type f -name "*.md" | wc -l)
+        echo "    - $CATEGORY ($PATTERN_COUNT patterns)"
+
+        # Load relevant patterns for this component
+        find "$PATTERN_DIR" -type f -name "*.md" | head -3 | while read PATTERN_FILE; do
+          echo "      Loading: $(basename $PATTERN_FILE)"
+          cat "$PATTERN_FILE"
+        done
+      done
+      echo "✓ Code patterns loaded"
+    else
+      echo "ℹ️  No code patterns found"
+    fi
+  else
+    echo "ℹ️  No code examples available (run /sage.init to extract patterns)"
+  fi
+  LOADED_PATTERNS=""
 fi
 echo ""
 
@@ -289,7 +361,12 @@ echo "  ✓ Plan: $PLAN_PATH"
 [ -f "$TASKS_PATH" ] && echo "  ✓ Tasks: $TASKS_PATH"
 [ -n "$RESEARCH_FILES" ] && echo "  ✓ Research: $(echo "$RESEARCH_FILES" | wc -l) files"
 [ -n "$FEATURE_FILES" ] && echo "  ✓ Features: $(echo "$FEATURE_FILES" | wc -l) files"
-[ "$PRIMARY_LANG" != "unknown" ] && echo "  ✓ Code Patterns: $PRIMARY_LANG"
+if [ -n "$LOADED_PATTERNS" ]; then
+  echo "  ✓ Code Patterns: Progressive ($LOADING_LEVEL level)"
+  echo "    Token reduction: $(echo "$LOADED_PATTERNS" | jq -r '.reduction')%"
+else
+  [ "$PRIMARY_LANG" != "unknown" ] && echo "  ✓ Code Patterns: $PRIMARY_LANG"
+fi
 [ -f ".sage/agent/system/architecture.md" ] && echo "  ✓ System Architecture"
 [ -f "CLAUDE.md" ] && echo "  ✓ Project Standards"
 echo ""
@@ -304,12 +381,18 @@ echo ""
 - **Priority 2:** Load research and intelligence for component
 - **Priority 3:** Load original feature requests
 - **Priority 4:** Load code examples and patterns from repository
+  - **Progressive loading:** Use context-aware pattern loader when available
+  - Determine loading level based on ticket priority (P0→extended, P1→core, P2→critical)
+  - Extract patterns for target files (naming, typing, testing, error handling)
+  - Calculate token reduction percentage for efficient context usage
+  - Fall back to static patterns if progressive loader unavailable
 - **Priority 5:** Load system documentation (architecture, tech-stack, patterns)
 - **Priority 6:** Load project standards (CLAUDE.md)
 - Use SequentialThinking with ALL context to understand requirements
 - Identify files to create/modify based on comprehensive context
 - Determine testing approach from research and patterns
 - Apply repository patterns and system conventions
+- Track pattern compliance during implementation
 
 ### 4. Check Dependencies
 
@@ -375,7 +458,34 @@ test -f "$BREAKDOWN_PATH" && cat "$BREAKDOWN_PATH"
 # - Acceptance criteria
 # - Architecture from plan
 # - Patterns from breakdown
+# - Repository patterns (from progressive loader)
 # - Existing codebase conventions
+
+# If progressive patterns were loaded, extract key requirements
+if [ -n "$LOADED_PATTERNS" ]; then
+  echo "📝 Applying repository patterns to implementation..."
+
+  # Extract pattern constraints
+  FILE_TYPE=$(echo "$LOADED_PATTERNS" | jq -r '.context.fileType')
+  NAMING_PATTERNS=$(echo "$LOADED_PATTERNS" | jq -r '.patterns.naming // empty')
+  TYPING_PATTERNS=$(echo "$LOADED_PATTERNS" | jq -r '.patterns.typing // empty')
+  TESTING_PATTERNS=$(echo "$LOADED_PATTERNS" | jq -r '.patterns.testing // empty')
+
+  echo "  File type: $FILE_TYPE"
+  echo "  Naming conventions: $(echo "$NAMING_PATTERNS" | jq -r '.functions.pattern // "camelCase"')"
+  echo "  Testing framework: $(echo "$TESTING_PATTERNS" | jq -r '.framework // "vitest"')"
+  echo ""
+
+  # Generate pattern-aware implementation checklist
+  cat <<EOF
+Pattern Compliance Checklist:
+- [ ] Function names follow $(echo "$NAMING_PATTERNS" | jq -r '.functions.pattern // "camelCase"') convention
+- [ ] Class names follow $(echo "$NAMING_PATTERNS" | jq -r '.classes.pattern // "PascalCase"') convention
+- [ ] Type coverage meets $(echo "$TYPING_PATTERNS" | jq -r '.typeHintCoverage // 80')% threshold
+- [ ] Error handling uses explicit throws (no silent failures)
+- [ ] Tests use $(echo "$TESTING_PATTERNS" | jq -r '.framework // "vitest"') framework
+EOF
+fi
 ```
 
 **Key Actions:**
@@ -384,8 +494,14 @@ test -f "$BREAKDOWN_PATH" && cat "$BREAKDOWN_PATH"
 - Identify code files to create or modify
 - Implement functionality per acceptance criteria
 - Follow architecture patterns from plan
+- **Apply repository patterns from progressive loader:**
+  - Use detected naming conventions (camelCase functions, PascalCase classes)
+  - Follow type safety requirements (union syntax, generics style)
+  - Implement error handling per repository standards
+  - Use detected testing framework (Vitest, pytest, etc.)
 - Maintain existing code conventions
 - Update imports, dependencies, configurations
+- Validate pattern compliance during implementation
 
 ### 7. Atomic Commits During Implementation
 
