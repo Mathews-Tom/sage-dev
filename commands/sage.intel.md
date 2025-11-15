@@ -1,5 +1,5 @@
 ---
-allowed-tools: Bash(find:*), Bash(cat:*), Bash(ls:*), Bash(grep:*), Bash(tee:*), WebSearch, SequentialThinking
+allowed-tools: Bash(find:*), Bash(cat:*), Bash(ls:*), Bash(grep:*), Bash(tee:*), Bash(node:*), Bash(npx:*), Bash(mkdir:*), WebSearch, SequentialThinking
 description: Gather strategic intelligence through comprehensive system assessment and market analysis to inform technical and business decisions.
 ---
 
@@ -31,6 +31,37 @@ Gather strategic intelligence by evaluating both internal technical capabilities
 
    # System documentation from /sage.init
    ls -la .sage/agent/system/ 2>/dev/null
+
+   # Initialize research cache directory
+   mkdir -p .sage/agent/research
+
+   # Check for existing cached research
+   CACHED_RESEARCH=$(find .sage/agent/research -type f -name "*.json" 2>/dev/null | wc -l)
+   echo "📚 Research Cache Status:"
+   echo "  Cached research entries: $CACHED_RESEARCH"
+
+   # Load research cache index if available
+   if [ -f ".sage/agent/research/index.json" ]; then
+       echo "  Research index: Available"
+       CACHE_INDEX=$(cat .sage/agent/research/index.json)
+       CACHE_SIZE=$(echo "$CACHE_INDEX" | jq '.entries | length')
+       CACHE_TTL=$(echo "$CACHE_INDEX" | jq -r '.ttl // "24h"')
+       echo "  Index entries: $CACHE_SIZE"
+       echo "  Cache TTL: $CACHE_TTL"
+   else
+       echo "  Research index: Not initialized"
+       # Initialize research cache index
+       cat > .sage/agent/research/index.json << EOF
+{
+  "version": "1.0",
+  "created": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+  "ttl": "24h",
+  "entries": []
+}
+EOF
+       echo "  ✓ Research cache initialized"
+   fi
+   echo ""
    ```
 
 2. **Mode Detection**:
@@ -81,9 +112,66 @@ Gather strategic intelligence by evaluating both internal technical capabilities
 
 4. **Research Phase**:
 
+   **Cache-Aware Research Strategy:**
+
+   Before performing WebSearch, check for cached research results:
+
+   ```bash
+   # Function to check cache for existing research
+   check_research_cache() {
+       local QUERY="$1"
+       local QUERY_HASH=$(echo -n "$QUERY" | md5 | head -c 16)
+       local CACHE_FILE=".sage/agent/research/cache-${QUERY_HASH}.json"
+
+       if [ -f "$CACHE_FILE" ]; then
+           # Check if cache is still valid (within TTL)
+           local CACHE_TIME=$(jq -r '.timestamp' "$CACHE_FILE")
+           local NOW=$(date +%s)
+           local TTL_SECONDS=$((24 * 3600))  # 24 hours
+
+           # Validate cache age
+           if [ $((NOW - CACHE_TIME)) -lt $TTL_SECONDS ]; then
+               echo "CACHE_HIT"
+               return 0
+           fi
+       fi
+       echo "CACHE_MISS"
+       return 1
+   }
+
+   # Function to store research in cache
+   store_research_cache() {
+       local QUERY="$1"
+       local RESULT="$2"
+       local QUERY_HASH=$(echo -n "$QUERY" | md5 | head -c 16)
+       local CACHE_FILE=".sage/agent/research/cache-${QUERY_HASH}.json"
+
+       # Store result with metadata
+       cat > "$CACHE_FILE" << EOF
+{
+  "query": "$QUERY",
+  "timestamp": $(date +%s),
+  "date": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+  "result": "$RESULT"
+}
+EOF
+
+       # Update index
+       local INDEX=".sage/agent/research/index.json"
+       if [ -f "$INDEX" ]; then
+           jq ".entries += [{\"hash\": \"$QUERY_HASH\", \"query\": \"$QUERY\", \"cached\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}]" "$INDEX" > "${INDEX}.tmp"
+           mv "${INDEX}.tmp" "$INDEX"
+       fi
+   }
+
+   # Track cache statistics
+   CACHE_HITS=0
+   CACHE_MISSES=0
+   ```
+
    **For Feature-Focused Mode:**
 
-   Use `WebSearch` to research feature-specific topics:
+   Use `WebSearch` to research feature-specific topics (with cache checking):
    - Best practices for the specific feature type
    - Competitive implementations and solutions
    - Technical approaches and frameworks
@@ -95,7 +183,7 @@ Gather strategic intelligence by evaluating both internal technical capabilities
 
    **For Strategic Mode:**
 
-   Use `WebSearch` to research current best practices in:
+   Use `WebSearch` to research current best practices in (with cache checking):
    - Software development methodologies and frameworks
    - Architecture patterns and design principles
    - Quality assurance and testing strategies
@@ -103,6 +191,49 @@ Gather strategic intelligence by evaluating both internal technical capabilities
    - DevOps and operational practices
    - Documentation and knowledge management
    - Team collaboration and project management
+
+   **Cache Usage During Research:**
+
+   Before each `WebSearch` call:
+   1. Generate query hash for cache lookup
+   2. Check if valid cache entry exists
+   3. If CACHE_HIT: Use cached result, increment hits
+   4. If CACHE_MISS: Perform WebSearch, store result in cache
+
+   ```bash
+   # Example cache-aware research
+   QUERY="software development best practices 2025"
+   CACHE_STATUS=$(check_research_cache "$QUERY")
+
+   if [ "$CACHE_STATUS" = "CACHE_HIT" ]; then
+       echo "✓ Using cached research for: $QUERY"
+       CACHE_HITS=$((CACHE_HITS + 1))
+       # Load from cache
+       QUERY_HASH=$(echo -n "$QUERY" | md5 | head -c 16)
+       RESULT=$(jq -r '.result' ".sage/agent/research/cache-${QUERY_HASH}.json")
+   else
+       echo "→ Researching: $QUERY"
+       CACHE_MISSES=$((CACHE_MISSES + 1))
+       # Perform WebSearch and store result
+       # RESULT = WebSearch output
+       store_research_cache "$QUERY" "$RESULT"
+   fi
+   ```
+
+   **Research Cache Summary:**
+
+   After research phase completes:
+   ```bash
+   echo ""
+   echo "📊 Research Cache Statistics:"
+   echo "  Cache hits: $CACHE_HITS"
+   echo "  Cache misses: $CACHE_MISSES"
+   if [ $((CACHE_HITS + CACHE_MISSES)) -gt 0 ]; then
+       HIT_RATE=$((CACHE_HITS * 100 / (CACHE_HITS + CACHE_MISSES)))
+       echo "  Hit rate: ${HIT_RATE}%"
+   fi
+   echo ""
+   ```
 
 5. **Analysis & Recommendations**:
 
