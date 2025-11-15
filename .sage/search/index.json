@@ -1,0 +1,39 @@
+{
+  "version": "1.0.0",
+  "created": "2025-11-15T00:00:00Z",
+  "updated": "2025-11-15T00:00:00Z",
+  "sources": {
+    "agent": {
+      "last_indexed": "2025-11-15T00:00:00Z",
+      "total_files": 0,
+      "entries": []
+    },
+    "tickets": {
+      "last_indexed": "2025-11-15T00:00:00Z",
+      "total_tickets": 0,
+      "entries": []
+    },
+    "specs": {
+      "last_indexed": "2025-11-15T00:00:00Z",
+      "total_files": 0,
+      "entries": []
+    },
+    "git": {
+      "last_indexed": "2025-11-15T00:00:00Z",
+      "total_commits": 0,
+      "head_commit": "",
+      "entries": []
+    },
+    "patterns": {
+      "last_indexed": "2025-11-15T00:00:00Z",
+      "total_patterns": 0,
+      "entries": []
+    }
+  },
+  "statistics": {
+    "total_searches": 0,
+    "average_query_time_ms": 0,
+    "cache_hits": 0,
+    "last_query": null
+  }
+}
