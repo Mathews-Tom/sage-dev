@@ -13,6 +13,9 @@ coverage/
 tests/fixtures/*.json
 tests/fixtures/*.py
 
+# Temporary files
+.tmp-*
+
 # Editor directories
 .vscode/
 .idea/
