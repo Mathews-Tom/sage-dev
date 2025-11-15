@@ -1,5 +1,5 @@
 ---
-allowed-tools: Bash(ls:*), Bash(find:*), Bash(cat:*), Bash(grep:*), Bash(mkdir:*), Bash(tee:*), Bash(file:*), Bash(wc:*), SequentialThinking, Grep, Glob, Read
+allowed-tools: Bash(ls:*), Bash(find:*), Bash(cat:*), Bash(grep:*), Bash(mkdir:*), Bash(tee:*), Bash(file:*), Bash(wc:*), Bash(node:*), Bash(npx:*), SequentialThinking, Grep, Glob, Read, Write
 description: Initialize sage-dev system for repository with codebase analysis and pattern extraction (run once per repo).
 argument-hint: ''
 ---
@@ -120,32 +120,72 @@ echo "✓ Created docs/research/ for research outputs"
 echo ""
 ```
 
-### Step 5: Extract Code Patterns
+### Step 5: Extract Code Patterns (AST-Based)
 
-For each detected language, extract common patterns:
-
-**Python Example:**
+Use the sage-context-optimizer to perform AST-based pattern extraction:
 
 ```bash
-echo "🔍 Extracting Python patterns..."
+echo "🔍 Extracting code patterns using AST analysis..."
 
-# Find common patterns
-CLASSES=$(grep -r "^class " --include="*.py" . 2>/dev/null | head -10)
-FUNCTIONS=$(grep -r "^def " --include="*.py" . 2>/dev/null | head -10)
-ASYNC_PATTERNS=$(grep -r "async def\|await " --include="*.py" . 2>/dev/null | head -5)
-DECORATORS=$(grep -r "@" --include="*.py" . 2>/dev/null | grep -v "^[[:space:]]*#" | head -10)
+# Check if MCP server is available
+if [ -d "servers/sage-context-optimizer" ]; then
+    # Run AST-based pattern extraction using CLI
+    REPO_ROOT="$(pwd)"
 
-# Create examples directory structure
+    cd servers/sage-context-optimizer
+
+    # Ensure dependencies are installed
+    if [ ! -d "node_modules" ]; then
+        echo "Installing pattern extractor dependencies..."
+        npm install --silent
+    fi
+
+    # Build if dist doesn't exist
+    if [ ! -d "dist" ]; then
+        echo "Building pattern extractor..."
+        npx tsc
+    fi
+
+    # Extract patterns from repository root
+    node dist/cli.js \
+        --repoPath "$REPO_ROOT" \
+        --outputDir "$REPO_ROOT/.sage/agent/examples" \
+        --samplePercentage 50 \
+        --maxFiles 1000 2>&1 || {
+        echo "⚠️  AST extraction failed, falling back to grep-based extraction"
+        FALLBACK=true
+    }
+
+    cd "$REPO_ROOT"
+else
+    echo "⚠️  sage-context-optimizer not found, using grep-based extraction"
+    FALLBACK=true
+fi
+
+# Fallback to grep-based extraction if AST analysis fails
+if [ "$FALLBACK" = "true" ]; then
+    # Find common patterns using grep (legacy method)
+    CLASSES=$(grep -r "^class " --include="*.py" . 2>/dev/null | head -10)
+    FUNCTIONS=$(grep -r "^def " --include="*.py" . 2>/dev/null | head -10)
+    ASYNC_PATTERNS=$(grep -r "async def\|await " --include="*.py" . 2>/dev/null | head -5)
+    DECORATORS=$(grep -r "@" --include="*.py" . 2>/dev/null | grep -v "^[[:space:]]*#" | head -10)
+fi
+
+# Create examples directory structure for manual patterns
 mkdir -p .sage/agent/examples/python/classes
 mkdir -p .sage/agent/examples/python/functions
 mkdir -p .sage/agent/examples/python/async
 mkdir -p .sage/agent/examples/python/decorators
 mkdir -p .sage/agent/examples/python/testing
 mkdir -p .sage/agent/examples/python/api
-
-# Extract class examples (simplified - actual implementation would be more sophisticated)
-# This is a template - real implementation would use proper code extraction
 ```
+
+**AST Pattern Extraction Features:**
+
+- **Python Analysis**: Function/class naming conventions, type hints, decorators, error handling
+- **TypeScript Analysis**: Interface patterns, module system, export styles, testing frameworks
+- **Confidence Scoring**: Automatic quality scoring based on pattern consistency (70%+ threshold)
+- **Token Optimization**: Patterns stored in format optimized for progressive loading
 
 **Pattern Extraction Categories:**
 
@@ -370,10 +410,29 @@ if [ ! -f ".sage/config.json" ]; then
   "enforcement_level": "BALANCED",
   "configured_at": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
   "initialized": true,
-  "initialization_date": "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+  "initialization_date": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+  "cache": {
+    "enabled": true,
+    "maxAge": 86400,
+    "maxSize": "100MB",
+    "researchPath": ".sage/agent/research",
+    "patternsPath": ".sage/agent/examples"
+  },
+  "patternExtraction": {
+    "enabled": true,
+    "samplePercentage": 50,
+    "maxFilesPerLanguage": 1000,
+    "timeoutPerFile": 5000,
+    "confidenceThreshold": 0.7
+  },
+  "progressiveLoading": {
+    "enabled": true,
+    "levels": ["critical", "core", "extended"],
+    "defaultLevel": "core"
+  }
 }
 EOF
-    echo "✓ Created .sage/config.json"
+    echo "✓ Created .sage/config.json with pattern extraction settings"
 fi
 ```
 
@@ -417,17 +476,40 @@ cat <<'EOF'
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
   .sage/agent/
-    ├── examples/[language]/    [Pattern count] patterns extracted
+    ├── examples/                AST-based patterns extracted
+    │   └── repository-patterns.ts  Validated patterns with confidence scores
     ├── system/                 Baseline documentation generated
     ├── tasks/                  Ready for implementation plans
     ├── sops/                   Ready for procedures
     ├── templates/              Standard templates
-    └── research/               Ready for research outputs
+    └── research/               Ready for research outputs (TTL caching)
 
   docs/
     ├── features/               Feature request location
     ├── research/               Research output location
     └── specs/                  Specifications location
+
+🔬 AST Pattern Extraction Results
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  Python Patterns:
+    • Files analyzed: [Count]
+    • Confidence score: [Score]%
+    • Naming conventions: [Pattern]
+    • Type hint coverage: [Coverage]%
+    • Test framework: [Framework]
+
+  TypeScript Patterns:
+    • Files analyzed: [Count]
+    • Confidence score: [Score]%
+    • Module system: [ESM/CJS]
+    • Export style: [Named/Default]
+    • Test framework: [Framework]
+
+  Token Optimization:
+    • Progressive loading enabled
+    • Default level: core
+    • Estimated reduction: 60-80%
 
 📚 Generated Documentation
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -435,7 +517,8 @@ cat <<'EOF'
   ✓ .sage/agent/system/architecture.md    System architecture baseline
   ✓ .sage/agent/system/tech-stack.md      Technology stack analysis
   ✓ .sage/agent/system/patterns.md        Code pattern documentation
-  ✓ .sage/agent/examples/[language]/      [Count] pattern examples extracted
+  ✓ .sage/agent/examples/repository-patterns.ts  AST-extracted patterns
+  ✓ .sage/config.json                      Pattern extraction configuration
 
 🎯 Next Steps
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
