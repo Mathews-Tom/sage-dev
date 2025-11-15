@@ -2,7 +2,18 @@
 
 Complete reference for all sage-dev commands with workflow visualizations and usage patterns.
 
-**Last Updated:** 2025-10-10
+**Version:** 2.6
+**Last Updated:** 2025-11-16
+
+---
+
+## What's New in v2.6
+
+- **MCP Server Integration**: Pattern extraction, research caching, and progressive loading
+- **Semi-Auto Mode**: Component-level confirmations for 3-5× speedup
+- **Token Optimization**: 60-80% reduction through context-aware pattern loading
+- **Resume Support**: Batch validation and session recovery
+- **Velocity Tracking**: Automated estimation with confidence-driven buffers
 
 ---
 

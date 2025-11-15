@@ -153,7 +153,11 @@ Maintainers review within 3-5 business days.
 ## Getting Help
 
 - **Issues:** <https://github.com/Mathews-Tom/sage-dev/issues>
-- **Documentation:** See README.md and `commands/SAGE.COMMANDS.md`
+- **Quickstart:** See [docs/QUICKSTART.md](docs/QUICKSTART.md)
+- **Installation:** See [docs/INSTALLATION.md](docs/INSTALLATION.md)
+- **Workflows:** See [docs/WORKFLOWS.md](docs/WORKFLOWS.md)
+- **MCP Servers:** See [docs/MCP_SETUP.md](docs/MCP_SETUP.md)
+- **Command Reference:** See [commands/SAGE.COMMANDS.md](commands/SAGE.COMMANDS.md)
 
 ## Acknowledgments
 

@@ -11,6 +11,17 @@ build/
 .python-version
 uv.lock
 
+# Node.js / TypeScript
+node_modules/
+*.tsbuildinfo
+dist/
+build/
+.npm
+.pnp
+.pnp.js
+coverage/
+*.log
+
 # AI Coding Systems
 .claude/
 .opencode/

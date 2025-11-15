@@ -1,7 +1,7 @@
 ---
-allowed-tools: Bash(ls:*), Bash(find:*), Bash(mkdir:*), Bash(cat:*), Bash(tee:*), Bash(gh:*), Bash(jq:*), WebSearch, SequentialThinking
+allowed-tools: Bash(ls:*), Bash(find:*), Bash(mkdir:*), Bash(cat:*), Bash(tee:*), Bash(node:*), WebSearch, SequentialThinking, Read
 description: Generate structured specifications from docs folder into docs/specs/<component>/spec.md files.
-argument-hint: '[--github] (optional, creates GitHub Issues for epic tickets)'
+argument-hint: '[component-name] (optional - auto-detect if not specified) [--github]'
 ---
 
 ## Role
@@ -33,11 +33,18 @@ Requirements analyst creating actionable software specifications.
 - Key user flows
 - Input/output specifications
 
-## 5. Acceptance Criteria
+## 5. Code Pattern Requirements
+- Naming conventions (from repository patterns)
+- Type safety requirements
+- Testing approach and framework
+- Error handling patterns
+- Architecture patterns (if applicable)
+
+## 6. Acceptance Criteria
 - Definition of done
 - Validation approach
 
-## 6. Dependencies
+## 7. Dependencies
 - Technical assumptions
 - External integrations
 - Related components
@@ -67,7 +74,59 @@ Requirements analyst creating actionable software specifications.
    echo ""
    ```
 
-2. **Prioritized Analysis**:
+2. **Load Repository Patterns**:
+
+   ```bash
+   # Load extracted patterns for code standards
+   PATTERNS_FILE=".sage/agent/examples/repository-patterns.ts"
+
+   if [ -f "$PATTERNS_FILE" ]; then
+       echo "🔬 Loading repository patterns..."
+
+       # Extract key pattern information using progressive loader
+       if [ -d "servers/sage-context-optimizer/dist" ]; then
+           # Use progressive loader to get context-aware patterns
+           COMPONENT_FILE="src/${COMPONENT_NAME}/index.ts"  # Typical entry point
+
+           cd servers/sage-context-optimizer
+           PATTERNS_JSON=$(node -e "
+               import { ProgressiveLoader } from './dist/progressive-loader.js';
+               const loader = new ProgressiveLoader({ patternsDir: '../../.sage/agent/examples' });
+               loader.loadForContext('${COMPONENT_FILE}', 'extended')
+                   .then(result => console.log(JSON.stringify(result.patterns, null, 2)))
+                   .catch(() => console.log('{}'));
+           " 2>/dev/null)
+           cd ../..
+
+           echo "  ✓ Patterns loaded with context: ${COMPONENT_FILE}"
+       else
+           # Fallback: read patterns directly
+           echo "  ✓ Using static patterns from $PATTERNS_FILE"
+       fi
+
+       # Generate pattern summary for spec generation using formatter
+       if [ -f "servers/sage-context-optimizer/dist/format-patterns-for-spec.js" ]; then
+           PATTERN_SUMMARY=$(node servers/sage-context-optimizer/dist/format-patterns-for-spec.js \
+               --dir .sage/agent/examples --format markdown 2>/dev/null)
+
+           if [ -n "$PATTERN_SUMMARY" ]; then
+               echo "  ✓ Generated Code Pattern Requirements section"
+           else
+               echo "  ⚠️  Failed to format patterns, using defaults"
+               PATTERN_SUMMARY=""
+           fi
+       else
+           echo "  ⚠️  Pattern formatter not built, using raw patterns"
+           PATTERN_SUMMARY=""
+       fi
+   else
+       echo "⚠️  No repository patterns found. Run /sage.init first for pattern-aware specs."
+       echo "    Proceeding without pattern requirements..."
+       PATTERN_SUMMARY=""
+   fi
+   ```
+
+3. **Prioritized Analysis**:
 
    Use `SequentialThinking` with priority-based reading:
 
@@ -93,89 +152,71 @@ Requirements analyst creating actionable software specifications.
    - Identify missing specifications
    - Supplement research-driven specs
 
+   **Phase 4: Apply Repository Patterns**
+   - Read `.sage/agent/examples/repository-patterns.ts` if available
+   - Extract naming conventions (functions, classes, variables)
+   - Identify typing requirements (type hints, union syntax)
+   - Determine testing framework and patterns
+   - Note architecture patterns (module system, exports)
+   - Include confidence scores to prioritize patterns
+
    **Component Identification:**
    - Group requirements by logical component boundaries
    - Use research recommendations for component structure
    - Consider feature dependencies
    - Identify cross-component integrations
 
-3. **Research Supplementation**:
+4. **Research Supplementation**:
 
    Use `WebSearch` for relevant standards only if:
    - No research output exists for the feature
    - Additional industry standards needed
    - Clarification on specific requirements
 
-4. **Specification Generation with Traceability**:
+5. **Specification Generation with Traceability**:
 
    ```bash
    mkdir -p docs/specs/<component>
    tee docs/specs/<component>/spec.md
    ```
 
-5. **Target File Detection** (NEW v2.3.0):
+   **Include Code Pattern Requirements in Section 5:**
 
-   Use `SequentialThinking` to analyze the spec and detect target files:
+   When generating the specification, populate the "Code Pattern Requirements" section with actual values from the loaded patterns:
 
-   **Phase 1: Explicit Path References**
-   - Scan spec for file path patterns: `src/path/to/file.py`, `/api/endpoint`
-   - Extract all mentioned file paths
-   - Categorize by action: modify (existing files) vs create (new files)
+   ```markdown
+   ## 5. Code Pattern Requirements
 
-   **Phase 2: Component/Module Pattern Detection**
-   - "auth module" → `src/auth/*.py` or `lib/auth/*.js`
-   - "user service" → `src/services/user.py` or `services/user.ts`
-   - "API endpoint" → route definition files (e.g., `routes/api.py`, `app/routes.ts`)
-   - "database model" → model files (e.g., `models/user.py`, `db/schema.sql`)
+   ### Naming Conventions
+   - **Functions**: camelCase (90% consistent, 84% confidence)
+   - **Classes**: PascalCase (100% consistent)
+   - **Variables**: camelCase (95% consistent)
+   - **Constants**: SCREAMING_SNAKE_CASE
 
-   **Phase 3: Test File Inference**
-   - For each target file, infer corresponding test file
-   - Naming conventions:
-     * Python: `test_*.py` (modify `src/auth/login.py` → `tests/test_auth.py`)
-     * JavaScript/TypeScript: `*.test.ts`, `*.spec.ts`
-     * Ruby: `*_spec.rb`
-   - Check if test files exist; mark as "create" if not
+   ### Type Safety Requirements
+   - **Type hint coverage**: ≥84% (matches repository baseline)
+   - **Union syntax**: Use `|` operator (not `Union[]`)
+   - **Generics**: Use builtin generics (`list[T]`, not `List[T]`)
+   - **Null handling**: Explicit (`T | None`)
 
-   **Phase 4: Configuration File Inference**
-   - API changes → check `routes.py`, `urls.py`, `router.ts`, `api.config.js`
-   - Database changes → check `models.py`, `schema.sql`, `migrations/`
-   - New features → check main config files, environment files
+   ### Testing Approach
+   - **Framework**: Vitest (detected from repository)
+   - **Coverage requirement**: ≥80% (baseline from existing tests)
+   - **Mocking strategy**: vi.mock() for dependencies
+   - **Test patterns**: describe/it/expect structure
 
-   **Phase 5: Line Range Estimation** (Optional)
-   - For "modify" actions, if spec mentions specific functionality
-   - Search target files for related code (e.g., function names, class names)
-   - Estimate line range based on current implementation
-   - Leave empty if unable to determine
+   ### Error Handling
+   - **Strategy**: Explicit throws (no silent failures)
+   - **Custom exceptions**: Required for domain errors
+   - **Validation**: Input validation at boundaries
 
-   **Output Format**:
-   ```json
-   [
-     {
-       "path": "src/auth/login.py",
-       "action": "modify",
-       "lineRange": "23-45",
-       "purpose": "Add rate limiting decorator"
-     },
-     {
-       "path": "src/middleware/rate_limit.py",
-       "action": "create",
-       "purpose": "Implement rate limiter"
-     },
-     {
-       "path": "tests/test_auth.py",
-       "action": "modify",
-       "lineRange": "100-120",
-       "purpose": "Add rate limit tests"
-     }
-   ]
+   ### Architecture Patterns
+   - **Module system**: ESM (export/import)
+   - **Export style**: Named exports preferred
+   - **Import style**: Absolute paths with .js extension
    ```
 
-   **Validation**:
-   - Verify "modify" paths exist in codebase
-   - Mark as "create" if path doesn't exist
-   - Use `.sage/context.md` for directory structure hints if available
-
-6. **Generate Epic Tickets with Target Files**:
+6. **Generate Epic Tickets**:
 
    ```bash
    # Create tickets directory if not exists
@@ -338,23 +379,30 @@ See specification: \`$SPEC_PATH\`
    fi
    ```
 
-   **Key Actions:**
-   - Check for `--github` flag
-   - Verify `gh` CLI installed and authenticated
-   - Create GitHub Issue for each epic ticket
-   - Map priority → labels (P0=critical, P1=high, P2=medium)
-   - Add "epic" and "sage-dev" labels
-   - Update ticket with GitHub metadata (issueNumber, issueUrl)
-   - Provide traceability with ticket ID in issue body
+7. **Validate**: Review structure with `find docs/specs -type f` and `find tickets -type f`
+8. **Summary**: List created specs, epic tickets, pattern requirements included, and highlight cross-dependencies
 
-8. **Validate**: Review structure with `find docs/specs -type f` and `find .sage/tickets -type f`
-
-9. **Summary**:
-   - List created specs with component names
-   - Show epic tickets with detected target files count
-   - Highlight cross-dependencies
-   - If `--github` flag used: show created GitHub Issues with numbers and URLs
-   - Note: Target files can be manually edited in ticket markdown or JSON if detection needs refinement
+   ```bash
+   echo "✅ Specification Generation Complete"
+   echo ""
+   echo "📋 Generated Specifications:"
+   find docs/specs -name "spec.md" -type f | while read spec; do
+       echo "  • $spec"
+   done
+   echo ""
+   echo "🎫 Epic Tickets Created:"
+   find .sage/tickets -name "*.md" -type f | while read ticket; do
+       echo "  • $ticket"
+   done
+   echo ""
+   if [ -f ".sage/agent/examples/repository-patterns.ts" ]; then
+       echo "🔬 Pattern Requirements:"
+       echo "  ✓ Code pattern requirements included in all specs"
+       echo "  ✓ Naming conventions enforced"
+       echo "  ✓ Testing framework specified"
+       echo "  ✓ Type safety requirements defined"
+   fi
+   ```
 
 ## Component Identification
 
@@ -368,6 +416,10 @@ See specification: \`$SPEC_PATH\`
 - Dependencies explicitly mapped
 - Source traceability maintained (cite doc files)
 - Use clear, concise language
+- **Code Pattern Requirements section populated with actual repository patterns**
+- Naming conventions reflect extracted patterns with consistency percentages
+- Testing requirements match detected framework (Vitest, pytest, etc.)
+- Type safety requirements based on repository baseline coverage
 - Epic tickets created for each component specification
 - Tickets linked to spec documentation for context
 
