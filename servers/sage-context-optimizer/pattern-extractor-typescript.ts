@@ -305,6 +305,12 @@ function aggregatePatterns(
   const typeConf = calculateConfidence(typeConventions);
   const constConf = calculateConfidence(constConventions);
 
+  if (funcConf.dominantPattern === 'unknown') funcConf.dominantPattern = 'camelCase';
+  if (classConf.dominantPattern === 'unknown') classConf.dominantPattern = 'PascalCase';
+  if (ifaceConf.dominantPattern === 'unknown') ifaceConf.dominantPattern = 'PascalCase';
+  if (typeConf.dominantPattern === 'unknown') typeConf.dominantPattern = 'PascalCase';
+  if (constConf.dominantPattern === 'unknown') constConf.dominantPattern = 'UPPER_SNAKE_CASE';
+
   let unionSyntax: 'pipe' | 'Union' | 'mixed' = 'mixed';
   if (unionPipeCount > unionGenericCount * 2) unionSyntax = 'pipe';
   else if (unionGenericCount > unionPipeCount * 2) unionSyntax = 'Union';

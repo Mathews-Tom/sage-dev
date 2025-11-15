@@ -334,6 +334,11 @@ function aggregatePatterns(
   const constConf = calculateConfidence(constantConventions);
   const varConf = calculateConfidence(variableConventions);
 
+  if (funcConf.dominantPattern === 'unknown') funcConf.dominantPattern = 'snake_case';
+  if (classConf.dominantPattern === 'unknown') classConf.dominantPattern = 'PascalCase';
+  if (constConf.dominantPattern === 'unknown') constConf.dominantPattern = 'UPPER_SNAKE_CASE';
+  if (varConf.dominantPattern === 'unknown') varConf.dominantPattern = 'snake_case';
+
   const hintsWithType = typeHints.filter((h) => h.hasHint).length;
   const typeHintCoverage = typeHints.length > 0 ? (hintsWithType / typeHints.length) * 100 : 0;
 
