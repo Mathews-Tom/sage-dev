@@ -17,6 +17,7 @@ import {
   mergePatterns,
 } from './schemas/repository-patterns.js';
 import { basename } from 'path';
+import { ProgressiveLoader } from './progressive-loader.js';
 
 const DEFAULT_PATTERNS_DIR = '.sage/agent/examples';
 
@@ -28,6 +29,12 @@ const ExtractPatternsSchema = z.object({
 });
 
 const LoadPatternsSchema = z.object({
+  patternsDir: z.string().default(DEFAULT_PATTERNS_DIR),
+});
+
+const LoadProgressiveSchema = z.object({
+  filePath: z.string(),
+  level: z.enum(['critical', 'core', 'extended']).default('core'),
   patternsDir: z.string().default(DEFAULT_PATTERNS_DIR),
 });
 
@@ -101,6 +108,31 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
               default: DEFAULT_PATTERNS_DIR,
             },
           },
+        },
+      },
+      {
+        name: 'load_patterns_progressive',
+        description: 'Load patterns progressively based on task context. Filters patterns by file type, feature area, and loading level to reduce token usage by 90%+.',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            filePath: {
+              type: 'string',
+              description: 'Path to the file being worked on (used to detect context)',
+            },
+            level: {
+              type: 'string',
+              enum: ['critical', 'core', 'extended'],
+              description: 'Loading level: critical (minimal), core (standard), extended (all)',
+              default: 'core',
+            },
+            patternsDir: {
+              type: 'string',
+              description: 'Directory containing the patterns file',
+              default: DEFAULT_PATTERNS_DIR,
+            },
+          },
+          required: ['filePath'],
         },
       },
     ],
@@ -242,6 +274,34 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           {
             type: 'text',
             text: display,
+          },
+        ],
+      };
+    }
+
+    case 'load_patterns_progressive': {
+      const { filePath, level, patternsDir } = LoadProgressiveSchema.parse(args);
+      const loader = new ProgressiveLoader({ patternsDir });
+      const result = await loader.loadForContext(filePath, level);
+
+      return {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify({
+              success: true,
+              filePath: result.context.filePath,
+              detectedContext: {
+                fileType: result.context.fileType,
+                feature: result.context.feature,
+                domain: result.context.domain,
+              },
+              loadingLevel: result.level,
+              tokenCount: result.tokenCount,
+              reductionPercentage: `${result.reductionPercentage.toFixed(1)}%`,
+              loadTimeMs: result.loadTimeMs,
+              patterns: result.patterns,
+            }),
           },
         ],
       };
