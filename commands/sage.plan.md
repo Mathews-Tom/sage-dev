@@ -1,5 +1,5 @@
 ---
-allowed-tools: Bash(find:*), Bash(cat:*), Bash(tee:*), Bash(grep:*), WebSearch, SequentialThinking
+allowed-tools: Bash(find:*), Bash(cat:*), Bash(tee:*), Bash(grep:*), Bash(node:*), Bash(npx:*), WebSearch, SequentialThinking
 description: Generate research-backed implementation plans from specifications.
 ---
 
@@ -24,10 +24,56 @@ Senior software architect creating actionable technical implementation plans.
    # Priority 4: Code examples (from /sage.init)
    EXAMPLE_DIRS=$(find .sage/agent/examples -type d -mindepth 1 -maxdepth 2 2>/dev/null | sort)
 
-   # Priority 5: System documentation
+   # Priority 5: Repository patterns (from progressive loader)
+   PATTERNS_FILE=".sage/agent/examples/repository-patterns.ts"
+   if [ -f "$PATTERNS_FILE" ] && [ -d "servers/sage-context-optimizer/dist" ]; then
+       echo "🔬 Loading repository patterns for architecture planning..."
+
+       # Load patterns with extended level for comprehensive planning
+       cd servers/sage-context-optimizer
+       PATTERN_JSON=$(node -e "
+           import { loadPatterns } from './dist/utils/pattern-storage.js';
+           loadPatterns('../../.sage/agent/examples')
+               .then(patterns => {
+                   if (patterns) {
+                       console.log(JSON.stringify({
+                           primaryLanguage: patterns.primaryLanguage,
+                           confidence: patterns.overallConfidence,
+                           languages: Object.keys(patterns.languages),
+                           metadata: patterns.metadata
+                       }, null, 2));
+                   } else {
+                       console.log('null');
+                   }
+               })
+               .catch(() => console.log('null'));
+       " 2>/dev/null)
+       cd ../..
+
+       if [ "$PATTERN_JSON" != "null" ] && [ -n "$PATTERN_JSON" ]; then
+           PATTERN_LANG=$(echo "$PATTERN_JSON" | jq -r '.primaryLanguage')
+           PATTERN_CONFIDENCE=$(echo "$PATTERN_JSON" | jq -r '.confidence')
+           PATTERN_LANGS=$(echo "$PATTERN_JSON" | jq -r '.languages | join(", ")')
+           echo "  ✓ Patterns loaded"
+           echo "    Primary language: $PATTERN_LANG"
+           echo "    Overall confidence: $(echo "$PATTERN_CONFIDENCE * 100" | bc)%"
+           echo "    Languages: $PATTERN_LANGS"
+           LOADED_PATTERNS="$PATTERN_JSON"
+       else
+           echo "  ⚠️  Failed to load patterns"
+           LOADED_PATTERNS=""
+       fi
+   else
+       echo "🔬 Repository patterns: Not available"
+       echo "    Run /sage.init to extract patterns"
+       LOADED_PATTERNS=""
+   fi
+   echo ""
+
+   # Priority 6: System documentation
    SYSTEM_DOCS=$(find .sage/agent/system -type f -name "*.md" 2>/dev/null | sort)
 
-   # Priority 6: Other documentation
+   # Priority 7: Other documentation
    OTHER_DOCS=$(find docs -type f -name "*.md" ! -path "*/specs/*" ! -path "*/research/*" ! -path "*/features/*" 2>/dev/null | sort)
 
    echo "📚 Context Assembly for PRP Generation"
@@ -35,6 +81,9 @@ Senior software architect creating actionable technical implementation plans.
    echo "  Research outputs: $(echo "$RESEARCH_FILES" | wc -l) files"
    echo "  Feature requests: $(echo "$FEATURE_FILES" | wc -l) files"
    echo "  Code example categories: $(echo "$EXAMPLE_DIRS" | wc -l)"
+   if [ -n "$LOADED_PATTERNS" ]; then
+       echo "  Repository patterns: ✓ ($(echo "$LOADED_PATTERNS" | jq -r '.primaryLanguage'))"
+   fi
    echo "  System docs: $(echo "$SYSTEM_DOCS" | wc -l) files"
    echo ""
    ```
@@ -54,6 +103,12 @@ Senior software architect creating actionable technical implementation plans.
    - Match patterns to component requirements
    - Identify reusable implementation approaches
    - Note framework-specific patterns
+   - **If repository patterns loaded:**
+     - Apply naming conventions (function/class/variable patterns)
+     - Use detected testing framework for test strategy
+     - Follow module system and export patterns
+     - Maintain type safety requirements (coverage threshold, union syntax)
+     - Enforce error handling patterns (explicit throws, validation)
 
    **Phase 3: Architecture Context**
    - Read `.sage/agent/system/architecture.md` for system context
