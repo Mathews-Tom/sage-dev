@@ -1,6 +1,7 @@
 ---
-allowed-tools: Bash(find:*), Bash(cat:*), Bash(head:*), Bash(tee:*), WebSearch, SequentialThinking
+allowed-tools: Bash(find:*), Bash(cat:*), Bash(head:*), Bash(tee:*), Bash(node:*), Bash(npx:*), WebSearch, SequentialThinking
 description: Generate SMART task breakdowns from specifications and implementation plans.
+argument-hint: '[--github] (optional, creates GitHub Issues for story tickets)'
 ---
 
 ## Role
@@ -15,19 +16,95 @@ Senior project manager creating actionable, estimable task breakdowns.
    find docs/specs -type f \( -name "spec.md" -o -name "plan.md" \)
    ```
 
-2. **Analyze**:
+2. **Load Repository Patterns**:
+
+   ```bash
+   # Load patterns for complexity estimation
+   PATTERNS_FILE=".sage/agent/examples/repository-patterns.ts"
+
+   if [ -f "$PATTERNS_FILE" ] && [ -d "servers/sage-context-optimizer/dist" ]; then
+       echo "🔬 Loading repository patterns for task estimation..."
+
+       # Get pattern information for complexity scoring
+       cd servers/sage-context-optimizer
+       PATTERN_INFO=$(node -e "
+           import { loadPatterns, formatPatternsForDisplay } from './dist/utils/pattern-storage.js';
+           loadPatterns('../../.sage/agent/examples')
+               .then(patterns => {
+                   if (patterns) {
+                       const info = {
+                           primaryLanguage: patterns.primaryLanguage,
+                           confidence: patterns.overallConfidence,
+                           testing: patterns.languages[patterns.primaryLanguage]?.testing || {},
+                           naming: patterns.languages[patterns.primaryLanguage]?.naming || {},
+                       };
+                       console.log(JSON.stringify(info, null, 2));
+                   } else {
+                       console.log('null');
+                   }
+               })
+               .catch(() => console.log('null'));
+       " 2>/dev/null)
+       cd ../..
+
+       if [ "$PATTERN_INFO" != "null" ] && [ -n "$PATTERN_INFO" ]; then
+           PATTERN_LANG=$(echo "$PATTERN_INFO" | jq -r '.primaryLanguage')
+           PATTERN_CONFIDENCE=$(echo "$PATTERN_INFO" | jq -r '.confidence')
+           TEST_FRAMEWORK=$(echo "$PATTERN_INFO" | jq -r '.testing.framework // "unknown"')
+
+           echo "  ✓ Patterns loaded for estimation"
+           echo "    Primary language: $PATTERN_LANG"
+           echo "    Pattern confidence: $(echo "$PATTERN_CONFIDENCE * 100" | bc)%"
+           echo "    Testing framework: $TEST_FRAMEWORK"
+           echo ""
+
+           # High confidence = faster implementation, lower estimates
+           # Low confidence = more uncertainty, higher buffer
+           if (( $(echo "$PATTERN_CONFIDENCE > 0.8" | bc -l) )); then
+               COMPLEXITY_FACTOR="Low"
+               ESTIMATE_BUFFER="1.1"
+           elif (( $(echo "$PATTERN_CONFIDENCE > 0.6" | bc -l) )); then
+               COMPLEXITY_FACTOR="Medium"
+               ESTIMATE_BUFFER="1.3"
+           else
+               COMPLEXITY_FACTOR="High"
+               ESTIMATE_BUFFER="1.5"
+           fi
+
+           echo "  📊 Estimation factors:"
+           echo "    Complexity: $COMPLEXITY_FACTOR"
+           echo "    Estimate buffer: ${ESTIMATE_BUFFER}x"
+           echo ""
+       else
+           echo "  ⚠️  Failed to load patterns"
+           COMPLEXITY_FACTOR="High"
+           ESTIMATE_BUFFER="1.5"
+       fi
+   else
+       echo "🔬 Repository patterns: Not available"
+       echo "    Estimates will use conservative defaults"
+       COMPLEXITY_FACTOR="High"
+       ESTIMATE_BUFFER="1.5"
+   fi
+   ```
+
+3. **Analyze**:
    - `cat` spec.md and plan.md files
    - `head -n 50` to preview each file
    - Use `SequentialThinking` to identify dependencies and critical path
+   - **Apply pattern complexity factors to estimates:**
+     - Low complexity (confidence >80%): Reduce estimates by 10%
+     - Medium complexity (confidence 60-80%): Use baseline estimates
+     - High complexity (confidence <60%): Add 30-50% buffer
 
-3. **Research**: `WebSearch` for:
+4. **Research**: `WebSearch` for:
    - Estimation benchmarks for similar features
    - Common implementation risks and mitigation
    - Team velocity data for technology stack
 
-4. **Generate Task Breakdown**: `tee docs/specs/<component>/tasks.md` per component
+5. **Generate Task Breakdown**: `tee docs/specs/<component>/tasks.md` per component
 
-5. **Generate Story and Subtask Tickets**:
+6. **Generate Story and Subtask Tickets**:
 
    ```bash
    # Load .sage/tickets/index.json
@@ -77,12 +154,12 @@ Senior project manager creating actionable, estimable task breakdowns.
    # - dependencies from task breakdown
    ```
 
-6. **Maintain Hierarchy**:
+7. **Maintain Hierarchy**:
    - Epic (from /specify) → Story (from /tasks) → Subtask (detailed tasks)
    - Update parent epic with children array
    - Link dependencies between related tasks
 
-7. **Validate**: Ensure all phases have measurable deliverables and corresponding tickets
+8. **Validate**: Ensure all phases have measurable deliverables and corresponding tickets
 
 ## Task Template
 
